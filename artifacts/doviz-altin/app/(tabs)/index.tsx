@@ -16,13 +16,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useApp, CurrencyRate } from "@/contexts/AppContext";
 import { PriceCard } from "@/components/PriceCard";
+import { AssetIcon } from "@/components/AssetIcon";
 
 function TickerItem({ item, colors }: { item: CurrencyRate; colors: any }) {
   const isPositive = item.changePercent >= 0;
   return (
     <View style={{ flexDirection: "row", alignItems: "center", marginRight: 24 }}>
       <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, marginRight: 4 }}>
-        {item.flag} {item.code}
+        {item.code}
       </Text>
       <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: colors.foreground, marginRight: 3 }}>
         {item.buy >= 10 ? item.buy.toFixed(4) : item.buy.toFixed(4)}
@@ -42,7 +43,8 @@ export default function MarketScreen() {
   const [searchQuery] = useState("");
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
-  const bottomPadding = Platform.OS === "web" ? 84 : insets.bottom + 60;
+  const isAndroid = Platform.OS === "android";
+  const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
 
   const displayCurrencies = activeTab === "favorites"
     ? currencies.filter((c) => favorites.includes(c.code))

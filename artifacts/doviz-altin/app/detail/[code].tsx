@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
+import { AssetIcon } from "@/components/AssetIcon";
 import { FullChart } from "@/components/FullChart";
 
 function AddAlertModal({
@@ -158,9 +159,13 @@ export default function DetailScreen() {
         </View>
 
         <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-          <Text style={{ fontSize: 36, marginRight: 12 }}>
-            {type === "currency" ? (item.flag ?? "💱") : (item.icon ?? "🪙")}
-          </Text>
+          <View style={{ marginRight: 12 }}>
+            <AssetIcon
+              code={type === "currency" ? (item.flag ?? code!) : code!}
+              type={type ?? "currency"}
+              size={48}
+            />
+          </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 22, fontFamily: "Inter_700Bold", color: type === "gold" ? "#FFD700" : colors.foreground, letterSpacing: -0.3 }}>
               {code}

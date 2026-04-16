@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { CurrencyRate, GoldRate } from "@/contexts/AppContext";
+import { AssetIcon } from "@/components/AssetIcon";
 
 interface PriceCardProps {
   item: CurrencyRate | GoldRate;
@@ -98,8 +99,8 @@ export function PriceCard({
       justifyContent: "center",
       marginRight: 12,
     },
-    iconText: { fontSize: compact ? 18 : 22 },
-    nameContainer: { flex: 1 },
+    iconText: { fontSize: compact ? 18 : 22, display: "none" },
+    nameContainer: { flex: 1, marginLeft: 12 },
     code: {
       fontSize: compact ? 15 : 17,
       fontFamily: "Inter_700Bold",
@@ -137,13 +138,11 @@ export function PriceCard({
       <Pressable onPress={handlePress} style={styles.card}>
         <Animated.View style={[styles.flash, flashStyle]} pointerEvents="none" />
         <View style={styles.row}>
-          <View style={styles.iconContainer}>
-            <Text style={styles.iconText}>
-              {type === "currency"
-                ? (item as CurrencyRate).flag ?? "💱"
-                : (item as GoldRate).icon ?? "🪙"}
-            </Text>
-          </View>
+          <AssetIcon
+            code={type === "currency" ? ((item as CurrencyRate).flag ?? item.code) : item.code}
+            type={type}
+            size={compact ? 36 : 44}
+          />
           <View style={styles.nameContainer}>
             <Text style={styles.code}>{item.code}</Text>
             <Text style={styles.name} numberOfLines={1}>{item.nameTR}</Text>

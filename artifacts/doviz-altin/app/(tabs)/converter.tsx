@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
+import { AssetIcon } from "@/components/AssetIcon";
 
 function CurrencyPickerModal({
   visible,
@@ -30,9 +31,9 @@ function CurrencyPickerModal({
   const { currencies, goldRates } = useApp();
   const insets = useSafeAreaInsets();
   const allAssets = [
-    { code: "TRY", nameTR: "Türk Lirası", icon: "₺", type: "currency" },
-    ...currencies.map((c) => ({ code: c.code, nameTR: c.nameTR, icon: (c as any).flag ?? "💱", type: "currency" })),
-    ...goldRates.map((g) => ({ code: g.code, nameTR: g.nameTR, icon: (g as any).icon ?? "🪙", type: "gold" })),
+    { code: "TRY", nameTR: "Türk Lirası", assetType: "currency" as const },
+    ...currencies.map((c) => ({ code: c.code, nameTR: c.nameTR, assetType: "currency" as const })),
+    ...goldRates.map((g) => ({ code: g.code, nameTR: g.nameTR, assetType: "gold" as const })),
   ];
 
   return (
@@ -52,7 +53,9 @@ function CurrencyPickerModal({
               onPress={() => { onSelect(item.code); onClose(); }}
               style={{ flexDirection: "row", alignItems: "center", padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}
             >
-              <Text style={{ fontSize: 22, marginRight: 14 }}>{item.icon}</Text>
+              <View style={{ marginRight: 14 }}>
+                <AssetIcon code={item.code} type={item.assetType} size={36} />
+              </View>
               <View>
                 <Text style={{ fontSize: 15, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>{item.code}</Text>
                 <Text style={{ fontSize: 12, fontFamily: "Inter_400Regular", color: colors.mutedForeground }}>{item.nameTR}</Text>
@@ -78,12 +81,13 @@ export default function ConverterScreen() {
   const [showToPicker, setShowToPicker] = useState(false);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
-  const bottomPadding = Platform.OS === "web" ? 84 : insets.bottom + 60;
+  const isAndroid = Platform.OS === "android";
+  const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
 
   const allAssets = [
-    { code: "TRY", nameTR: "Türk Lirası", icon: "₺", buy: 1, sell: 1 },
-    ...currencies.map((c) => ({ ...c, icon: (c as any).flag ?? "💱" })),
-    ...goldRates.map((g) => ({ ...g, icon: (g as any).icon ?? "🪙" })),
+    { code: "TRY", nameTR: "Türk Lirası", buy: 1, sell: 1, assetType: "currency" as const },
+    ...currencies.map((c) => ({ ...c, assetType: "currency" as const })),
+    ...goldRates.map((g) => ({ ...g, assetType: "gold" as const })),
   ] as any[];
 
   const fromAsset = allAssets.find((a) => a.code === fromCode);
@@ -217,7 +221,9 @@ export default function ConverterScreen() {
       >
         <View style={styles.converterCard}>
           <Pressable style={styles.currencySelector} onPress={() => setShowFromPicker(true)}>
-            <Text style={styles.currencyIcon}>{fromAsset?.icon ?? "💱"}</Text>
+            <View style={{ marginRight: 12 }}>
+              <AssetIcon code={fromCode} type={fromAsset?.assetType ?? "currency"} size={40} />
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.currencyCode}>{fromCode}</Text>
               <Text style={styles.currencyName} numberOfLines={1}>{fromAsset?.nameTR ?? ""}</Text>
@@ -242,7 +248,9 @@ export default function ConverterScreen() {
               style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}
               onPress={() => setShowToPicker(true)}
             >
-              <Text style={styles.currencyIcon}>{toAsset?.icon ?? "💱"}</Text>
+              <View style={{ marginRight: 12 }}>
+                <AssetIcon code={toCode} type={toAsset?.assetType ?? "currency"} size={40} />
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.currencyCode}>{toCode}</Text>
                 <Text style={styles.currencyName}>{toAsset?.nameTR ?? ""}</Text>
@@ -287,12 +295,16 @@ export default function ConverterScreen() {
                     setAmount("1");
                   }}
                 >
-                  <Text style={{ fontSize: 14, marginRight: 8 }}>{fromA?.icon ?? "💱"}</Text>
+                  <View style={{ marginRight: 8 }}>
+                    <AssetIcon code={pair.from} type={fromA?.assetType ?? "currency"} size={24} />
+                  </View>
                   <Text style={{ fontSize: 14, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>
                     1 {pair.from}
                   </Text>
                   <Ionicons name="arrow-forward" size={14} color={colors.mutedForeground} style={{ marginHorizontal: 8 }} />
-                  <Text style={{ fontSize: 14, marginRight: 6 }}>{toA?.icon ?? "💱"}</Text>
+                  <View style={{ marginRight: 6 }}>
+                    <AssetIcon code={pair.to} type={toA?.assetType ?? "currency"} size={24} />
+                  </View>
                   <Text style={{ flex: 1, fontSize: 14, fontFamily: "Inter_600SemiBold", color: colors.primary, textAlign: "right" }}>
                     {formatResult(res)} {pair.to}
                   </Text>

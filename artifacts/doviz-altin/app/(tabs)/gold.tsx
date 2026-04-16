@@ -67,7 +67,8 @@ export default function GoldScreen() {
   const { goldRates, favorites, toggleFavorite, isLoading, refreshData } = useApp();
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
-  const bottomPadding = Platform.OS === "web" ? 84 : insets.bottom + 60;
+  const isAndroid = Platform.OS === "android";
+  const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },

@@ -13,6 +13,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useApp, NewsItem, EconomicEvent } from "@/contexts/AppContext";
+import { AssetIcon } from "@/components/AssetIcon";
 
 function NewsCard({ item, colors }: { item: NewsItem; colors: any }) {
   const timeAgo = (dateStr: string) => {
@@ -57,7 +58,9 @@ function EventCard({ event, colors }: { event: EconomicEvent; colors: any }) {
   return (
     <View style={{ backgroundColor: colors.card, borderRadius: colors.radius, padding: 14, borderWidth: 1, borderColor: colors.border, borderLeftWidth: 3, borderLeftColor: impactColor }}>
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-        <Text style={{ fontSize: 18, marginRight: 8 }}>{event.flag}</Text>
+        <View style={{ marginRight: 8 }}>
+          <AssetIcon code={event.flag} type="country" size={28} />
+        </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 10, fontFamily: "Inter_500Medium", color: colors.mutedForeground }}>
             {event.country} • {event.time} {isToday ? "• Bugün" : ""}
@@ -103,7 +106,8 @@ export default function MoreScreen() {
   const [activeTab, setActiveTab] = useState<"news" | "calendar">("news");
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
-  const bottomPadding = Platform.OS === "web" ? 84 : insets.bottom + 60;
+  const isAndroid = Platform.OS === "android";
+  const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },

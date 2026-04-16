@@ -127,7 +127,7 @@ const DEMO_CURRENCIES: CurrencyRate[] = [
     change: 0.1240,
     changePercent: 0.325,
     prevClose: 38.1300,
-    flag: "🇺🇸",
+    flag: "US",
   },
   {
     code: "EUR",
@@ -138,7 +138,7 @@ const DEMO_CURRENCIES: CurrencyRate[] = [
     change: -0.0980,
     changePercent: -0.238,
     prevClose: 41.2800,
-    flag: "🇪🇺",
+    flag: "EU",
   },
   {
     code: "GBP",
@@ -149,7 +149,7 @@ const DEMO_CURRENCIES: CurrencyRate[] = [
     change: 0.2140,
     changePercent: 0.444,
     prevClose: 48.0820,
-    flag: "🇬🇧",
+    flag: "GB",
   },
   {
     code: "CHF",
@@ -160,7 +160,7 @@ const DEMO_CURRENCIES: CurrencyRate[] = [
     change: -0.1560,
     changePercent: -0.363,
     prevClose: 43.0010,
-    flag: "🇨🇭",
+    flag: "CH",
   },
   {
     code: "JPY",
@@ -171,7 +171,7 @@ const DEMO_CURRENCIES: CurrencyRate[] = [
     change: 0.0012,
     changePercent: 0.486,
     prevClose: 0.2470,
-    flag: "🇯🇵",
+    flag: "JP",
   },
   {
     code: "SAR",
@@ -182,7 +182,7 @@ const DEMO_CURRENCIES: CurrencyRate[] = [
     change: 0.0320,
     changePercent: 0.315,
     prevClose: 10.1500,
-    flag: "🇸🇦",
+    flag: "SA",
   },
   {
     code: "AED",
@@ -193,7 +193,7 @@ const DEMO_CURRENCIES: CurrencyRate[] = [
     change: 0.0340,
     changePercent: 0.327,
     prevClose: 10.3780,
-    flag: "🇦🇪",
+    flag: "AE",
   },
   {
     code: "CAD",
@@ -204,7 +204,7 @@ const DEMO_CURRENCIES: CurrencyRate[] = [
     change: -0.0420,
     changePercent: -0.154,
     prevClose: 27.3260,
-    flag: "🇨🇦",
+    flag: "CA",
   },
   {
     code: "AUD",
@@ -215,7 +215,7 @@ const DEMO_CURRENCIES: CurrencyRate[] = [
     change: 0.0890,
     changePercent: 0.372,
     prevClose: 23.9230,
-    flag: "🇦🇺",
+    flag: "AU",
   },
   {
     code: "CNY",
@@ -226,7 +226,7 @@ const DEMO_CURRENCIES: CurrencyRate[] = [
     change: 0.0140,
     changePercent: 0.265,
     prevClose: 5.2700,
-    flag: "🇨🇳",
+    flag: "CN",
   },
 ];
 
@@ -240,7 +240,7 @@ const DEMO_GOLD: GoldRate[] = [
     change: 24.80,
     changePercent: 0.604,
     unit: "gr",
-    icon: "🥇",
+    icon: "ALTIN",
   },
   {
     code: "CEYREK",
@@ -251,7 +251,7 @@ const DEMO_GOLD: GoldRate[] = [
     change: 38.20,
     changePercent: 0.559,
     unit: "adet",
-    icon: "🪙",
+    icon: "CEYREK",
   },
   {
     code: "YARIM",
@@ -262,7 +262,7 @@ const DEMO_GOLD: GoldRate[] = [
     change: 76.40,
     changePercent: 0.559,
     unit: "adet",
-    icon: "🪙",
+    icon: "YARIM",
   },
   {
     code: "TAM",
@@ -273,7 +273,7 @@ const DEMO_GOLD: GoldRate[] = [
     change: 152.80,
     changePercent: 0.559,
     unit: "adet",
-    icon: "🪙",
+    icon: "TAM",
   },
   {
     code: "ATA",
@@ -284,7 +284,7 @@ const DEMO_GOLD: GoldRate[] = [
     change: 161.20,
     changePercent: 0.558,
     unit: "adet",
-    icon: "🏅",
+    icon: "ATA",
   },
   {
     code: "ATA5",
@@ -295,7 +295,7 @@ const DEMO_GOLD: GoldRate[] = [
     change: 806.00,
     changePercent: 0.560,
     unit: "adet",
-    icon: "🏅",
+    icon: "ATA5",
   },
   {
     code: "GRAM22",
@@ -306,7 +306,7 @@ const DEMO_GOLD: GoldRate[] = [
     change: 21.60,
     changePercent: 0.574,
     unit: "gr",
-    icon: "📿",
+    icon: "GRAM22",
   },
   {
     code: "RESAT",
@@ -317,7 +317,7 @@ const DEMO_GOLD: GoldRate[] = [
     change: 163.00,
     changePercent: 0.560,
     unit: "adet",
-    icon: "🏅",
+    icon: "RESAT",
   },
   {
     code: "GUMUS",
@@ -328,7 +328,7 @@ const DEMO_GOLD: GoldRate[] = [
     change: 0.28,
     changePercent: 0.588,
     unit: "gr",
-    icon: "🥈",
+    icon: "GUMUS",
   },
 ];
 
@@ -395,7 +395,7 @@ const DEMO_EVENTS: EconomicEvent[] = [
     date: "2026-04-17",
     time: "15:30",
     country: "ABD",
-    flag: "🇺🇸",
+    flag: "US",
     event: "Perakende Satışlar (Aylık)",
     actual: undefined,
     forecast: "0.4%",
@@ -407,7 +407,7 @@ const DEMO_EVENTS: EconomicEvent[] = [
     date: "2026-04-17",
     time: "12:00",
     country: "TR",
-    flag: "🇹🇷",
+    flag: "TR",
     event: "İşsizlik Oranı",
     actual: undefined,
     forecast: "8.9%",
@@ -419,7 +419,7 @@ const DEMO_EVENTS: EconomicEvent[] = [
     date: "2026-04-16",
     time: "13:00",
     country: "AB",
-    flag: "🇪🇺",
+    flag: "EU",
     event: "Sanayi Üretimi (Yıllık)",
     actual: "-1.2%",
     forecast: "-0.8%",
@@ -431,7 +431,7 @@ const DEMO_EVENTS: EconomicEvent[] = [
     date: "2026-04-16",
     time: "16:15",
     country: "ABD",
-    flag: "🇺🇸",
+    flag: "US",
     event: "Sanayi Üretimi (Aylık)",
     actual: "0.3%",
     forecast: "0.2%",
@@ -443,7 +443,7 @@ const DEMO_EVENTS: EconomicEvent[] = [
     date: "2026-04-18",
     time: "09:30",
     country: "TR",
-    flag: "🇹🇷",
+    flag: "TR",
     event: "TCMB PPK Toplantısı",
     actual: undefined,
     forecast: "Sabit",
@@ -455,7 +455,7 @@ const DEMO_EVENTS: EconomicEvent[] = [
     date: "2026-04-18",
     time: "14:30",
     country: "ABD",
-    flag: "🇺🇸",
+    flag: "US",
     event: "İşsizlik Başvuruları",
     actual: undefined,
     forecast: "215K",
@@ -467,7 +467,7 @@ const DEMO_EVENTS: EconomicEvent[] = [
     date: "2026-04-20",
     time: "10:00",
     country: "TR",
-    flag: "🇹🇷",
+    flag: "TR",
     event: "Turizm Gelirleri",
     actual: undefined,
     forecast: undefined,
