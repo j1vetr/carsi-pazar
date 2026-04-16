@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/"
+title = "Canlı Döviz & Altın"
+version = "1.0.0"
+id = "artifacts/doviz-altin"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/" ]
+localPort = 25391
+
+[services.development]
+run = "pnpm --filter @workspace/doviz-altin run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/doviz-altin", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/doviz-altin", "run", "serve" ]
+
+[services.env]
+PORT = "25391"
+BASE_PATH = "/"
