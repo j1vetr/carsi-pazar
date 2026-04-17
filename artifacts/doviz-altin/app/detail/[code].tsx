@@ -214,7 +214,7 @@ export default function DetailScreen() {
           {[
             { label: "Alış", value: formatPrice(item.buy), color: colors.rise },
             { label: "Satış", value: formatPrice(item.sell), color: colors.fall },
-            { label: "Spread (Makas)", value: formatPrice(spread), color: colors.foreground },
+            { label: "Alış / Satış Farkı", value: formatPrice(spread), color: colors.foreground },
             { label: "Önceki Kapanış", value: formatPrice(item.prevClose ?? item.buy - item.change), color: colors.foreground },
             { label: "Değişim (₺)", value: `${isPositive ? "+" : ""}${item.change.toFixed(2)}`, color: changeColor },
             { label: "Değişim (%)", value: `${isPositive ? "+" : ""}${item.changePercent.toFixed(2)}%`, color: changeColor },

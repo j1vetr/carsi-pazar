@@ -117,9 +117,12 @@ export default function MoreScreen() {
     tabBtn: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 8 },
     tabText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
     listContent: { paddingHorizontal: 16, gap: 10, paddingBottom: bottomPadding + 16 },
-    alertsRow: { flexDirection: "row", gap: 10, paddingHorizontal: 20, marginBottom: 16 },
-    alertBtn: { flex: 1, backgroundColor: colors.card, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: colors.border, alignItems: "center", gap: 6 },
-    alertBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: colors.foreground },
+    alertBanner: {
+      flexDirection: "row", alignItems: "center",
+      marginHorizontal: 20, marginBottom: 16,
+      backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
+      borderRadius: 14, padding: 14,
+    },
   });
 
   const sortedEvents = [...economicEvents].sort((a, b) => {
@@ -131,26 +134,24 @@ export default function MoreScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Bilgi & Araçlar</Text>
+        <Text style={styles.headerTitle}>Haberler & Takvim</Text>
         <Pressable onPress={() => router.push("/alerts")} style={{ padding: 6 }}>
           <Ionicons name="notifications-outline" size={24} color={colors.foreground} />
         </Pressable>
       </View>
 
-      <View style={styles.alertsRow}>
-        <Pressable style={styles.alertBtn} onPress={() => router.push("/alerts")}>
-          <Ionicons name="notifications" size={22} color={colors.primary} />
-          <Text style={styles.alertBtnText}>Alarmlar</Text>
-        </Pressable>
-        <Pressable style={styles.alertBtn} onPress={() => router.push("/(tabs)/converter")}>
-          <Ionicons name="swap-horizontal" size={22} color={colors.primary} />
-          <Text style={styles.alertBtnText}>Çevirici</Text>
-        </Pressable>
-        <Pressable style={styles.alertBtn} onPress={() => router.push("/(tabs)/portfolio")}>
-          <Ionicons name="briefcase" size={22} color={colors.primary} />
-          <Text style={styles.alertBtnText}>Portföy</Text>
-        </Pressable>
-      </View>
+      <Pressable style={styles.alertBanner} onPress={() => router.push("/alerts")}>
+        <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}>
+          <Ionicons name="notifications" size={18} color={colors.primary} />
+        </View>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: colors.foreground }}>Fiyat Alarmları</Text>
+          <Text style={{ fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 1 }}>
+            İstediğin seviyeye ulaşınca anında bildirim al
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
+      </Pressable>
 
       <View style={styles.tabRow}>
         <Pressable

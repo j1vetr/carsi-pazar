@@ -205,15 +205,12 @@ export default function GoldScreen() {
           <>
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>Altın Çeşitleri</Text>
-              <Text style={styles.sectionMeta}>{goldItems.length} ENSTRÜMAN</Text>
             </View>
             <View style={styles.tableHead}>
-              <View style={{ flex: 1.6 }}>
-                <Text style={styles.th}>SEMBOL</Text>
-              </View>
-              <View style={{ flex: 1.4, alignItems: "flex-end" }}>
-                <Text style={styles.th}>ALIŞ · DEĞİŞİM · SATIŞ</Text>
-              </View>
+              <Text style={styles.th}>BİRİM</Text>
+              <View style={{ flex: 1 }} />
+              <Text style={styles.th}>ALIŞ</Text>
+              <Text style={[styles.th, { marginLeft: 16 }]}>SATIŞ</Text>
             </View>
           </>
         }

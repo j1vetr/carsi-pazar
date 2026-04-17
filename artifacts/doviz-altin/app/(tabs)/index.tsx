@@ -1,14 +1,22 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
+  LayoutChangeEvent,
   Platform,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import Animated, {
+  Easing,
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -17,19 +25,64 @@ import { useColors } from "@/hooks/useColors";
 import { useApp, CurrencyRate } from "@/contexts/AppContext";
 import { PriceCard } from "@/components/PriceCard";
 
-function TickerItem({ item, colors }: { item: CurrencyRate; colors: any }) {
+function TickerItem({ item }: { item: CurrencyRate }) {
   const isPositive = item.changePercent >= 0;
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", marginRight: 18 }}>
-      <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.6)", marginRight: 5 }}>
+    <View style={{ flexDirection: "row", alignItems: "center", marginRight: 22 }}>
+      <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.6)", marginRight: 6 }}>
         {item.code}
       </Text>
-      <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginRight: 4, fontVariant: ["tabular-nums"] }}>
-        {item.buy.toFixed(item.buy >= 10 ? 4 : 4)}
+      <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginRight: 5, fontVariant: ["tabular-nums"] }}>
+        {item.buy.toFixed(4)}
       </Text>
       <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: isPositive ? "#5EEAA8" : "#FF8585", fontVariant: ["tabular-nums"] }}>
         {isPositive ? "▲" : "▼"} {Math.abs(item.changePercent).toFixed(2)}%
       </Text>
+    </View>
+  );
+}
+
+function MarqueeTicker({ items, bgColor }: { items: CurrencyRate[]; bgColor: string }) {
+  const [contentWidth, setContentWidth] = useState(0);
+  const translateX = useSharedValue(0);
+
+  useEffect(() => {
+    if (contentWidth <= 0) return;
+    cancelAnimation(translateX);
+    translateX.value = 0;
+    const pxPerSecond = 40;
+    const durationMs = (contentWidth / pxPerSecond) * 1000;
+    translateX.value = withRepeat(
+      withTiming(-contentWidth, { duration: durationMs, easing: Easing.linear }),
+      -1,
+      false
+    );
+    return () => cancelAnimation(translateX);
+  }, [contentWidth, translateX]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const onContentLayout = (e: LayoutChangeEvent) => {
+    const w = e.nativeEvent.layout.width;
+    if (w && w !== contentWidth) setContentWidth(w);
+  };
+
+  if (items.length === 0) {
+    return <View style={{ backgroundColor: bgColor, height: 32 }} />;
+  }
+
+  return (
+    <View style={{ backgroundColor: bgColor, paddingVertical: 8, overflow: "hidden" }}>
+      <Animated.View style={[{ flexDirection: "row" }, animatedStyle]}>
+        <View style={{ flexDirection: "row", paddingLeft: 16 }} onLayout={onContentLayout}>
+          {items.map((c) => <TickerItem key={`a-${c.code}`} item={c} />)}
+        </View>
+        <View style={{ flexDirection: "row", paddingLeft: 16 }}>
+          {items.map((c) => <TickerItem key={`b-${c.code}`} item={c} />)}
+        </View>
+      </Animated.View>
     </View>
   );
 }
@@ -269,7 +322,7 @@ export default function MarketScreen() {
                   {(featuredGold?.sell ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Text>
                 <Text style={[styles.heroSubText, { marginTop: 4 }]}>
-                  spread {(((featuredGold?.sell ?? 0) - (featuredGold?.buy ?? 0))).toFixed(2)}
+                  Fark {(((featuredGold?.sell ?? 0) - (featuredGold?.buy ?? 0))).toFixed(2)} ₺
                 </Text>
               </View>
             </View>
@@ -315,15 +368,7 @@ export default function MarketScreen() {
           </View>
         </LinearGradient>
 
-        <View style={styles.tickerStrip}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, alignItems: "center" }}
-          >
-            {currencies.slice(0, 8).map((c) => <TickerItem key={c.code} item={c} colors={colors} />)}
-          </ScrollView>
-        </View>
+        <MarqueeTicker items={currencies} bgColor={colors.primaryDark} />
       </View>
 
       <FlatList
@@ -342,7 +387,6 @@ export default function MarketScreen() {
           <>
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>Döviz Kurları</Text>
-              <Text style={styles.sectionMeta}>{displayCurrencies.length} ENSTRÜMAN</Text>
             </View>
             <View style={styles.segmentRow}>
               <Pressable
@@ -364,9 +408,10 @@ export default function MarketScreen() {
               </Pressable>
             </View>
             <View style={styles.tableHead}>
-              <Text style={styles.th}>SEMBOL</Text>
+              <Text style={styles.th}>BİRİM</Text>
               <View style={{ flex: 1 }} />
-              <Text style={styles.th}>ALIŞ · DEĞİŞİM · SATIŞ</Text>
+              <Text style={styles.th}>ALIŞ</Text>
+              <Text style={[styles.th, { marginLeft: 16 }]}>SATIŞ</Text>
             </View>
           </>
         }
