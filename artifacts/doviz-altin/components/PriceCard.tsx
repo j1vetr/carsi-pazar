@@ -84,7 +84,7 @@ export function PriceCard({
     },
     flash: { ...StyleSheet.absoluteFillObject },
     iconWrap: { marginRight: 12 },
-    nameCol: { flex: 1.6, justifyContent: "center" },
+    nameCol: { flex: 1.3, justifyContent: "center", paddingRight: 8 },
     code: {
       fontSize: 15,
       fontFamily: "Inter_700Bold",
@@ -97,8 +97,8 @@ export function PriceCard({
       color: colors.mutedForeground,
       marginTop: 2,
     },
-    priceCol: { flex: 1.4, alignItems: "flex-end", justifyContent: "center" },
-    bidAsk: { flexDirection: "row", alignItems: "baseline", gap: 6 },
+    priceCol: { flex: 1.6, alignItems: "flex-end", justifyContent: "center", flexShrink: 0 },
+    bidAsk: { flexDirection: "row", alignItems: "baseline", gap: 6, maxWidth: "100%" },
     bid: {
       fontSize: 15,
       fontFamily: "Inter_700Bold",
@@ -111,7 +111,7 @@ export function PriceCard({
       color: colors.mutedForeground,
       fontVariant: ["tabular-nums"],
     },
-    changeWrap: { marginTop: 3, flexDirection: "row", alignItems: "center", gap: 3 },
+    changeWrap: { marginTop: 3, flexDirection: "row", alignItems: "center", gap: 3, maxWidth: "100%" },
     changeText: {
       fontSize: 11,
       fontFamily: "Inter_600SemiBold",
@@ -144,7 +144,14 @@ export function PriceCard({
       </View>
       <View style={styles.priceCol}>
         <View style={styles.bidAsk}>
-          <Text style={styles.bid}>{formatPrice(item.buy)}</Text>
+          <Text
+            style={styles.bid}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+          >
+            {formatPrice(item.buy)}
+          </Text>
         </View>
         <View style={styles.changeWrap}>
           {hasChange && (
@@ -154,10 +161,17 @@ export function PriceCard({
               color={changeColor}
             />
           )}
-          <Text style={styles.changeText}>
+          <Text style={styles.changeText} numberOfLines={1}>
             {hasChange ? `${isPositive ? "+" : ""}${item.changePercent.toFixed(2)}%` : "—"}
           </Text>
-          <Text style={[styles.ask, { marginLeft: 6 }]}>{formatPrice(item.sell)}</Text>
+          <Text
+            style={[styles.ask, { marginLeft: 6, flexShrink: 1 }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
+            {formatPrice(item.sell)}
+          </Text>
         </View>
       </View>
       {onFavoriteToggle && (
