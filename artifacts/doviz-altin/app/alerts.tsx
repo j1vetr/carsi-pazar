@@ -72,7 +72,7 @@ function EmptyAlerts({ colors }: { colors: any }) {
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 }}>
       <Icon name="notifications-off-outline" size={64} color={colors.mutedForeground} />
       <Text style={{ fontSize: 18, fontFamily: "Inter_600SemiBold", color: colors.foreground, marginTop: 20, textAlign: "center" }}>
-        Aktif alarm yok
+        Aktif Alarm Yok
       </Text>
       <Text style={{ fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 8, textAlign: "center", lineHeight: 20 }}>
         Döviz veya altın fiyatlarını takip etmek için alarm kurun. Hedef fiyata ulaştığında bildirim alacaksınız.
