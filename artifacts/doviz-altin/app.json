@@ -18,6 +18,7 @@
       "icon": "./assets/images/icon.png"
     },
     "android": {
+      "package": "com.toov1.dovizaltin",
       "googleServicesFile": "./google-services.json",
       "backgroundColor": "#FFFFFF",
       "adaptiveIcon": {
@@ -56,6 +57,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8c8b667c-4aa5-4f15-8722-1d4942cab1fc"
+      }
+    },
+    "owner": "toov1"
   }
 }
