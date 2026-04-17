@@ -442,8 +442,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setLastUpdated(new Date());
   }, []);
 
+  const lastFetchAt = useRef(0);
+  const REFRESH_THROTTLE_MS = 3000;
   const refreshData = useCallback(async () => {
     if (isFetching.current) return;
+    const now = Date.now();
+    if (now - lastFetchAt.current < REFRESH_THROTTLE_MS) {
+      return;
+    }
+    lastFetchAt.current = now;
     isFetching.current = true;
     setIsLoading(true);
     try {
