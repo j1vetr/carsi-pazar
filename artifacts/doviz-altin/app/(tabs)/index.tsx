@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   LayoutChangeEvent,
@@ -25,33 +25,45 @@ import { useColors } from "@/hooks/useColors";
 import { useApp, CurrencyRate } from "@/contexts/AppContext";
 import { PriceCard } from "@/components/PriceCard";
 
-function TickerItem({ item }: { item: CurrencyRate }) {
-  const isPositive = item.changePercent >= 0;
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", marginRight: 22 }}>
-      <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.6)", marginRight: 6 }}>
-        {item.code}
-      </Text>
-      <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginRight: 5, fontVariant: ["tabular-nums"] }}>
-        {item.buy.toFixed(4)}
-      </Text>
-      <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: isPositive ? "#5EEAA8" : "#FF8585", fontVariant: ["tabular-nums"] }}>
-        {isPositive ? "▲" : "▼"} {Math.abs(item.changePercent).toFixed(2)}%
-      </Text>
-    </View>
-  );
-}
+const TickerItem = React.memo(
+  function TickerItem({ item }: { item: CurrencyRate }) {
+    const isPositive = item.changePercent >= 0;
+    return (
+      <View style={{ flexDirection: "row", alignItems: "center", marginRight: 22 }}>
+        <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.6)", marginRight: 6 }}>
+          {item.code}
+        </Text>
+        <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginRight: 5, fontVariant: ["tabular-nums"] }}>
+          {item.buy.toFixed(4)}
+        </Text>
+        <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: isPositive ? "#5EEAA8" : "#FF8585", fontVariant: ["tabular-nums"] }}>
+          {isPositive ? "▲" : "▼"} {Math.abs(item.changePercent).toFixed(2)}%
+        </Text>
+      </View>
+    );
+  },
+  (prev, next) =>
+    prev.item.code === next.item.code &&
+    prev.item.buy === next.item.buy &&
+    prev.item.changePercent === next.item.changePercent
+);
 
-function MarqueeTicker({ items, bgColor }: { items: CurrencyRate[]; bgColor: string }) {
+const MarqueeTicker = React.memo(function MarqueeTicker({
+  items,
+  bgColor,
+}: {
+  items: CurrencyRate[];
+  bgColor: string;
+}) {
   const [contentWidth, setContentWidth] = useState(0);
   const translateX = useSharedValue(0);
+  const measuredRef = useRef(false);
 
   useEffect(() => {
     if (contentWidth <= 0) return;
-    cancelAnimation(translateX);
-    translateX.value = 0;
     const pxPerSecond = 40;
     const durationMs = (contentWidth / pxPerSecond) * 1000;
+    translateX.value = 0;
     translateX.value = withRepeat(
       withTiming(-contentWidth, { duration: durationMs, easing: Easing.linear }),
       -1,
@@ -65,8 +77,12 @@ function MarqueeTicker({ items, bgColor }: { items: CurrencyRate[]; bgColor: str
   }));
 
   const onContentLayout = (e: LayoutChangeEvent) => {
+    if (measuredRef.current) return;
     const w = e.nativeEvent.layout.width;
-    if (w && w !== contentWidth) setContentWidth(w);
+    if (w > 0) {
+      measuredRef.current = true;
+      setContentWidth(w);
+    }
   };
 
   if (items.length === 0) {
@@ -85,7 +101,7 @@ function MarqueeTicker({ items, bgColor }: { items: CurrencyRate[]; bgColor: str
       </Animated.View>
     </View>
   );
-}
+});
 
 export default function MarketScreen() {
   const colors = useColors();
