@@ -442,15 +442,21 @@ async function checkAlerts(items: HaremPrice[]): Promise<void> {
     .map((t) => {
       const to = tokenByDevice.get(t.deviceId);
       if (!to) return null;
-      const arrow = t.type === "above" ? "📈" : "📉";
-      const dir = t.type === "above" ? "üzerine çıktı" : "altına indi";
+      const isAbove = t.type === "above";
+      const arrow = isAbove ? "📈" : "📉";
+      const title = isAbove
+        ? `${arrow} Hedef Aşıldı: ${t.nameTR}`
+        : `${arrow} Hedefin Altında: ${t.nameTR}`;
+      const body = isAbove
+        ? `${t.nameTR} ${fmt(t.price)} ile belirlediğin ${fmt(t.target)} hedefini aştı.`
+        : `${t.nameTR} ${fmt(t.price)} ile belirlediğin ${fmt(t.target)} hedefinin altına indi.`;
       return {
         to,
         sound: "default" as const,
         priority: "high" as const,
         channelId: "price-alerts",
-        title: `${arrow} ${t.nameTR}`,
-        body: `${fmt(t.price)} — hedef ${fmt(t.target)} ${dir}`,
+        title,
+        body,
         data: { code: t.code, price: t.price, target: t.target, type: t.type, alertId: t.id },
       };
     })
