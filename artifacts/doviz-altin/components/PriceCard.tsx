@@ -18,6 +18,7 @@ interface PriceCardProps {
   onPress: () => void;
   onFavoriteToggle?: () => void;
   compact?: boolean;
+  hideIcon?: boolean;
 }
 
 function formatPrice(n: number): string {
@@ -32,6 +33,7 @@ export function PriceCard({
   isFavorite,
   onPress,
   onFavoriteToggle,
+  hideIcon,
 }: PriceCardProps) {
   const colors = useColors();
   const flashOpacity = useSharedValue(0);
@@ -120,9 +122,11 @@ export function PriceCard({
   return (
     <Pressable onPress={handlePress} style={styles.pressable} android_ripple={{ color: colors.surface }}>
       <Animated.View style={[styles.flash, flashStyle]} pointerEvents="none" />
-      <View style={styles.iconWrap}>
-        <AssetIcon code={item.code} type={type} size={38} variant="soft" />
-      </View>
+      {!hideIcon && (
+        <View style={styles.iconWrap}>
+          <AssetIcon code={item.code} type={type} size={38} variant="soft" />
+        </View>
+      )}
       <View style={styles.nameCol}>
         <Text style={styles.code} numberOfLines={1}>{item.code}</Text>
         <Text style={styles.name} numberOfLines={1}>{item.nameTR}</Text>
