@@ -107,6 +107,8 @@ function GoldHero({
           const val = mini.useSell ? mini.item?.sell ?? 0 : mini.item?.buy ?? 0;
           const pct = mini.item?.changePercent ?? 0;
           const up = pct >= 0;
+          const valStr = `${mini.prefix}${fmt(val)}`;
+          const miniFontSize = valStr.length <= 7 ? 16 : valStr.length <= 9 ? 14 : valStr.length <= 10 ? 13 : 12;
           return (
             <View key={mini.label} style={{
               flex: 1,
@@ -116,8 +118,12 @@ function GoldHero({
               <Text style={{ fontSize: 10, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.55)", letterSpacing: 1 }}>
                 {mini.label}
               </Text>
-              <Text style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginTop: 2, fontVariant: ["tabular-nums"] }}>
-                {mini.prefix}{fmt(val)}
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="clip"
+                style={{ fontSize: miniFontSize, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginTop: 2, fontVariant: ["tabular-nums"] }}
+              >
+                {valStr}
               </Text>
               <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", marginTop: 2, color: up ? "#5EEAA8" : "#FF8585" }}>
                 {up ? "▲" : "▼"} {Math.abs(pct).toFixed(2)}%

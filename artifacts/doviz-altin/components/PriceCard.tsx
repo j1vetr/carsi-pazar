@@ -28,19 +28,12 @@ function formatPrice(n: number): string {
   return n.toLocaleString("tr-TR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 }
 
-function bidFontSizeFor(len: number): number {
-  if (len <= 6) return 15;
-  if (len <= 7) return 13;
-  if (len <= 8) return 12;
-  if (len <= 9) return 12;
-  if (len <= 10) return 11;
-  return 10;
+function bidFontSizeFor(_len: number): number {
+  return 15;
 }
 
-function askFontSizeFor(len: number): number {
-  if (len <= 7) return 11;
-  if (len <= 9) return 10;
-  return 9;
+function askFontSizeFor(_len: number): number {
+  return 11;
 }
 
 export function PriceCard({
@@ -101,7 +94,7 @@ export function PriceCard({
     },
     flash: { ...StyleSheet.absoluteFillObject },
     iconWrap: { marginRight: 12 },
-    nameCol: { flex: 1.1, justifyContent: "center", paddingRight: 8 },
+    nameCol: { flex: 1.6, justifyContent: "center" },
     code: {
       fontSize: 15,
       fontFamily: "Inter_700Bold",
