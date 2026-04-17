@@ -29,11 +29,12 @@ function formatPrice(n: number): string {
 }
 
 function bidFontSizeFor(len: number): number {
-  if (len <= 7) return 15;
-  if (len <= 8) return 14;
-  if (len <= 9) return 13;
-  if (len <= 10) return 12;
-  return 11;
+  if (len <= 6) return 15;
+  if (len <= 7) return 14;
+  if (len <= 8) return 13;
+  if (len <= 9) return 12;
+  if (len <= 10) return 11;
+  return 10;
 }
 
 function askFontSizeFor(len: number): number {
