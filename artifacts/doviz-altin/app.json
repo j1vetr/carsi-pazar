@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Çarşı Pazar - Canlı Döviz & Altın",
+    "name": "Çarşı Piyasa - Canlı Döviz & Altın",
     "slug": "doviz-altin",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -52,7 +52,7 @@
       "icon": "./assets/images/notification-icon.png",
       "color": "#083C8F",
       "androidMode": "default",
-      "androidCollapsedTitle": "Çarşı Pazar"
+      "androidCollapsedTitle": "Çarşı Piyasa"
     },
     "experiments": {
       "typedRoutes": true,
