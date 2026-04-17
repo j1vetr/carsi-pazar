@@ -15,6 +15,15 @@ export const RSS_SOURCES: RssSource[] = [
   { name: "Dünya Gazetesi", url: "https://www.dunya.com/rss?dunya=ekonomi" },
   { name: "CNN Türk", url: "https://www.cnnturk.com/feed/rss/ekonomi/news" },
   { name: "BBC Türkçe", url: "https://feeds.bbci.co.uk/turkce/ekonomi/rss.xml" },
+  { name: "NTV Ekonomi", url: "https://www.ntv.com.tr/ekonomi.rss" },
+  { name: "Habertürk Ekonomi", url: "https://www.haberturk.com/rss/kategori/ekonomi.xml" },
+  { name: "Hürriyet Ekonomi", url: "https://www.hurriyet.com.tr/rss/ekonomi" },
+  { name: "Sabah Ekonomi", url: "https://www.sabah.com.tr/rss/ekonomi.xml" },
+  { name: "Ekonomim", url: "https://www.ekonomim.com/rss" },
+  { name: "ParaAnaliz", url: "https://www.paraanaliz.com/feed/" },
+  { name: "Investing.com TR", url: "https://tr.investing.com/rss/news_1.rss" },
+  { name: "Investing.com Emtia", url: "https://tr.investing.com/rss/news_11.rss", defaultCategory: "Emtia" },
+  { name: "Investing.com Döviz", url: "https://tr.investing.com/rss/news_301.rss", defaultCategory: "Döviz" },
 ];
 
 export interface ParsedItem {

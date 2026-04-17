@@ -164,7 +164,7 @@ function NewsPrefCard({ colors, enabled, onToggle }: { colors: any; enabled: boo
           Haber Bildirimleri
         </Text>
         <Text style={{ fontSize: 12, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 2 }}>
-          {enabled ? "Önemli finans haberleri için bildirim alacaksın" : "Bildirimleri açarak son dakika gelişmelerini kaçırma"}
+          {enabled ? "Önemli finans haberleri için bildirim alacaksın." : "Bildirimleri açarak son dakika gelişmelerini kaçırma."}
         </Text>
       </View>
       <Switch
@@ -321,13 +321,13 @@ export default function MoreScreen() {
           <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
             <ActionTile
               colors={colors} icon="notifications" label="Alarmlar"
-              sublabel={activeAlertCount > 0 ? `${activeAlertCount} aktif` : "Hedef belirle"}
+              sublabel={activeAlertCount > 0 ? `${activeAlertCount} aktif` : "Hedef Belirle"}
               color="#0B3D91"
               onPress={() => router.push("/alerts")}
             />
             <ActionTile
               colors={colors} icon="briefcase-outline" label="Portföyüm"
-              sublabel="Yatırımlarını takip et" color="#10B981"
+              sublabel="Yatırımlarını Takip Et!" color="#10B981"
               onPress={() => router.push("/portfolio")}
             />
           </View>
