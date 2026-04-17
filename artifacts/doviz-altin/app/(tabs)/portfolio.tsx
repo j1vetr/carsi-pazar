@@ -12,36 +12,51 @@ import {
   ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { Icon } from "@/components/Icon";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp, PortfolioItem } from "@/contexts/AppContext";
 
+// ── Number formatting ──────────────────────────────────────────────────────
 const fmtTL = (v: number) =>
   v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const fmtPrice = (v: number) =>
-  v >= 1000 ? fmtTL(v) : v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  v >= 100
+    ? v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+
 const fmtAmount = (v: number) =>
   Number.isInteger(v) ? v.toString() : v.toLocaleString("tr-TR", { maximumFractionDigits: 4 });
 
+// Compact for tight spaces: 1.2M ₺ / 850 B ₺ / 12.450 ₺
+const fmtCompact = (v: number) => {
+  const abs = Math.abs(v);
+  if (abs >= 1_000_000_000) return `${(v / 1_000_000_000).toLocaleString("tr-TR", { maximumFractionDigits: 2 })}Mr`;
+  if (abs >= 1_000_000) return `${(v / 1_000_000).toLocaleString("tr-TR", { maximumFractionDigits: 2 })}M`;
+  if (abs >= 10_000) return `${(v / 1_000).toLocaleString("tr-TR", { maximumFractionDigits: 1 })}B`;
+  return v.toLocaleString("tr-TR", { maximumFractionDigits: 0 });
+};
+
+// ── Empty state ────────────────────────────────────────────────────────────
 function EmptyPortfolio({ colors, onAdd }: { colors: any; onAdd: () => void }) {
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 }}>
-      <View style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}>
-        <Icon name="briefcase-outline" size={40} color={colors.mutedForeground} />
+      <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}>
+        <Icon name="briefcase-outline" size={42} color={colors.mutedForeground} />
       </View>
-      <Text style={{ fontSize: 20, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 22, textAlign: "center", letterSpacing: -0.4 }}>
+      <Text style={{ fontSize: 22, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 24, textAlign: "center", letterSpacing: -0.5 }}>
         Portföyün boş
       </Text>
-      <Text style={{ fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 8, textAlign: "center", lineHeight: 20 }}>
-        Döviz ve maden yatırımlarını ekleyerek toplam değerini canlı takip et.
+      <Text style={{ fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 10, textAlign: "center", lineHeight: 21 }}>
+        Döviz ve maden yatırımlarını ekleyerek toplam değerini canlı kurla takip et.
       </Text>
       <Pressable
         onPress={onAdd}
         style={({ pressed }) => [{
-          marginTop: 26, backgroundColor: colors.primary, paddingHorizontal: 30, paddingVertical: 14, borderRadius: 28,
+          marginTop: 28, backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 30,
           opacity: pressed ? 0.85 : 1,
         }]}
       >
@@ -53,14 +68,11 @@ function EmptyPortfolio({ colors, onAdd }: { colors: any; onAdd: () => void }) {
   );
 }
 
+// ── Add asset modal ────────────────────────────────────────────────────────
 function AddAssetModal({
-  visible,
-  onClose,
-  onAdd,
-  colors,
+  visible, onClose, onAdd, colors,
 }: {
-  visible: boolean;
-  onClose: () => void;
+  visible: boolean; onClose: () => void;
   onAdd: (item: Omit<PortfolioItem, "id">) => void;
   colors: any;
 }) {
@@ -76,7 +88,6 @@ function AddAssetModal({
     ...currencies.map((c) => ({ ...c, assetType: "currency" as const })),
     ...goldRates.map((g) => ({ ...g, assetType: "gold" as const })),
   ];
-
   const selectedAsset = allAssets.find((a) => a.code === selectedCode);
   const isCurrency = selectedType === "currency";
 
@@ -93,9 +104,7 @@ function AddAssetModal({
       purchasePrice: pr,
       purchaseDate: new Date().toISOString(),
     });
-    setAmount("");
-    setPrice("");
-    onClose();
+    setAmount(""); setPrice(""); onClose();
   };
 
   const labels = isCurrency
@@ -115,9 +124,9 @@ function AddAssetModal({
         </View>
 
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, gap: 18 }}>
-          <View style={{ flexDirection: "row", gap: 8, padding: 4, backgroundColor: colors.secondary, borderRadius: 12 }}>
+          <View style={{ flexDirection: "row", gap: 6, padding: 4, backgroundColor: colors.secondary, borderRadius: 14 }}>
             <Pressable
-              style={{ flex: 1, paddingVertical: 11, borderRadius: 9, backgroundColor: isCurrency ? colors.primary : "transparent", alignItems: "center" }}
+              style={{ flex: 1, paddingVertical: 11, borderRadius: 10, backgroundColor: isCurrency ? colors.primary : "transparent", alignItems: "center" }}
               onPress={() => { Haptics.selectionAsync().catch(() => {}); setSelectedType("currency"); setSelectedCode("USD"); }}
             >
               <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: isCurrency ? colors.primaryForeground : colors.mutedForeground }}>
@@ -125,7 +134,7 @@ function AddAssetModal({
               </Text>
             </Pressable>
             <Pressable
-              style={{ flex: 1, paddingVertical: 11, borderRadius: 9, backgroundColor: !isCurrency ? colors.gold : "transparent", alignItems: "center" }}
+              style={{ flex: 1, paddingVertical: 11, borderRadius: 10, backgroundColor: !isCurrency ? colors.gold : "transparent", alignItems: "center" }}
               onPress={() => { Haptics.selectionAsync().catch(() => {}); setSelectedType("gold"); setSelectedCode("ALTIN"); }}
             >
               <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: !isCurrency ? "#1A0F00" : colors.mutedForeground }}>
@@ -139,40 +148,36 @@ function AddAssetModal({
               {labels.selector}
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 8 }}>
-              {allAssets
-                .filter((a) => a.assetType === selectedType)
-                .map((asset) => (
-                  <Pressable
-                    key={asset.code}
-                    onPress={() => { Haptics.selectionAsync().catch(() => {}); setSelectedCode(asset.code); }}
-                    style={{
-                      paddingHorizontal: 14,
-                      paddingVertical: 9,
-                      borderRadius: 999,
-                      backgroundColor: selectedCode === asset.code ? colors.primary : colors.card,
-                      borderWidth: StyleSheet.hairlineWidth,
-                      borderColor: selectedCode === asset.code ? colors.primary : colors.border,
-                    }}
-                  >
-                    <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: selectedCode === asset.code ? colors.primaryForeground : colors.foreground, letterSpacing: -0.1 }}>
-                      {asset.code}
-                    </Text>
-                  </Pressable>
-                ))}
+              {allAssets.filter((a) => a.assetType === selectedType).map((asset) => (
+                <Pressable
+                  key={asset.code}
+                  onPress={() => { Haptics.selectionAsync().catch(() => {}); setSelectedCode(asset.code); }}
+                  style={{
+                    paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999,
+                    backgroundColor: selectedCode === asset.code ? colors.primary : colors.card,
+                    borderWidth: StyleSheet.hairlineWidth,
+                    borderColor: selectedCode === asset.code ? colors.primary : colors.border,
+                  }}
+                >
+                  <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: selectedCode === asset.code ? colors.primaryForeground : colors.foreground, letterSpacing: -0.1 }}>
+                    {asset.code}
+                  </Text>
+                </Pressable>
+              ))}
             </ScrollView>
           </View>
 
           {selectedAsset && (
             <View style={{ backgroundColor: colors.secondary, borderRadius: 14, padding: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-              <View>
-                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, letterSpacing: 0.4 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 0.5 }}>
                   GÜNCEL FİYAT
                 </Text>
-                <Text style={{ fontSize: 13, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 2 }}>
+                <Text numberOfLines={1} style={{ fontSize: 13, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 2 }}>
                   {selectedAsset.nameTR}
                 </Text>
               </View>
-              <Text style={{ fontSize: 22, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.5 }}>
+              <Text adjustsFontSizeToFit numberOfLines={1} style={{ fontSize: 22, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.5, marginLeft: 12 }}>
                 ₺{fmtPrice(selectedAsset.buy)}
               </Text>
             </View>
@@ -183,8 +188,7 @@ function AddAssetModal({
               {labels.amount}
             </Text>
             <TextInput
-              value={amount}
-              onChangeText={setAmount}
+              value={amount} onChangeText={setAmount}
               keyboardType="decimal-pad"
               placeholder={labels.amountPlaceholder}
               placeholderTextColor={colors.mutedForeground}
@@ -197,15 +201,14 @@ function AddAssetModal({
               {labels.priceLabel}
             </Text>
             <TextInput
-              value={price}
-              onChangeText={setPrice}
+              value={price} onChangeText={setPrice}
               keyboardType="decimal-pad"
               placeholder="0,00"
               placeholderTextColor={colors.mutedForeground}
               style={{ backgroundColor: colors.card, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, padding: 14, fontSize: 16, fontFamily: "Inter_600SemiBold", color: colors.foreground }}
             />
             <Text style={{ fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 6 }}>
-              Aldığın günkü birim fiyat. Sonradan kar/zararı hesaplamak için kullanılır.
+              Aldığın günkü birim fiyat. Kar/zarar hesaplamak için kullanılır.
             </Text>
           </View>
         </ScrollView>
@@ -228,8 +231,147 @@ function AddAssetModal({
   );
 }
 
-// ── Award-level item card ──────────────────────────────────────────────────
-function PortfolioItemCard({ item, colors, onDelete, index }: { item: PortfolioItem; colors: any; onDelete: () => void; index: number }) {
+// ── Hero card: focal point ────────────────────────────────────────────────
+function HeroCard({
+  colors, totalValue, costTotal, gainLoss, gainLossPercent, count,
+  currencyValue, goldValue,
+}: {
+  colors: any; totalValue: number; costTotal: number; gainLoss: number; gainLossPercent: number;
+  count: number; currencyValue: number; goldValue: number;
+}) {
+  const isPos = gainLoss >= 0;
+  const total = currencyValue + goldValue;
+  const currencyPct = total > 0 ? (currencyValue / total) * 100 : 0;
+  const goldPct = total > 0 ? 100 - currencyPct : 0;
+
+  return (
+    <Animated.View entering={FadeIn.duration(400)} style={{ marginHorizontal: 20, marginBottom: 20, borderRadius: 24, overflow: "hidden" }}>
+      <LinearGradient
+        colors={["#0F2F70", "#0B3D91", "#06214F"]}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        style={{ padding: 24 }}
+      >
+        {/* Top accent line */}
+        <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, backgroundColor: colors.gold, opacity: 0.9 }} />
+
+        {/* Top row: label + asset count */}
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.6)", letterSpacing: 1.4 }}>
+            TOPLAM DEĞER
+          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(255,255,255,0.12)", paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999 }}>
+            <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: colors.gold }} />
+            <Text style={{ fontSize: 10.5, fontFamily: "Inter_700Bold", color: "#fff", letterSpacing: 0.4 }}>
+              {count} {count === 1 ? "VARLIK" : "VARLIK"}
+            </Text>
+          </View>
+        </View>
+
+        {/* Hero number — auto-shrinks if huge */}
+        <View style={{ flexDirection: "row", alignItems: "baseline", marginTop: 14 }}>
+          <Text style={{ fontSize: 24, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.85)", marginRight: 4, letterSpacing: -0.5 }}>
+            ₺
+          </Text>
+          <Text
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            minimumFontScale={0.5}
+            style={{ flex: 1, fontSize: 42, fontFamily: "Inter_700Bold", color: "#fff", letterSpacing: -1.4, lineHeight: 48 }}
+          >
+            {fmtTL(totalValue)}
+          </Text>
+        </View>
+
+        {/* Trend pill */}
+        <View style={{ flexDirection: "row", marginTop: 10, gap: 8, alignItems: "center" }}>
+          <View style={{
+            flexDirection: "row", alignItems: "center", gap: 5,
+            backgroundColor: isPos ? "rgba(34,197,94,0.18)" : "rgba(248,113,113,0.18)",
+            paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999,
+          }}>
+            <Icon name={isPos ? "trending-up" : "trending-down"} size={13} color={isPos ? "#4ADE80" : "#F87171"} />
+            <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: isPos ? "#4ADE80" : "#F87171", letterSpacing: -0.2 }}>
+              {isPos ? "+" : "−"}₺{fmtTL(Math.abs(gainLoss))}
+            </Text>
+          </View>
+          <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: isPos ? "#4ADE80" : "#F87171", letterSpacing: -0.1 }}>
+            {isPos ? "+" : ""}{gainLossPercent.toFixed(2)}%
+          </Text>
+        </View>
+
+        {/* Distribution */}
+        {total > 0 && (currencyValue > 0 || goldValue > 0) && (
+          <View style={{ marginTop: 22 }}>
+            <View style={{ flexDirection: "row", height: 6, borderRadius: 3, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.1)" }}>
+              {currencyPct > 0 && <View style={{ width: `${currencyPct}%`, backgroundColor: "#60A5FA" }} />}
+              {goldPct > 0 && <View style={{ width: `${goldPct}%`, backgroundColor: colors.gold }} />}
+            </View>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 10 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#60A5FA" }} />
+                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.7)" }}>
+                  Döviz
+                </Text>
+                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: "#fff" }}>
+                  %{currencyPct.toFixed(0)}
+                </Text>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: colors.gold }} />
+                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.7)" }}>
+                  Maden
+                </Text>
+                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: "#fff" }}>
+                  %{goldPct.toFixed(0)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Cost / Current mini stats — compact format */}
+        <View style={{ flexDirection: "row", marginTop: 20, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "rgba(255,255,255,0.12)" }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.55)", letterSpacing: 0.6 }}>
+              MALİYET
+            </Text>
+            <Text adjustsFontSizeToFit numberOfLines={1} style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: "#fff", marginTop: 5, letterSpacing: -0.3 }}>
+              ₺{fmtCompact(costTotal)}
+            </Text>
+          </View>
+          <View style={{ width: StyleSheet.hairlineWidth, backgroundColor: "rgba(255,255,255,0.12)", marginHorizontal: 14 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.55)", letterSpacing: 0.6 }}>
+              GETİRİ
+            </Text>
+            <Text adjustsFontSizeToFit numberOfLines={1} style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: isPos ? "#4ADE80" : "#F87171", marginTop: 5, letterSpacing: -0.3 }}>
+              {isPos ? "+" : "−"}₺{fmtCompact(Math.abs(gainLoss))}
+            </Text>
+          </View>
+        </View>
+      </LinearGradient>
+    </Animated.View>
+  );
+}
+
+// ── Section heading ───────────────────────────────────────────────────────
+function SectionHeading({ colors, label, count }: { colors: any; label: string; count: number }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "baseline", paddingHorizontal: 20, marginTop: 4, marginBottom: 12 }}>
+      <Text style={{ fontSize: 17, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}>
+        {label}
+      </Text>
+      <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginLeft: 8 }}>
+        {count}
+      </Text>
+    </View>
+  );
+}
+
+// ── Premium item card — Apple Stocks inspired ─────────────────────────────
+function PortfolioItemCard({ item, colors, onDelete, index }: {
+  item: PortfolioItem; colors: any; onDelete: () => void; index: number;
+}) {
   const { currencies, goldRates } = useApp();
   const allRates = [...currencies, ...goldRates] as any[];
   const rate = allRates.find((r: any) => r.code === item.code);
@@ -241,204 +383,85 @@ function PortfolioItemCard({ item, colors, onDelete, index }: { item: PortfolioI
   const isPos = gainLoss >= 0;
 
   const isGold = item.type === "gold";
-  const accent = isGold ? colors.gold : colors.primary;
-  const accentText = isGold ? "#1A0F00" : colors.primaryForeground;
+  const accentColor = isGold ? colors.gold : "#60A5FA";
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 50).duration(320)}>
-      <View style={{
-        backgroundColor: colors.card,
-        borderRadius: 18,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: colors.border,
-        overflow: "hidden",
-      }}>
-        <View style={{ flexDirection: "row", padding: 14, alignItems: "center" }}>
-          <View style={{
-            width: 46, height: 46, borderRadius: 14,
-            backgroundColor: accent,
-            alignItems: "center", justifyContent: "center",
-            marginRight: 12,
-          }}>
-            <Text style={{ color: accentText, fontSize: 13, fontFamily: "Inter_700Bold", letterSpacing: -0.2 }}>
-              {item.code.slice(0, 4)}
-            </Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.2 }}>
+    <Animated.View entering={FadeInDown.delay(index * 40).duration(280)}>
+      <Pressable
+        onLongPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {}); onDelete(); }}
+        delayLongPress={350}
+        style={({ pressed }) => [{
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: colors.border,
+          paddingVertical: 14,
+          paddingHorizontal: 14,
+          flexDirection: "row",
+          alignItems: "center",
+          opacity: pressed ? 0.7 : 1,
+        }]}
+      >
+        {/* Left accent stripe */}
+        <View style={{ width: 3, alignSelf: "stretch", backgroundColor: accentColor, borderRadius: 2, marginRight: 12 }} />
+
+        {/* Asset info */}
+        <View style={{ flex: 1, paddingRight: 10 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Text numberOfLines={1} style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}>
               {item.code}
             </Text>
-            <Text numberOfLines={1} style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 2 }}>
-              {item.nameTR}
-            </Text>
-          </View>
-          <Pressable onPress={onDelete} hitSlop={10} style={{ padding: 6 }}>
-            <Icon name="close" size={16} color={colors.mutedForeground} />
-          </Pressable>
-        </View>
-
-        <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginHorizontal: 14 }} />
-
-        <View style={{ flexDirection: "row", paddingHorizontal: 14, paddingVertical: 14, gap: 14 }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 0.5 }}>
-              GÜNCEL DEĞER
-            </Text>
-            <Text style={{ fontSize: 18, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 4, letterSpacing: -0.4 }}>
-              ₺{fmtTL(currentValue)}
-            </Text>
-            <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 3 }}>
-              {fmtAmount(item.amount)} {isGold ? "gr/adet" : item.code} • ₺{fmtPrice(currentPrice)}
-            </Text>
-          </View>
-
-          <View style={{ alignItems: "flex-end" }}>
             <View style={{
-              flexDirection: "row", alignItems: "center", gap: 4,
-              backgroundColor: (isPos ? colors.rise : colors.fall) + "1A",
-              paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999,
+              backgroundColor: isGold ? colors.gold + "20" : colors.primary + "15",
+              paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5,
             }}>
-              <Icon name={isPos ? "arrow-up" : "arrow-down"} size={11} color={isPos ? colors.rise : colors.fall} />
-              <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: isPos ? colors.rise : colors.fall, letterSpacing: -0.1 }}>
-                {isPos ? "+" : ""}{gainLossPercent.toFixed(2)}%
+              <Text style={{ fontSize: 9, fontFamily: "Inter_700Bold", color: isGold ? colors.goldDark : colors.primary, letterSpacing: 0.3 }}>
+                {isGold ? "MADEN" : "DÖVİZ"}
               </Text>
             </View>
-            <Text style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: isPos ? colors.rise : colors.fall, marginTop: 6, letterSpacing: -0.3 }}>
-              {isPos ? "+" : "−"}₺{fmtTL(Math.abs(gainLoss))}
-            </Text>
-            <Text style={{ fontSize: 10, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 2 }}>
-              maliyet ₺{fmtTL(costValue)}
-            </Text>
           </View>
-        </View>
-      </View>
-    </Animated.View>
-  );
-}
-
-// ── Award-level hero summary ──────────────────────────────────────────────
-function HeroSummary({
-  colors, totalValue, gainLoss, gainLossPercent, costTotal,
-  currencyValue, goldValue, count,
-}: {
-  colors: any; totalValue: number; gainLoss: number; gainLossPercent: number; costTotal: number;
-  currencyValue: number; goldValue: number; count: number;
-}) {
-  const isPos = gainLoss >= 0;
-  const total = currencyValue + goldValue;
-  const currencyPct = total > 0 ? (currencyValue / total) * 100 : 0;
-  const goldPct = total > 0 ? (goldValue / total) * 100 : 0;
-
-  return (
-    <Animated.View entering={FadeIn.duration(400)} style={{ marginHorizontal: 20, marginBottom: 16, borderRadius: 22, overflow: "hidden" }}>
-      <LinearGradient
-        colors={["#0E2C66", "#0B3D91", "#082356"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{ padding: 22 }}
-      >
-        {/* Decorative gold accent line */}
-        <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, backgroundColor: colors.gold, opacity: 0.85 }} />
-
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.65)", letterSpacing: 1.2 }}>
-            TOPLAM PORTFÖY
+          <Text numberOfLines={1} style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 3 }}>
+            {item.nameTR}
           </Text>
-          <View style={{ backgroundColor: "rgba(255,255,255,0.12)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 }}>
-            <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: "#fff", letterSpacing: 0.3 }}>
-              {count} VARLIK
-            </Text>
-          </View>
+          <Text numberOfLines={1} style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 4, opacity: 0.8 }}>
+            {fmtAmount(item.amount)} {isGold ? "× ₺" : "@ ₺"}{fmtPrice(item.purchasePrice)}
+          </Text>
         </View>
 
-        <Text style={{ fontSize: 38, fontFamily: "Inter_700Bold", color: "#fff", marginTop: 10, letterSpacing: -1.2 }}>
-          ₺{fmtTL(totalValue)}
-        </Text>
-
-        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 8 }}>
+        {/* Right value + change */}
+        <View style={{ alignItems: "flex-end", maxWidth: 130 }}>
+          <Text
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            minimumFontScale={0.7}
+            style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}
+          >
+            ₺{fmtTL(currentValue)}
+          </Text>
           <View style={{
-            flexDirection: "row", alignItems: "center", gap: 4,
-            backgroundColor: isPos ? "rgba(34,197,94,0.18)" : "rgba(239,68,68,0.18)",
-            paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999,
+            flexDirection: "row", alignItems: "center", gap: 3,
+            backgroundColor: (isPos ? colors.rise : colors.fall) + "1A",
+            paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, marginTop: 5,
           }}>
-            <Icon name={isPos ? "trending-up" : "trending-down"} size={13} color={isPos ? "#4ADE80" : "#F87171"} />
-            <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: isPos ? "#4ADE80" : "#F87171", letterSpacing: -0.1 }}>
-              {isPos ? "+" : ""}₺{fmtTL(Math.abs(gainLoss))}
-            </Text>
-            <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: isPos ? "#4ADE80" : "#F87171", opacity: 0.85 }}>
-              ({isPos ? "+" : ""}{gainLossPercent.toFixed(2)}%)
+            <Icon name={isPos ? "arrow-up" : "arrow-down"} size={9} color={isPos ? colors.rise : colors.fall} />
+            <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: isPos ? colors.rise : colors.fall, letterSpacing: -0.1 }}>
+              {isPos ? "+" : ""}{gainLossPercent.toFixed(2)}%
             </Text>
           </View>
+          <Text
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: isPos ? colors.rise : colors.fall, marginTop: 4, opacity: 0.85 }}
+          >
+            {isPos ? "+" : "−"}₺{fmtTL(Math.abs(gainLoss))}
+          </Text>
         </View>
-
-        {/* Distribution bar */}
-        {total > 0 && (
-          <View style={{ marginTop: 20 }}>
-            <View style={{ flexDirection: "row", height: 6, borderRadius: 3, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.1)" }}>
-              {currencyPct > 0 && (
-                <View style={{ width: `${currencyPct}%`, backgroundColor: "#60A5FA" }} />
-              )}
-              {goldPct > 0 && (
-                <View style={{ width: `${goldPct}%`, backgroundColor: colors.gold }} />
-              )}
-            </View>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 10 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#60A5FA" }} />
-                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.75)" }}>
-                  Döviz
-                </Text>
-                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: "#fff" }}>
-                  %{currencyPct.toFixed(0)}
-                </Text>
-              </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.gold }} />
-                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.75)" }}>
-                  Maden
-                </Text>
-                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: "#fff" }}>
-                  %{goldPct.toFixed(0)}
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Cost vs current mini stats */}
-        <View style={{ flexDirection: "row", marginTop: 18, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "rgba(255,255,255,0.12)", gap: 12 }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.55)", letterSpacing: 0.5 }}>
-              MALİYET
-            </Text>
-            <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: "#fff", marginTop: 4, letterSpacing: -0.2 }}>
-              ₺{fmtTL(costTotal)}
-            </Text>
-          </View>
-          <View style={{ width: StyleSheet.hairlineWidth, backgroundColor: "rgba(255,255,255,0.12)" }} />
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.55)", letterSpacing: 0.5 }}>
-              GÜNCEL
-            </Text>
-            <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: "#fff", marginTop: 4, letterSpacing: -0.2 }}>
-              ₺{fmtTL(totalValue)}
-            </Text>
-          </View>
-          <View style={{ width: StyleSheet.hairlineWidth, backgroundColor: "rgba(255,255,255,0.12)" }} />
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.55)", letterSpacing: 0.5 }}>
-              KAR / ZARAR
-            </Text>
-            <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: isPos ? "#4ADE80" : "#F87171", marginTop: 4, letterSpacing: -0.2 }}>
-              {isPos ? "+" : "−"}₺{fmtTL(Math.abs(gainLoss))}
-            </Text>
-          </View>
-        </View>
-      </LinearGradient>
+      </Pressable>
     </Animated.View>
   );
 }
 
+// ── Main screen ───────────────────────────────────────────────────────────
 export default function PortfolioScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -449,10 +472,7 @@ export default function PortfolioScreen() {
 
   const stats = useMemo(() => {
     const allRates = [...currencies, ...goldRates] as any[];
-    let totalValue = 0;
-    let costTotal = 0;
-    let currencyValue = 0;
-    let goldValue = 0;
+    let totalValue = 0, costTotal = 0, currencyValue = 0, goldValue = 0;
     for (const item of portfolio) {
       const rate = allRates.find((r: any) => r.code === item.code);
       const cur = (rate?.buy ?? item.purchasePrice) * item.amount;
@@ -475,8 +495,9 @@ export default function PortfolioScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ paddingTop: topPadding + 12, paddingHorizontal: 20, paddingBottom: 12, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
-        <View>
+      {/* Header */}
+      <View style={{ paddingTop: topPadding + 12, paddingHorizontal: 20, paddingBottom: 14, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
+        <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, letterSpacing: 0.6, textTransform: "uppercase" }}>
             Yatırımlarım
           </Text>
@@ -488,8 +509,7 @@ export default function PortfolioScreen() {
           onPress={() => { Haptics.selectionAsync().catch(() => {}); setShowAddModal(true); }}
           style={({ pressed }) => [{
             backgroundColor: colors.primary,
-            paddingHorizontal: 14, paddingVertical: 10,
-            borderRadius: 999,
+            paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999,
             flexDirection: "row", alignItems: "center", gap: 6,
             opacity: pressed ? 0.85 : 1,
           }]}
@@ -505,26 +525,38 @@ export default function PortfolioScreen() {
         data={portfolio}
         keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => (
-          <PortfolioItemCard item={item} colors={colors} onDelete={() => handleDelete(item.id)} index={index} />
+          <View style={{ paddingHorizontal: 20 }}>
+            <PortfolioItemCard item={item} colors={colors} onDelete={() => handleDelete(item.id)} index={index} />
+          </View>
         )}
         ListHeaderComponent={
           portfolio.length > 0 ? (
-            <HeroSummary
-              colors={colors}
-              totalValue={stats.totalValue}
-              gainLoss={stats.gainLoss}
-              gainLossPercent={stats.gainLossPercent}
-              costTotal={stats.costTotal}
-              currencyValue={stats.currencyValue}
-              goldValue={stats.goldValue}
-              count={portfolio.length}
-            />
+            <>
+              <HeroCard
+                colors={colors}
+                totalValue={stats.totalValue}
+                costTotal={stats.costTotal}
+                gainLoss={stats.gainLoss}
+                gainLossPercent={stats.gainLossPercent}
+                count={portfolio.length}
+                currencyValue={stats.currencyValue}
+                goldValue={stats.goldValue}
+              />
+              <SectionHeading colors={colors} label="Varlıklarım" count={portfolio.length} />
+            </>
           ) : null
         }
         ListEmptyComponent={<EmptyPortfolio colors={colors} onAdd={() => setShowAddModal(true)} />}
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+        ListFooterComponent={
+          portfolio.length > 0 ? (
+            <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: colors.mutedForeground, textAlign: "center", marginTop: 18, opacity: 0.7 }}>
+              Bir varlığı silmek için basılı tut
+            </Text>
+          ) : null
+        }
         contentContainerStyle={[
-          { paddingHorizontal: 20, paddingBottom: bottomPadding + 16, paddingTop: 4 },
+          { paddingBottom: bottomPadding + 16, paddingTop: 4 },
           portfolio.length === 0 && { flex: 1 },
         ]}
         showsVerticalScrollIndicator={false}
