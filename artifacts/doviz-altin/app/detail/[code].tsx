@@ -17,7 +17,6 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import { AssetIcon } from "@/components/AssetIcon";
-import { FullChart } from "@/components/FullChart";
 
 function AddAlertModal({
   visible,
@@ -107,8 +106,7 @@ export default function DetailScreen() {
   const { code, type } = useLocalSearchParams<{ code: string; type: "currency" | "gold" }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { findRateByCode, favorites, toggleFavorite, getHistoricalData } = useApp();
-  const [period, setPeriod] = useState<"1D" | "1W" | "1M" | "3M" | "1Y">("1M");
+  const { findRateByCode, favorites, toggleFavorite } = useApp();
   const [showAlertModal, setShowAlertModal] = useState(false);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
@@ -121,7 +119,6 @@ export default function DetailScreen() {
   const isPositive = item.changePercent >= 0;
   const changeColor = isPositive ? colors.rise : colors.fall;
   const isFav = favorites.includes(code!);
-  const histData = getHistoricalData(code!, period);
   const spread = item.sell - item.buy;
 
   const formatPrice = (p: number) => {
@@ -135,58 +132,56 @@ export default function DetailScreen() {
       <LinearGradient
         colors={
           type === "gold"
-            ? ["#1A0F00", "#2A1A00"]
+            ? ["#0B3D91", "#1E5BC6"]
             : [colors.background, colors.background]
         }
         style={{ paddingTop: topPadding + 8, paddingHorizontal: 20, paddingBottom: 16 }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
           <Pressable onPress={() => router.back()} style={{ padding: 8, marginLeft: -8, marginRight: 8 }}>
-            <Icon name="arrow-back" size={22} color={type === "gold" ? "#FFD700" : colors.foreground} />
+            <Icon name="arrow-back" size={22} color={type === "gold" ? "#FFFFFF" : colors.foreground} />
           </Pressable>
           <Text style={{ flex: 1 }} />
           <Pressable onPress={() => toggleFavorite(code!)} style={{ padding: 8 }}>
             <Icon
               name={isFav ? "star" : "star-outline"}
               size={22}
-              color={isFav ? colors.gold : (type === "gold" ? "#FFD700" : colors.mutedForeground)}
+              color={isFav ? colors.gold : (type === "gold" ? "#FFFFFF" : colors.mutedForeground)}
             />
           </Pressable>
           <Pressable onPress={() => setShowAlertModal(true)} style={{ padding: 8 }}>
-            <Icon name="notifications-outline" size={22} color={type === "gold" ? "#FFD700" : colors.foreground} />
+            <Icon name="notifications-outline" size={22} color={type === "gold" ? "#FFFFFF" : colors.foreground} />
           </Pressable>
         </View>
 
         <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-          <View style={{ marginRight: 12 }}>
-            <AssetIcon
-              code={type === "currency" ? (item.flag ?? code!) : code!}
-              type={type ?? "currency"}
-              size={48}
-            />
-          </View>
+          {type === "currency" && (
+            <View style={{ marginRight: 12 }}>
+              <AssetIcon code={code!} type="currency" size={48} />
+            </View>
+          )}
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 22, fontFamily: "Inter_700Bold", color: type === "gold" ? "#FFD700" : colors.foreground, letterSpacing: -0.3 }}>
-              {code}
-            </Text>
-            <Text style={{ fontSize: 13, fontFamily: "Inter_400Regular", color: type === "gold" ? "rgba(255,215,0,0.6)" : colors.mutedForeground }}>
+            <Text style={{ fontSize: 22, fontFamily: "Inter_700Bold", color: type === "gold" ? "#FFFFFF" : colors.foreground, letterSpacing: -0.3 }} numberOfLines={1}>
               {item.nameTR}
+            </Text>
+            <Text style={{ fontSize: 13, fontFamily: "Inter_400Regular", color: type === "gold" ? "rgba(255,255,255,0.7)" : colors.mutedForeground, marginTop: 2 }}>
+              {code}
             </Text>
           </View>
         </View>
 
-        <Text style={{ fontSize: 38, fontFamily: "Inter_700Bold", color: type === "gold" ? "#FFD700" : colors.foreground, marginTop: 16, letterSpacing: -1 }}>
+        <Text style={{ fontSize: 38, fontFamily: "Inter_700Bold", color: type === "gold" ? "#FFFFFF" : colors.foreground, marginTop: 16, letterSpacing: -1 }}>
           ₺{formatPrice(item.buy)}
         </Text>
 
         <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6, gap: 8 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: changeColor + "15", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 }}>
-            <Icon name={isPositive ? "trending-up" : "trending-down"} size={14} color={changeColor} />
-            <Text style={{ fontSize: 13, fontFamily: "Inter_600SemiBold", color: changeColor }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: type === "gold" ? "rgba(255,255,255,0.18)" : changeColor + "15", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 }}>
+            <Icon name={isPositive ? "trending-up" : "trending-down"} size={14} color={type === "gold" ? "#FFFFFF" : changeColor} />
+            <Text style={{ fontSize: 13, fontFamily: "Inter_600SemiBold", color: type === "gold" ? "#FFFFFF" : changeColor }}>
               {isPositive ? "+" : ""}{item.changePercent.toFixed(2)}% ({isPositive ? "+" : ""}{item.change.toFixed(2)})
             </Text>
           </View>
-          <Text style={{ fontSize: 12, fontFamily: "Inter_400Regular", color: type === "gold" ? "rgba(255,215,0,0.5)" : colors.mutedForeground }}>
+          <Text style={{ fontSize: 12, fontFamily: "Inter_400Regular", color: type === "gold" ? "rgba(255,255,255,0.7)" : colors.mutedForeground }}>
             Bugün
           </Text>
         </View>
@@ -197,15 +192,6 @@ export default function DetailScreen() {
         contentContainerStyle={{ paddingBottom: bottomPadding + 20 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ backgroundColor: colors.card, marginHorizontal: 16, marginTop: 16, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.border }}>
-          <FullChart
-            data={histData}
-            period={period}
-            onPeriodChange={setPeriod}
-            currentPrice={item.buy}
-          />
-        </View>
-
         <View style={{ marginHorizontal: 16, marginTop: 16, backgroundColor: colors.card, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.border }}>
           <Text style={{ fontSize: 13, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, marginBottom: 16, letterSpacing: 0.5 }}>
             FİYAT DETAYLARI
