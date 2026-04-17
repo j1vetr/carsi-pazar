@@ -281,10 +281,12 @@ async function sendNewsPush(newItems: ParsedItem[]): Promise<void> {
   const top = sorted[0];
   const count = sorted.length;
   const title = `📰 ${top.source}`;
-  const body =
+  const headline = top.title.trim().replace(/\s+/g, " ");
+  const cta =
     count > 1
-      ? `${top.title.trim()}\nDiğer ${count - 1} haber için dokun`
-      : `${top.title.trim()}\nTüm haberler için dokun`;
+      ? `Diğer ${count - 1} haberi görmek için dokunun.`
+      : `Tüm haberleri görmek için dokunun.`;
+  const body = `${headline}\n${cta}`;
 
   const messages = tokens.map((to) => ({
     to,
