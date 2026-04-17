@@ -28,6 +28,7 @@ import { PriceCard } from "@/components/PriceCard";
 const TickerItem = React.memo(
   function TickerItem({ item }: { item: CurrencyRate }) {
     const isPositive = item.changePercent >= 0;
+    const hasChange = Math.abs(item.changePercent) >= 0.005;
     return (
       <View style={{ flexDirection: "row", alignItems: "center", marginRight: 22 }}>
         <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.6)", marginRight: 6 }}>
@@ -36,8 +37,8 @@ const TickerItem = React.memo(
         <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginRight: 5, fontVariant: ["tabular-nums"] }}>
           {item.buy.toFixed(4)}
         </Text>
-        <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: isPositive ? "#5EEAA8" : "#FF8585", fontVariant: ["tabular-nums"] }}>
-          {isPositive ? "▲" : "▼"} {Math.abs(item.changePercent).toFixed(2)}%
+        <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: hasChange ? (isPositive ? "#5EEAA8" : "#FF8585") : "rgba(255,255,255,0.45)", fontVariant: ["tabular-nums"] }}>
+          {hasChange ? `${isPositive ? "▲" : "▼"} ${Math.abs(item.changePercent).toFixed(2)}%` : "—"}
         </Text>
       </View>
     );

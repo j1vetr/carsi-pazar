@@ -521,8 +521,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const historicalCache = useRef<Map<string, HistoricalPoint[]>>(new Map());
   const prevPriceCache = useRef<PreviousPriceCache>({});
-  const dailyOpenCache = useRef<PreviousPriceCache>({});
-  const dailyOpenDate = useRef<string>("");
+  const priceHistoryRef = useRef<Record<string, { t: number; buy: number; sell: number }[]>>({});
+  const lastSnapshotPersistRef = useRef<number>(0);
   const isFetching = useRef<boolean>(false);
   const isHydrated = useRef<boolean>(false);
   const socketRef = useRef<Socket | null>(null);
@@ -578,35 +578,59 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const loadStoredData = async () => {
     try {
-      const [storedPortfolio, storedAlerts, storedFavorites, storedDailyOpen] = await Promise.all([
+      const [storedPortfolio, storedAlerts, storedFavorites, storedHistory] = await Promise.all([
         AsyncStorage.getItem("portfolio"),
         AsyncStorage.getItem("alerts"),
         AsyncStorage.getItem("favorites"),
-        AsyncStorage.getItem("dailyOpen"),
+        AsyncStorage.getItem("priceHistory_v1"),
       ]);
       if (storedPortfolio) setPortfolio(JSON.parse(storedPortfolio));
       if (storedAlerts) setAlerts(JSON.parse(storedAlerts));
       if (storedFavorites) setFavorites(JSON.parse(storedFavorites));
-      if (storedDailyOpen) {
-        const parsed = JSON.parse(storedDailyOpen);
-        if (parsed.date === new Date().toDateString()) {
-          dailyOpenCache.current = parsed.cache;
-          dailyOpenDate.current = parsed.date;
-        }
+      if (storedHistory) {
+        try {
+          const parsed = JSON.parse(storedHistory);
+          if (parsed && typeof parsed === "object") {
+            priceHistoryRef.current = parsed;
+          }
+        } catch {}
       }
     } catch {}
   };
 
-  const applyPrices = useCallback((data: RawPricesResponse) => {
-    const today = new Date().toDateString();
-    const dayChanged = dailyOpenDate.current !== today;
-    const hasOpen = Object.keys(dailyOpenCache.current).length > 0;
-    const refCache = !dayChanged && hasOpen
-      ? dailyOpenCache.current
-      : prevPriceCache.current;
+  const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000;
+  const HISTORY_MAX_AGE_MS = 48 * 60 * 60 * 1000;
+  const TARGET_AGE_MS = 24 * 60 * 60 * 1000;
+  const PERSIST_THROTTLE_MS = 5 * 60 * 1000;
 
-    const newCurrencies = mapToCurrencies(data, refCache);
-    const newGold = mapToGold(data, refCache);
+  const buildBaselineCache = (now: number): PreviousPriceCache => {
+    const baseline: PreviousPriceCache = {};
+    const target = now - TARGET_AGE_MS;
+    for (const [code, arr] of Object.entries(priceHistoryRef.current)) {
+      if (!arr || arr.length === 0) continue;
+      let best = arr[0];
+      let bestDist = Math.abs(best.t - target);
+      for (let i = 1; i < arr.length; i++) {
+        const d = Math.abs(arr[i].t - target);
+        if (d < bestDist) {
+          best = arr[i];
+          bestDist = d;
+        }
+      }
+      const ageHours = (now - best.t) / (60 * 60 * 1000);
+      if (ageHours >= 1) {
+        baseline[code] = { buy: best.buy, sell: best.sell };
+      }
+    }
+    return baseline;
+  };
+
+  const applyPrices = useCallback((data: RawPricesResponse) => {
+    const now = Date.now();
+    const baseline = buildBaselineCache(now);
+
+    const newCurrencies = mapToCurrencies(data, baseline);
+    const newGold = mapToGold(data, baseline);
 
     if (newCurrencies.length > 0) setCurrencies(newCurrencies);
     if (newGold.length > 0) setGoldRates(newGold);
@@ -617,12 +641,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
     prevPriceCache.current = newCache;
 
-    if (dayChanged || !hasOpen) {
-      dailyOpenCache.current = newCache;
-      dailyOpenDate.current = today;
+    let snapshotAdded = false;
+    [...newCurrencies, ...newGold].forEach((r) => {
+      const arr = priceHistoryRef.current[r.code] ?? [];
+      const lastT = arr.length > 0 ? arr[arr.length - 1].t : 0;
+      if (now - lastT >= SNAPSHOT_INTERVAL_MS) {
+        arr.push({ t: now, buy: r.buy, sell: r.sell });
+        snapshotAdded = true;
+      }
+      const cutoff = now - HISTORY_MAX_AGE_MS;
+      const trimmed = arr.filter((s) => s.t >= cutoff);
+      if (trimmed.length > 0) {
+        priceHistoryRef.current[r.code] = trimmed;
+      } else if (arr.length > 0) {
+        priceHistoryRef.current[r.code] = [arr[arr.length - 1]];
+      }
+    });
+
+    if (snapshotAdded && now - lastSnapshotPersistRef.current > PERSIST_THROTTLE_MS) {
+      lastSnapshotPersistRef.current = now;
       AsyncStorage.setItem(
-        "dailyOpen",
-        JSON.stringify({ date: today, cache: newCache })
+        "priceHistory_v1",
+        JSON.stringify(priceHistoryRef.current)
       ).catch(() => {});
     }
 

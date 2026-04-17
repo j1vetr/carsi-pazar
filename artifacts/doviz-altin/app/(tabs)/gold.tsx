@@ -33,6 +33,7 @@ function GoldHero({
   const gramChange = gram?.change ?? 0;
   const gramPct = gram?.changePercent ?? 0;
   const isPos = gramChange >= 0;
+  const hasChange = Math.abs(gramPct) >= 0.005;
 
   return (
     <LinearGradient
@@ -73,15 +74,17 @@ function GoldHero({
             <View style={{
               flexDirection: "row", alignItems: "center", gap: 4,
               paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
-              backgroundColor: isPos ? "rgba(94,234,168,0.15)" : "rgba(255,133,133,0.15)",
+              backgroundColor: hasChange ? (isPos ? "rgba(94,234,168,0.15)" : "rgba(255,133,133,0.15)") : "rgba(255,255,255,0.1)",
             }}>
-              <Icon name={isPos ? "caret-up" : "caret-down"} size={11} color={isPos ? "#5EEAA8" : "#FF8585"} />
-              <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: isPos ? "#5EEAA8" : "#FF8585" }}>
-                {isPos ? "+" : ""}{gramPct.toFixed(2)}%
+              {hasChange && (
+                <Icon name={isPos ? "caret-up" : "caret-down"} size={11} color={isPos ? "#5EEAA8" : "#FF8585"} />
+              )}
+              <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: hasChange ? (isPos ? "#5EEAA8" : "#FF8585") : "rgba(255,255,255,0.7)" }}>
+                {hasChange ? `${isPos ? "+" : ""}${gramPct.toFixed(2)}%` : "—"}
               </Text>
             </View>
             <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.6)" }}>
-              {isPos ? "+" : ""}{fmt(gramChange)} ₺
+              {hasChange ? `${isPos ? "+" : ""}${fmt(gramChange)} ₺` : "Baseline alınıyor"}
             </Text>
           </View>
         </View>

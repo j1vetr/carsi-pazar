@@ -64,7 +64,8 @@ export function PriceCard({
   }, [onPress]);
 
   const isPositive = item.changePercent >= 0;
-  const changeColor = isPositive ? colors.rise : colors.fall;
+  const hasChange = Math.abs(item.changePercent) >= 0.005;
+  const changeColor = hasChange ? (isPositive ? colors.rise : colors.fall) : colors.mutedForeground;
 
   const styles = StyleSheet.create({
     pressable: {
@@ -131,13 +132,15 @@ export function PriceCard({
           <Text style={styles.bid}>{formatPrice(item.buy)}</Text>
         </View>
         <View style={styles.changeWrap}>
-          <Icon
-            name={isPositive ? "caret-up" : "caret-down"}
-            size={9}
-            color={changeColor}
-          />
+          {hasChange && (
+            <Icon
+              name={isPositive ? "caret-up" : "caret-down"}
+              size={9}
+              color={changeColor}
+            />
+          )}
           <Text style={styles.changeText}>
-            {isPositive ? "+" : ""}{item.changePercent.toFixed(2)}%
+            {hasChange ? `${isPositive ? "+" : ""}${item.changePercent.toFixed(2)}%` : "—"}
           </Text>
           <Text style={[styles.ask, { marginLeft: 6 }]}>{formatPrice(item.sell)}</Text>
         </View>
