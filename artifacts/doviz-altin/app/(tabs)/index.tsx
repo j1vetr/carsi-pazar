@@ -145,14 +145,9 @@ export default function MarketScreen() {
     brand: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "rgba(255,255,255,0.08)",
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.12)",
-      padding: 0,
-      borderRadius: 14,
-      overflow: "hidden",
+      marginLeft: -14,
     },
-    brandLogo: { width: 210, height: 78 },
+    brandLogo: { width: 170, height: 64 },
     brandDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent },
     brandText: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#FFFFFF", letterSpacing: 1.4 },
     heroIconBtn: {
