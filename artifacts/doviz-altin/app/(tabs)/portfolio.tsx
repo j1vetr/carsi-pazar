@@ -11,8 +11,7 @@ import {
   Modal,
   ScrollView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 import { Icon } from "@/components/Icon";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -22,23 +21,12 @@ import { useApp, PortfolioItem } from "@/contexts/AppContext";
 // ── Number formatting ──────────────────────────────────────────────────────
 const fmtTL = (v: number) =>
   v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 const fmtPrice = (v: number) =>
   v >= 100
     ? v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     : v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-
 const fmtAmount = (v: number) =>
   Number.isInteger(v) ? v.toString() : v.toLocaleString("tr-TR", { maximumFractionDigits: 4 });
-
-// Compact for tight spaces: 1.2M ₺ / 850 B ₺ / 12.450 ₺
-const fmtCompact = (v: number) => {
-  const abs = Math.abs(v);
-  if (abs >= 1_000_000_000) return `${(v / 1_000_000_000).toLocaleString("tr-TR", { maximumFractionDigits: 2 })}Mr`;
-  if (abs >= 1_000_000) return `${(v / 1_000_000).toLocaleString("tr-TR", { maximumFractionDigits: 2 })}M`;
-  if (abs >= 10_000) return `${(v / 1_000).toLocaleString("tr-TR", { maximumFractionDigits: 1 })}B`;
-  return v.toLocaleString("tr-TR", { maximumFractionDigits: 0 });
-};
 
 // ── Empty state ────────────────────────────────────────────────────────────
 function EmptyPortfolio({ colors, onAdd }: { colors: any; onAdd: () => void }) {
@@ -231,144 +219,7 @@ function AddAssetModal({
   );
 }
 
-// ── Hero card: focal point ────────────────────────────────────────────────
-function HeroCard({
-  colors, totalValue, costTotal, gainLoss, gainLossPercent, count,
-  currencyValue, goldValue,
-}: {
-  colors: any; totalValue: number; costTotal: number; gainLoss: number; gainLossPercent: number;
-  count: number; currencyValue: number; goldValue: number;
-}) {
-  const isPos = gainLoss >= 0;
-  const total = currencyValue + goldValue;
-  const currencyPct = total > 0 ? (currencyValue / total) * 100 : 0;
-  const goldPct = total > 0 ? 100 - currencyPct : 0;
-
-  return (
-    <Animated.View entering={FadeIn.duration(400)} style={{ marginHorizontal: 20, marginBottom: 20, borderRadius: 24, overflow: "hidden" }}>
-      <LinearGradient
-        colors={["#0F2F70", "#0B3D91", "#06214F"]}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={{ padding: 24 }}
-      >
-        {/* Top accent line */}
-        <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, backgroundColor: colors.gold, opacity: 0.9 }} />
-
-        {/* Top row: label + asset count */}
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.6)", letterSpacing: 1.4 }}>
-            TOPLAM DEĞER
-          </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(255,255,255,0.12)", paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999 }}>
-            <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: colors.gold }} />
-            <Text style={{ fontSize: 10.5, fontFamily: "Inter_700Bold", color: "#fff", letterSpacing: 0.4 }}>
-              {count} {count === 1 ? "VARLIK" : "VARLIK"}
-            </Text>
-          </View>
-        </View>
-
-        {/* Hero number — auto-shrinks if huge */}
-        <View style={{ flexDirection: "row", alignItems: "baseline", marginTop: 14 }}>
-          <Text style={{ fontSize: 24, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.85)", marginRight: 4, letterSpacing: -0.5 }}>
-            ₺
-          </Text>
-          <Text
-            adjustsFontSizeToFit
-            numberOfLines={1}
-            minimumFontScale={0.5}
-            style={{ flex: 1, fontSize: 42, fontFamily: "Inter_700Bold", color: "#fff", letterSpacing: -1.4, lineHeight: 48 }}
-          >
-            {fmtTL(totalValue)}
-          </Text>
-        </View>
-
-        {/* Trend pill */}
-        <View style={{ flexDirection: "row", marginTop: 10, gap: 8, alignItems: "center" }}>
-          <View style={{
-            flexDirection: "row", alignItems: "center", gap: 5,
-            backgroundColor: isPos ? "rgba(34,197,94,0.18)" : "rgba(248,113,113,0.18)",
-            paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999,
-          }}>
-            <Icon name={isPos ? "trending-up" : "trending-down"} size={13} color={isPos ? "#4ADE80" : "#F87171"} />
-            <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: isPos ? "#4ADE80" : "#F87171", letterSpacing: -0.2 }}>
-              {isPos ? "+" : "−"}₺{fmtTL(Math.abs(gainLoss))}
-            </Text>
-          </View>
-          <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: isPos ? "#4ADE80" : "#F87171", letterSpacing: -0.1 }}>
-            {isPos ? "+" : ""}{gainLossPercent.toFixed(2)}%
-          </Text>
-        </View>
-
-        {/* Distribution */}
-        {total > 0 && (currencyValue > 0 || goldValue > 0) && (
-          <View style={{ marginTop: 22 }}>
-            <View style={{ flexDirection: "row", height: 6, borderRadius: 3, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.1)" }}>
-              {currencyPct > 0 && <View style={{ width: `${currencyPct}%`, backgroundColor: "#60A5FA" }} />}
-              {goldPct > 0 && <View style={{ width: `${goldPct}%`, backgroundColor: colors.gold }} />}
-            </View>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 10 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#60A5FA" }} />
-                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.7)" }}>
-                  Döviz
-                </Text>
-                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: "#fff" }}>
-                  %{currencyPct.toFixed(0)}
-                </Text>
-              </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: colors.gold }} />
-                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.7)" }}>
-                  Maden
-                </Text>
-                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: "#fff" }}>
-                  %{goldPct.toFixed(0)}
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Cost / Current mini stats — compact format */}
-        <View style={{ flexDirection: "row", marginTop: 20, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "rgba(255,255,255,0.12)" }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.55)", letterSpacing: 0.6 }}>
-              MALİYET
-            </Text>
-            <Text adjustsFontSizeToFit numberOfLines={1} style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: "#fff", marginTop: 5, letterSpacing: -0.3 }}>
-              ₺{fmtCompact(costTotal)}
-            </Text>
-          </View>
-          <View style={{ width: StyleSheet.hairlineWidth, backgroundColor: "rgba(255,255,255,0.12)", marginHorizontal: 14 }} />
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.55)", letterSpacing: 0.6 }}>
-              GETİRİ
-            </Text>
-            <Text adjustsFontSizeToFit numberOfLines={1} style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: isPos ? "#4ADE80" : "#F87171", marginTop: 5, letterSpacing: -0.3 }}>
-              {isPos ? "+" : "−"}₺{fmtCompact(Math.abs(gainLoss))}
-            </Text>
-          </View>
-        </View>
-      </LinearGradient>
-    </Animated.View>
-  );
-}
-
-// ── Section heading ───────────────────────────────────────────────────────
-function SectionHeading({ colors, label, count }: { colors: any; label: string; count: number }) {
-  return (
-    <View style={{ flexDirection: "row", alignItems: "baseline", paddingHorizontal: 20, marginTop: 4, marginBottom: 12 }}>
-      <Text style={{ fontSize: 17, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}>
-        {label}
-      </Text>
-      <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginLeft: 8 }}>
-        {count}
-      </Text>
-    </View>
-  );
-}
-
-// ── Premium item card — Apple Stocks inspired ─────────────────────────────
+// ── Item card ─────────────────────────────────────────────────────────────
 function PortfolioItemCard({ item, colors, onDelete, index }: {
   item: PortfolioItem; colors: any; onDelete: () => void; index: number;
 }) {
@@ -383,75 +234,69 @@ function PortfolioItemCard({ item, colors, onDelete, index }: {
   const isPos = gainLoss >= 0;
 
   const isGold = item.type === "gold";
-  const accentColor = isGold ? colors.gold : "#60A5FA";
+  const accentColor = isGold ? colors.gold : "#3B82F6";
 
   return (
     <Animated.View entering={FadeInDown.delay(index * 40).duration(280)}>
       <Pressable
         onLongPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {}); onDelete(); }}
-        delayLongPress={350}
+        delayLongPress={400}
         style={({ pressed }) => [{
           backgroundColor: colors.card,
-          borderRadius: 16,
+          borderRadius: 18,
           borderWidth: StyleSheet.hairlineWidth,
           borderColor: colors.border,
-          paddingVertical: 14,
-          paddingHorizontal: 14,
+          paddingVertical: 16,
+          paddingHorizontal: 16,
           flexDirection: "row",
           alignItems: "center",
           opacity: pressed ? 0.7 : 1,
         }]}
       >
-        {/* Left accent stripe */}
-        <View style={{ width: 3, alignSelf: "stretch", backgroundColor: accentColor, borderRadius: 2, marginRight: 12 }} />
+        <View style={{ width: 4, alignSelf: "stretch", backgroundColor: accentColor, borderRadius: 2, marginRight: 14 }} />
 
-        {/* Asset info */}
         <View style={{ flex: 1, paddingRight: 10 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
             <Text numberOfLines={1} style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}>
               {item.code}
             </Text>
             <View style={{
-              backgroundColor: isGold ? colors.gold + "20" : colors.primary + "15",
+              backgroundColor: isGold ? colors.gold + "20" : "#3B82F615",
               paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5,
             }}>
-              <Text style={{ fontSize: 9, fontFamily: "Inter_700Bold", color: isGold ? colors.goldDark : colors.primary, letterSpacing: 0.3 }}>
+              <Text style={{ fontSize: 9, fontFamily: "Inter_700Bold", color: isGold ? colors.goldDark : "#3B82F6", letterSpacing: 0.3 }}>
                 {isGold ? "MADEN" : "DÖVİZ"}
               </Text>
             </View>
           </View>
-          <Text numberOfLines={1} style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 3 }}>
+          <Text numberOfLines={1} style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 4 }}>
             {item.nameTR}
           </Text>
-          <Text numberOfLines={1} style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 4, opacity: 0.8 }}>
+          <Text numberOfLines={1} style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 5, opacity: 0.75 }}>
             {fmtAmount(item.amount)} {isGold ? "× ₺" : "@ ₺"}{fmtPrice(item.purchasePrice)}
           </Text>
         </View>
 
-        {/* Right value + change */}
-        <View style={{ alignItems: "flex-end", maxWidth: 130 }}>
+        <View style={{ alignItems: "flex-end", maxWidth: 140 }}>
           <Text
-            adjustsFontSizeToFit
-            numberOfLines={1}
-            minimumFontScale={0.7}
-            style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}
+            adjustsFontSizeToFit numberOfLines={1} minimumFontScale={0.7}
+            style={{ fontSize: 17, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}
           >
             ₺{fmtTL(currentValue)}
           </Text>
           <View style={{
             flexDirection: "row", alignItems: "center", gap: 3,
             backgroundColor: (isPos ? colors.rise : colors.fall) + "1A",
-            paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, marginTop: 5,
+            paddingHorizontal: 8, paddingVertical: 3, borderRadius: 7, marginTop: 6,
           }}>
-            <Icon name={isPos ? "arrow-up" : "arrow-down"} size={9} color={isPos ? colors.rise : colors.fall} />
+            <Icon name={isPos ? "arrow-up" : "arrow-down"} size={10} color={isPos ? colors.rise : colors.fall} />
             <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: isPos ? colors.rise : colors.fall, letterSpacing: -0.1 }}>
               {isPos ? "+" : ""}{gainLossPercent.toFixed(2)}%
             </Text>
           </View>
           <Text
-            adjustsFontSizeToFit
-            numberOfLines={1}
-            style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: isPos ? colors.rise : colors.fall, marginTop: 4, opacity: 0.85 }}
+            adjustsFontSizeToFit numberOfLines={1} minimumFontScale={0.7}
+            style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: isPos ? colors.rise : colors.fall, marginTop: 5, opacity: 0.9 }}
           >
             {isPos ? "+" : "−"}₺{fmtTL(Math.abs(gainLoss))}
           </Text>
@@ -486,6 +331,11 @@ export default function PortfolioScreen() {
     return { totalValue, costTotal, gainLoss, gainLossPercent, currencyValue, goldValue };
   }, [portfolio, currencies, goldRates]);
 
+  const isPos = stats.gainLoss >= 0;
+  const totalDist = stats.currencyValue + stats.goldValue;
+  const currencyPct = totalDist > 0 ? (stats.currencyValue / totalDist) * 100 : 0;
+  const goldPct = totalDist > 0 ? 100 - currencyPct : 0;
+
   const handleDelete = (id: string) => {
     Alert.alert("Varlığı Sil", "Bu varlığı portföyünden silmek istediğine emin misin?", [
       { text: "İptal", style: "cancel" },
@@ -493,10 +343,117 @@ export default function PortfolioScreen() {
     ]);
   };
 
+  // ── Hero section: full-width, breathable, edge-to-edge ─────────────────
+  const HeroSection = () => (
+    <Animated.View entering={FadeIn.duration(400)} style={{ paddingHorizontal: 20, paddingBottom: 28 }}>
+      {/* Label */}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.gold }} />
+        <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 1.4 }}>
+          TOPLAM PORTFÖY DEĞERİ
+        </Text>
+      </View>
+
+      {/* THE big number — full width, edge to edge, never clipped */}
+      <Animated.View entering={FadeInUp.delay(80).duration(400)}>
+        <Text
+          adjustsFontSizeToFit
+          numberOfLines={1}
+          minimumFontScale={0.4}
+          style={{
+            fontSize: 52,
+            fontFamily: "Inter_700Bold",
+            color: colors.foreground,
+            letterSpacing: -1.8,
+            marginTop: 10,
+            includeFontPadding: false,
+          }}
+        >
+          ₺{fmtTL(stats.totalValue)}
+        </Text>
+      </Animated.View>
+
+      {/* Trend pill */}
+      <Animated.View entering={FadeInUp.delay(140).duration(400)} style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>
+        <View style={{
+          flexDirection: "row", alignItems: "center", gap: 5,
+          backgroundColor: (isPos ? colors.rise : colors.fall) + "1A",
+          paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999,
+        }}>
+          <Icon name={isPos ? "trending-up" : "trending-down"} size={13} color={isPos ? colors.rise : colors.fall} />
+          <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: isPos ? colors.rise : colors.fall, letterSpacing: -0.2 }}>
+            {isPos ? "+" : "−"}₺{fmtTL(Math.abs(stats.gainLoss))}
+          </Text>
+        </View>
+        <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: isPos ? colors.rise : colors.fall, letterSpacing: -0.1 }}>
+          {isPos ? "+" : ""}{stats.gainLossPercent.toFixed(2)}%
+        </Text>
+        <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginLeft: 2 }}>
+          toplam getiri
+        </Text>
+      </Animated.View>
+
+      {/* Stat row: cost / current — clean, side by side */}
+      <Animated.View entering={FadeInUp.delay(200).duration(400)} style={{ flexDirection: "row", marginTop: 22, gap: 10 }}>
+        <View style={{ flex: 1, backgroundColor: colors.card, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }}>
+          <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 0.7 }}>
+            MALİYET
+          </Text>
+          <Text adjustsFontSizeToFit numberOfLines={1} style={{ fontSize: 17, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 5, letterSpacing: -0.4 }}>
+            ₺{fmtTL(stats.costTotal)}
+          </Text>
+        </View>
+        <View style={{ flex: 1, backgroundColor: colors.card, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }}>
+          <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 0.7 }}>
+            GETİRİ
+          </Text>
+          <Text adjustsFontSizeToFit numberOfLines={1} style={{ fontSize: 17, fontFamily: "Inter_700Bold", color: isPos ? colors.rise : colors.fall, marginTop: 5, letterSpacing: -0.4 }}>
+            {isPos ? "+" : "−"}₺{fmtTL(Math.abs(stats.gainLoss))}
+          </Text>
+        </View>
+      </Animated.View>
+
+      {/* Distribution — only if both types exist */}
+      {totalDist > 0 && (stats.currencyValue > 0 && stats.goldValue > 0) && (
+        <Animated.View entering={FadeInUp.delay(260).duration(400)} style={{ marginTop: 22 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 0.7 }}>
+              DAĞILIM
+            </Text>
+          </View>
+          <View style={{ flexDirection: "row", height: 10, borderRadius: 5, overflow: "hidden", backgroundColor: colors.secondary }}>
+            {currencyPct > 0 && <View style={{ width: `${currencyPct}%`, backgroundColor: "#3B82F6" }} />}
+            {goldPct > 0 && <View style={{ width: `${goldPct}%`, backgroundColor: colors.gold }} />}
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 12 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: "#3B82F6" }} />
+              <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>
+                Döviz
+              </Text>
+              <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: colors.mutedForeground }}>
+                %{currencyPct.toFixed(0)}
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: colors.gold }} />
+              <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>
+                Maden
+              </Text>
+              <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: colors.mutedForeground }}>
+                %{goldPct.toFixed(0)}
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
+      )}
+    </Animated.View>
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
-      <View style={{ paddingTop: topPadding + 12, paddingHorizontal: 20, paddingBottom: 14, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
+      <View style={{ paddingTop: topPadding + 12, paddingHorizontal: 20, paddingBottom: 18, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, letterSpacing: 0.6, textTransform: "uppercase" }}>
             Yatırımlarım
@@ -532,17 +489,16 @@ export default function PortfolioScreen() {
         ListHeaderComponent={
           portfolio.length > 0 ? (
             <>
-              <HeroCard
-                colors={colors}
-                totalValue={stats.totalValue}
-                costTotal={stats.costTotal}
-                gainLoss={stats.gainLoss}
-                gainLossPercent={stats.gainLossPercent}
-                count={portfolio.length}
-                currencyValue={stats.currencyValue}
-                goldValue={stats.goldValue}
-              />
-              <SectionHeading colors={colors} label="Varlıklarım" count={portfolio.length} />
+              <HeroSection />
+              <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginHorizontal: 20, marginBottom: 16 }} />
+              <View style={{ flexDirection: "row", alignItems: "baseline", paddingHorizontal: 20, marginBottom: 12 }}>
+                <Text style={{ fontSize: 17, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}>
+                  Varlıklarım
+                </Text>
+                <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginLeft: 8 }}>
+                  {portfolio.length}
+                </Text>
+              </View>
             </>
           ) : null
         }
@@ -550,7 +506,7 @@ export default function PortfolioScreen() {
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
         ListFooterComponent={
           portfolio.length > 0 ? (
-            <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: colors.mutedForeground, textAlign: "center", marginTop: 18, opacity: 0.7 }}>
+            <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: colors.mutedForeground, textAlign: "center", marginTop: 18, opacity: 0.6 }}>
               Bir varlığı silmek için basılı tut
             </Text>
           ) : null
