@@ -1,89 +1,107 @@
 const colors = {
   light: {
-    text: "#0a0a0a",
-    tint: "#C9A84C",
+    text: "#0B1F3A",
+    tint: "#0B3D91",
 
-    background: "#F5F5F0",
-    foreground: "#0A0A0A",
+    background: "#FFFFFF",
+    foreground: "#0B1F3A",
+
+    surface: "#F4F7FB",
+    surfaceAlt: "#EAF0F8",
 
     card: "#FFFFFF",
-    cardForeground: "#0A0A0A",
+    cardForeground: "#0B1F3A",
 
-    primary: "#C9A84C",
+    primary: "#0B3D91",
+    primaryDark: "#082B66",
+    primaryLight: "#1E5BC6",
     primaryForeground: "#FFFFFF",
 
-    secondary: "#F0EDE6",
-    secondaryForeground: "#1A1A1A",
+    secondary: "#EEF3FA",
+    secondaryForeground: "#0B1F3A",
 
-    muted: "#F0EDE6",
-    mutedForeground: "#8A8475",
+    muted: "#F4F7FB",
+    mutedForeground: "#6B7B95",
 
-    accent: "#1A3A5C",
+    accent: "#C9A227",
+    accentSoft: "#F5EBC4",
     accentForeground: "#FFFFFF",
 
-    destructive: "#E53935",
+    destructive: "#D43A3A",
     destructiveForeground: "#FFFFFF",
 
-    border: "#E5E2D9",
-    input: "#E5E2D9",
+    border: "#E2E8F2",
+    borderStrong: "#C9D3E2",
+    input: "#E2E8F2",
 
-    success: "#2ECC71",
+    success: "#0E9F6E",
     successForeground: "#FFFFFF",
-    warning: "#F39C12",
+    warning: "#D97706",
     warningForeground: "#FFFFFF",
 
-    gold: "#C9A84C",
-    goldLight: "#F0D98A",
-    goldDark: "#8B6914",
+    gold: "#C9A227",
+    goldLight: "#E8C752",
+    goldDark: "#8A6E14",
 
-    rise: "#16A34A",
-    fall: "#DC2626",
-    neutral: "#6B7280",
+    rise: "#0E9F6E",
+    riseSoft: "#E5F4EE",
+    fall: "#D43A3A",
+    fallSoft: "#FBEAEA",
+    neutral: "#6B7B95",
   },
 
   dark: {
-    text: "#F5F5F0",
-    tint: "#D4AF5A",
+    text: "#E8EEF7",
+    tint: "#5B8DEF",
 
-    background: "#0A0A0F",
-    foreground: "#F5F5F0",
+    background: "#0A1628",
+    foreground: "#E8EEF7",
 
-    card: "#141418",
-    cardForeground: "#F5F5F0",
+    surface: "#0F1E36",
+    surfaceAlt: "#152844",
 
-    primary: "#D4AF5A",
-    primaryForeground: "#0A0A0F",
+    card: "#0F1E36",
+    cardForeground: "#E8EEF7",
 
-    secondary: "#1E1E24",
-    secondaryForeground: "#E5E5DD",
+    primary: "#5B8DEF",
+    primaryDark: "#3D6FCE",
+    primaryLight: "#84A8F4",
+    primaryForeground: "#FFFFFF",
 
-    muted: "#1E1E24",
-    mutedForeground: "#7A7A70",
+    secondary: "#152844",
+    secondaryForeground: "#E8EEF7",
 
-    accent: "#2A5080",
-    accentForeground: "#FFFFFF",
+    muted: "#152844",
+    mutedForeground: "#8597B3",
+
+    accent: "#E8C752",
+    accentSoft: "#3A2E14",
+    accentForeground: "#0A1628",
 
     destructive: "#EF4444",
     destructiveForeground: "#FFFFFF",
 
-    border: "#2A2A32",
-    input: "#2A2A32",
+    border: "#1F3556",
+    borderStrong: "#2A4670",
+    input: "#1F3556",
 
     success: "#22C55E",
     successForeground: "#FFFFFF",
     warning: "#F59E0B",
     warningForeground: "#FFFFFF",
 
-    gold: "#D4AF5A",
-    goldLight: "#F0D98A",
-    goldDark: "#8B6914",
+    gold: "#E8C752",
+    goldLight: "#F4DC7A",
+    goldDark: "#8A6E14",
 
     rise: "#22C55E",
+    riseSoft: "#0F2E1F",
     fall: "#EF4444",
-    neutral: "#9CA3AF",
+    fallSoft: "#2E1414",
+    neutral: "#8597B3",
   },
 
-  radius: 12,
+  radius: 14,
 };
 
 export default colors;

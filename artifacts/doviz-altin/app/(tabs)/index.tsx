@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
   Platform,
@@ -16,19 +16,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useApp, CurrencyRate } from "@/contexts/AppContext";
 import { PriceCard } from "@/components/PriceCard";
-import { AssetIcon } from "@/components/AssetIcon";
 
 function TickerItem({ item, colors }: { item: CurrencyRate; colors: any }) {
   const isPositive = item.changePercent >= 0;
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", marginRight: 24 }}>
-      <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, marginRight: 4 }}>
+    <View style={{ flexDirection: "row", alignItems: "center", marginRight: 18 }}>
+      <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.6)", marginRight: 5 }}>
         {item.code}
       </Text>
-      <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: colors.foreground, marginRight: 3 }}>
-        {item.buy >= 10 ? item.buy.toFixed(4) : item.buy.toFixed(4)}
+      <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginRight: 4, fontVariant: ["tabular-nums"] }}>
+        {item.buy.toFixed(item.buy >= 10 ? 4 : 4)}
       </Text>
-      <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: isPositive ? colors.rise : colors.fall }}>
+      <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: isPositive ? "#5EEAA8" : "#FF8585", fontVariant: ["tabular-nums"] }}>
         {isPositive ? "▲" : "▼"} {Math.abs(item.changePercent).toFixed(2)}%
       </Text>
     </View>
@@ -39,78 +38,168 @@ export default function MarketScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { currencies, goldRates, favorites, toggleFavorite, isLoading, refreshData, lastUpdated } = useApp();
-  const featuredGold = goldRates.find((g) => g.code === "ALTIN") ?? goldRates[0];
   const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
-  const [searchQuery] = useState("");
 
-  const topPadding = Platform.OS === "web" ? 67 : insets.top;
+  const featuredGold = goldRates.find((g) => g.code === "ALTIN") ?? goldRates[0];
+  const featuredUsd = currencies.find((c) => c.code === "USD");
+  const featuredEur = currencies.find((c) => c.code === "EUR");
+
+  const topPadding = Platform.OS === "web" ? 14 : insets.top;
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
 
-  const displayCurrencies = activeTab === "favorites"
-    ? currencies.filter((c) => favorites.includes(c.code))
-    : currencies.filter((c) =>
-        c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.nameTR.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  const displayCurrencies = useMemo(
+    () =>
+      activeTab === "favorites"
+        ? currencies.filter((c) => favorites.includes(c.code))
+        : currencies,
+    [activeTab, currencies, favorites]
+  );
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
-    header: {
-      paddingTop: topPadding + 16,
+
+    heroWrap: { paddingTop: topPadding },
+    hero: {
       paddingHorizontal: 20,
-      paddingBottom: 12,
+      paddingTop: 14,
+      paddingBottom: 18,
     },
-    headerTitle: {
-      fontSize: 28,
-      fontFamily: "Inter_700Bold",
-      color: colors.foreground,
-      letterSpacing: -0.5,
-    },
-    lastUpdated: {
-      fontSize: 11,
-      fontFamily: "Inter_400Regular",
-      color: colors.mutedForeground,
-      marginTop: 2,
-    },
-    tickerContainer: {
-      height: 36,
-      backgroundColor: colors.card,
-      borderTopWidth: 1,
-      borderBottomWidth: 1,
-      borderColor: colors.border,
-      justifyContent: "center",
-      overflow: "hidden",
-    },
-    tabRow: {
+    heroTopRow: {
       flexDirection: "row",
-      marginHorizontal: 20,
-      marginTop: 16,
-      marginBottom: 12,
-      backgroundColor: colors.secondary,
-      borderRadius: 10,
-      padding: 3,
-    },
-    tabBtn: {
-      flex: 1,
-      paddingVertical: 8,
+      justifyContent: "space-between",
       alignItems: "center",
-      borderRadius: 8,
+      marginBottom: 14,
     },
-    tabText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-    listContainer: { paddingHorizontal: 16, gap: 8, paddingBottom: bottomPadding + 16 },
-    headerGoldBanner: {
-      marginHorizontal: 20,
-      marginBottom: 12,
-      borderRadius: colors.radius,
-      overflow: "hidden",
+    brand: { flexDirection: "row", alignItems: "center", gap: 8 },
+    brandDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent },
+    brandText: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#FFFFFF", letterSpacing: 1.4 },
+    heroIconBtn: {
+      width: 34, height: 34, borderRadius: 17,
+      backgroundColor: "rgba(255,255,255,0.1)",
+      alignItems: "center", justifyContent: "center",
     },
-    goldBannerInner: { padding: 16 },
-    goldBannerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-    goldLabel: { fontSize: 12, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.7)" },
-    goldPrice: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginTop: 2 },
-    goldChange: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.9)" },
-    goldSubText: { fontSize: 11, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.6)", marginTop: 4 },
+    heroBigRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" },
+    heroLabel: {
+      fontSize: 11, fontFamily: "Inter_500Medium",
+      color: "rgba(255,255,255,0.55)", letterSpacing: 1.5,
+      marginBottom: 4,
+    },
+    heroPrice: {
+      fontSize: 38, fontFamily: "Inter_700Bold",
+      color: "#FFFFFF", letterSpacing: -1,
+      fontVariant: ["tabular-nums"],
+    },
+    heroSubRow: { flexDirection: "row", alignItems: "center", marginTop: 6, gap: 8 },
+    heroSubText: { fontSize: 11, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.6)" },
+    heroChangePill: {
+      flexDirection: "row", alignItems: "center", gap: 4,
+      paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
+    },
+    heroChangeText: { fontSize: 11, fontFamily: "Inter_700Bold" },
+
+    miniRow: {
+      flexDirection: "row",
+      gap: 10,
+      marginTop: 16,
+    },
+    miniCard: {
+      flex: 1,
+      backgroundColor: "rgba(255,255,255,0.08)",
+      borderRadius: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+    },
+    miniLabel: {
+      fontSize: 10, fontFamily: "Inter_500Medium",
+      color: "rgba(255,255,255,0.55)", letterSpacing: 1,
+    },
+    miniValue: {
+      fontSize: 17, fontFamily: "Inter_700Bold",
+      color: "#FFFFFF", marginTop: 2,
+      fontVariant: ["tabular-nums"],
+    },
+    miniDelta: { fontSize: 10, fontFamily: "Inter_600SemiBold", marginTop: 2 },
+
+    tickerStrip: {
+      backgroundColor: colors.primaryDark,
+      paddingVertical: 8,
+    },
+
+    sectionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      paddingTop: 18,
+      paddingBottom: 8,
+    },
+    sectionTitle: {
+      fontSize: 16, fontFamily: "Inter_700Bold",
+      color: colors.foreground, letterSpacing: -0.2,
+    },
+    sectionMeta: {
+      fontSize: 10, fontFamily: "Inter_500Medium",
+      color: colors.mutedForeground, letterSpacing: 1,
+    },
+
+    segmentRow: {
+      flexDirection: "row",
+      paddingHorizontal: 20,
+      gap: 8,
+      marginBottom: 6,
+    },
+    segment: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    segmentActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    segmentText: {
+      fontSize: 12,
+      fontFamily: "Inter_600SemiBold",
+      color: colors.mutedForeground,
+    },
+    segmentTextActive: { color: "#FFFFFF" },
+
+    tableHead: {
+      flexDirection: "row",
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      backgroundColor: colors.surface,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    th: {
+      fontSize: 10, fontFamily: "Inter_600SemiBold",
+      color: colors.mutedForeground, letterSpacing: 1,
+    },
+
+    list: { paddingBottom: bottomPadding + 16 },
+
+    statusDot: {
+      width: 6, height: 6, borderRadius: 3,
+      backgroundColor: colors.rise, marginRight: 6,
+    },
+    liveBadge: {
+      flexDirection: "row", alignItems: "center",
+      backgroundColor: "rgba(255,255,255,0.1)",
+      paddingHorizontal: 8, paddingVertical: 4,
+      borderRadius: 999,
+    },
+    liveText: {
+      fontSize: 10, fontFamily: "Inter_600SemiBold",
+      color: "rgba(255,255,255,0.9)", letterSpacing: 1,
+    },
   });
 
   const formatTime = (date: Date | null) => {
@@ -118,17 +207,123 @@ export default function MarketScreen() {
     return date.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   };
 
+  const goldChange = featuredGold?.change ?? 0;
+  const goldChangePct = featuredGold?.changePercent ?? 0;
+  const goldUp = goldChange >= 0;
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Piyasa</Text>
-        <Text style={styles.lastUpdated}>Son güncelleme: {formatTime(lastUpdated)}</Text>
-      </View>
+      <View style={styles.heroWrap}>
+        <LinearGradient
+          colors={[colors.primary, colors.primaryDark, "#04173B"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.hero}
+        >
+          <View style={styles.heroTopRow}>
+            <View style={styles.brand}>
+              <View style={styles.brandDot} />
+              <Text style={styles.brandText}>CANLI PİYASA</Text>
+            </View>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <View style={styles.liveBadge}>
+                <View style={styles.statusDot} />
+                <Text style={styles.liveText}>{lastUpdated ? formatTime(lastUpdated) : "BAĞLANIYOR"}</Text>
+              </View>
+              <Pressable
+                style={styles.heroIconBtn}
+                onPress={() => router.push("/alerts")}
+                hitSlop={6}
+              >
+                <Ionicons name="notifications-outline" size={17} color="#FFFFFF" />
+              </Pressable>
+            </View>
+          </View>
 
-      <View style={styles.tickerContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, alignItems: "center" }}>
-          {currencies.slice(0, 6).map((c) => <TickerItem key={c.code} item={c} colors={colors} />)}
-        </ScrollView>
+          <Pressable onPress={() => router.push({ pathname: "/detail/[code]", params: { code: "ALTIN", type: "gold" } })}>
+            <Text style={styles.heroLabel}>GRAM ALTIN · TL</Text>
+            <View style={styles.heroBigRow}>
+              <View>
+                <Text style={styles.heroPrice}>
+                  {(featuredGold?.buy ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Text>
+                <View style={styles.heroSubRow}>
+                  <View style={[styles.heroChangePill, { backgroundColor: goldUp ? "rgba(94,234,168,0.15)" : "rgba(255,133,133,0.15)" }]}>
+                    <Ionicons
+                      name={goldUp ? "caret-up" : "caret-down"}
+                      size={11}
+                      color={goldUp ? "#5EEAA8" : "#FF8585"}
+                    />
+                    <Text style={[styles.heroChangeText, { color: goldUp ? "#5EEAA8" : "#FF8585" }]}>
+                      {goldUp ? "+" : ""}{goldChangePct.toFixed(2)}%
+                    </Text>
+                  </View>
+                  <Text style={styles.heroSubText}>
+                    {goldUp ? "+" : ""}{goldChange.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺
+                  </Text>
+                </View>
+              </View>
+              <View style={{ alignItems: "flex-end" }}>
+                <Text style={styles.heroLabel}>SATIŞ</Text>
+                <Text style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: "#FFFFFF", fontVariant: ["tabular-nums"] }}>
+                  {(featuredGold?.sell ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Text>
+                <Text style={[styles.heroSubText, { marginTop: 4 }]}>
+                  spread {(((featuredGold?.sell ?? 0) - (featuredGold?.buy ?? 0))).toFixed(2)}
+                </Text>
+              </View>
+            </View>
+          </Pressable>
+
+          <View style={styles.miniRow}>
+            <Pressable
+              style={styles.miniCard}
+              onPress={() => router.push({ pathname: "/detail/[code]", params: { code: "USD", type: "currency" } })}
+            >
+              <Text style={styles.miniLabel}>USD/TRY</Text>
+              <Text style={styles.miniValue}>
+                {(featuredUsd?.buy ?? 0).toFixed(4)}
+              </Text>
+              <Text style={[styles.miniDelta, { color: (featuredUsd?.changePercent ?? 0) >= 0 ? "#5EEAA8" : "#FF8585" }]}>
+                {(featuredUsd?.changePercent ?? 0) >= 0 ? "▲" : "▼"} {Math.abs(featuredUsd?.changePercent ?? 0).toFixed(2)}%
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.miniCard}
+              onPress={() => router.push({ pathname: "/detail/[code]", params: { code: "EUR", type: "currency" } })}
+            >
+              <Text style={styles.miniLabel}>EUR/TRY</Text>
+              <Text style={styles.miniValue}>
+                {(featuredEur?.buy ?? 0).toFixed(4)}
+              </Text>
+              <Text style={[styles.miniDelta, { color: (featuredEur?.changePercent ?? 0) >= 0 ? "#5EEAA8" : "#FF8585" }]}>
+                {(featuredEur?.changePercent ?? 0) >= 0 ? "▲" : "▼"} {Math.abs(featuredEur?.changePercent ?? 0).toFixed(2)}%
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.miniCard}
+              onPress={() => router.push({ pathname: "/detail/[code]", params: { code: "ONS", type: "gold" } })}
+            >
+              <Text style={styles.miniLabel}>ONS · USD</Text>
+              <Text style={styles.miniValue}>
+                {(goldRates.find((g) => g.code === "ONS")?.buy ?? 0).toFixed(2)}
+              </Text>
+              <Text style={[styles.miniDelta, { color: (goldRates.find((g) => g.code === "ONS")?.changePercent ?? 0) >= 0 ? "#5EEAA8" : "#FF8585" }]}>
+                {(goldRates.find((g) => g.code === "ONS")?.changePercent ?? 0) >= 0 ? "▲" : "▼"} {Math.abs(goldRates.find((g) => g.code === "ONS")?.changePercent ?? 0).toFixed(2)}%
+              </Text>
+            </Pressable>
+          </View>
+        </LinearGradient>
+
+        <View style={styles.tickerStrip}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16, alignItems: "center" }}
+          >
+            {currencies.slice(0, 8).map((c) => <TickerItem key={c.code} item={c} colors={colors} />)}
+          </ScrollView>
+        </View>
       </View>
 
       <FlatList
@@ -141,80 +336,44 @@ export default function MarketScreen() {
             isFavorite={favorites.includes(item.code)}
             onFavoriteToggle={() => toggleFavorite(item.code)}
             onPress={() => router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "currency" } })}
-            compact={false}
           />
         )}
         ListHeaderComponent={
           <>
-            <Pressable
-              style={styles.headerGoldBanner}
-              onPress={() => router.push({ pathname: "/detail/[code]", params: { code: "ALTIN", type: "gold" } })}
-            >
-              <LinearGradient
-                colors={["#8B6914", "#C9A84C", "#D4AF5A"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.goldBannerInner}
-              >
-                <View style={styles.goldBannerRow}>
-                  <View>
-                    <Text style={styles.goldLabel}>GRAM ALTIN (HAS)</Text>
-                    <Text style={styles.goldPrice}>
-                      ₺{(featuredGold?.buy ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </Text>
-                    <Text style={styles.goldSubText}>
-                      Alış / Satış: {(featuredGold?.buy ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / {(featuredGold?.sell ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </Text>
-                  </View>
-                  <View style={{ alignItems: "flex-end" }}>
-                    <Ionicons
-                      name={(featuredGold?.changePercent ?? 0) >= 0 ? "trending-up" : "trending-down"}
-                      size={32}
-                      color="rgba(255,255,255,0.8)"
-                    />
-                    <Text style={styles.goldChange}>
-                      {(featuredGold?.changePercent ?? 0) >= 0 ? "+" : ""}
-                      {(featuredGold?.changePercent ?? 0).toFixed(2)}%
-                    </Text>
-                    <Text style={styles.goldSubText}>
-                      {(featuredGold?.change ?? 0) >= 0 ? "+" : ""}
-                      {(featuredGold?.change ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺
-                    </Text>
-                  </View>
-                </View>
-              </LinearGradient>
-            </Pressable>
-
-            <View style={styles.tabRow}>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>Döviz Kurları</Text>
+              <Text style={styles.sectionMeta}>{displayCurrencies.length} ENSTRÜMAN</Text>
+            </View>
+            <View style={styles.segmentRow}>
               <Pressable
-                style={[styles.tabBtn, activeTab === "all" && { backgroundColor: colors.card }]}
+                style={[styles.segment, activeTab === "all" && styles.segmentActive]}
                 onPress={() => setActiveTab("all")}
               >
-                <Text style={[styles.tabText, { color: activeTab === "all" ? colors.foreground : colors.mutedForeground }]}>
+                <Text style={[styles.segmentText, activeTab === "all" && styles.segmentTextActive]}>
                   Tümü
                 </Text>
               </Pressable>
               <Pressable
-                style={[styles.tabBtn, activeTab === "favorites" && { backgroundColor: colors.card }]}
+                style={[styles.segment, activeTab === "favorites" && styles.segmentActive]}
                 onPress={() => setActiveTab("favorites")}
               >
-                <Text style={[styles.tabText, { color: activeTab === "favorites" ? colors.foreground : colors.mutedForeground }]}>
+                <Ionicons name="star" size={11} color={activeTab === "favorites" ? "#FFFFFF" : colors.mutedForeground} />
+                <Text style={[styles.segmentText, activeTab === "favorites" && styles.segmentTextActive]}>
                   Favoriler
                 </Text>
               </Pressable>
             </View>
+            <View style={styles.tableHead}>
+              <Text style={styles.th}>SEMBOL</Text>
+              <View style={{ flex: 1 }} />
+              <Text style={styles.th}>ALIŞ · DEĞİŞİM · SATIŞ</Text>
+            </View>
           </>
         }
-        contentContainerStyle={styles.listContainer}
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+        contentContainerStyle={styles.list}
         refreshControl={
-          <RefreshControl
-            refreshing={isLoading}
-            onRefresh={refreshData}
-            tintColor={colors.primary}
-          />
+          <RefreshControl refreshing={isLoading} onRefresh={refreshData} tintColor={colors.primary} />
         }
-        showsVerticalScrollIndicator={false}
       />
     </View>
   );

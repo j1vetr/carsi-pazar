@@ -2,107 +2,104 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-const CURRENCY_COLORS: Record<string, string> = {
-  USD: "#1A5276",
-  EUR: "#1A3C6D",
-  GBP: "#7B241C",
-  CHF: "#C0392B",
-  JPY: "#BC002D",
-  SAR: "#006C35",
-  AED: "#C8102E",
-  CAD: "#C8102E",
-  AUD: "#002868",
-  CNY: "#DE2910",
-  TRY: "#E30A17",
-};
-
-const CURRENCY_LABELS: Record<string, string> = {
+const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
   EUR: "\u20AC",
   GBP: "\u00A3",
-  CHF: "Fr",
+  CHF: "\u20A3",
   JPY: "\u00A5",
-  SAR: "SR",
-  AED: "AE",
-  CAD: "C$",
-  AUD: "A$",
+  SAR: "\uFDFC",
+  AED: "\u062F.\u0625",
+  CAD: "$",
+  AUD: "$",
   CNY: "\u00A5",
+  RUB: "\u20BD",
+  DKK: "kr",
+  SEK: "kr",
+  NOK: "kr",
   TRY: "\u20BA",
 };
 
-const GOLD_ICONS: Record<string, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
-  ALTIN: { name: "diamond", color: "#D4AF37" },
-  CEYREK: { name: "ellipse", color: "#C9A84C" },
-  YARIM: { name: "ellipse", color: "#B8962E" },
-  TAM: { name: "disc", color: "#DAA520" },
-  ATA: { name: "medal", color: "#CFB53B" },
-  ATA5: { name: "medal", color: "#CFB53B" },
-  GRAM22: { name: "link", color: "#CD9B1D" },
-  RESAT: { name: "medal", color: "#DAA520" },
-  GUMUS: { name: "diamond", color: "#C0C0C0" },
-};
-
-const COUNTRY_ICONS: Record<string, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
-  US: { name: "flag", color: "#1A5276" },
-  TR: { name: "flag", color: "#E30A17" },
-  EU: { name: "flag", color: "#1A3C6D" },
-  GB: { name: "flag", color: "#7B241C" },
-  JP: { name: "flag", color: "#BC002D" },
+const GOLD_GLYPHS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  ALTIN: "ellipse",
+  ONS: "ellipse",
+  CEYREK: "ellipse-outline",
+  YARIM: "ellipse-outline",
+  TAM: "disc",
+  ATA: "ribbon",
+  ATA5: "ribbon-outline",
+  GRAM22: "link",
+  AYAR14: "link-outline",
+  KULCE: "cube",
+  GUMUS: "ellipse",
+  RESAT: "ribbon",
 };
 
 interface AssetIconProps {
   code: string;
   type: "currency" | "gold" | "country";
   size?: number;
-  bgColor?: string;
+  variant?: "soft" | "solid" | "line";
+  tone?: "primary" | "gold" | "neutral";
 }
 
-export function AssetIcon({ code, type, size = 44, bgColor }: AssetIconProps) {
-  const iconSize = size * 0.45;
-  const fontSize = size * 0.38;
-  const borderRadius = size / 2;
+export function AssetIcon({ code, type, size = 40, variant = "soft", tone }: AssetIconProps) {
+  const isGold = type === "gold";
+  const palette = tone ?? (isGold ? "gold" : "primary");
+
+  const colorMap = {
+    primary: { soft: "#EEF3FA", solid: "#0B3D91", line: "#1E5BC6", text: "#0B3D91" },
+    gold: { soft: "#FBF3D5", solid: "#C9A227", line: "#C9A227", text: "#8A6E14" },
+    neutral: { soft: "#F4F7FB", solid: "#6B7B95", line: "#6B7B95", text: "#0B1F3A" },
+  } as const;
+  const c = colorMap[palette];
+
+  const containerStyle =
+    variant === "solid"
+      ? { backgroundColor: c.solid, borderWidth: 0 }
+      : variant === "line"
+      ? { backgroundColor: "transparent", borderWidth: 1.5, borderColor: c.line }
+      : { backgroundColor: c.soft, borderWidth: 0 };
+
+  const fgColor = variant === "solid" ? "#FFFFFF" : c.text;
 
   if (type === "currency") {
-    const color = CURRENCY_COLORS[code] ?? "#555";
-    const label = CURRENCY_LABELS[code] ?? code.slice(0, 2);
+    const symbol = CURRENCY_SYMBOLS[code] ?? code.slice(0, 1);
+    const fontSize = symbol.length > 1 ? size * 0.36 : size * 0.5;
     return (
-      <View style={[styles.container, { width: size, height: size, borderRadius, backgroundColor: bgColor ?? color + "20" }]}>
-        <Text style={{ fontSize, fontFamily: "Inter_700Bold", color: bgColor ? "#FFF" : color }}>
-          {label}
+      <View style={[styles.box, { width: size, height: size, borderRadius: size / 2 }, containerStyle]}>
+        <Text
+          style={{
+            fontSize,
+            lineHeight: size,
+            fontFamily: "Inter_700Bold",
+            color: fgColor,
+            includeFontPadding: false,
+            textAlignVertical: "center",
+          }}
+        >
+          {symbol}
         </Text>
       </View>
     );
   }
 
   if (type === "gold") {
-    const goldIcon = GOLD_ICONS[code] ?? { name: "diamond" as keyof typeof Ionicons.glyphMap, color: "#D4AF37" };
+    const glyph = GOLD_GLYPHS[code] ?? "ellipse";
     return (
-      <View style={[styles.container, { width: size, height: size, borderRadius, backgroundColor: bgColor ?? goldIcon.color + "20" }]}>
-        <Ionicons name={goldIcon.name} size={iconSize} color={bgColor ? "#FFF" : goldIcon.color} />
+      <View style={[styles.box, { width: size, height: size, borderRadius: size / 2 }, containerStyle]}>
+        <Ionicons name={glyph} size={size * 0.5} color={fgColor} />
       </View>
     );
   }
 
-  const countryIcon = COUNTRY_ICONS[code] ?? { name: "flag" as keyof typeof Ionicons.glyphMap, color: "#555" };
   return (
-    <View style={[styles.container, { width: size, height: size, borderRadius, backgroundColor: bgColor ?? countryIcon.color + "20" }]}>
-      <Ionicons name={countryIcon.name} size={iconSize} color={bgColor ? "#FFF" : countryIcon.color} />
+    <View style={[styles.box, { width: size, height: size, borderRadius: size / 2 }, containerStyle]}>
+      <Ionicons name="flag" size={size * 0.5} color={fgColor} />
     </View>
   );
 }
 
-export function getCountryCode(flag: string): string {
-  const map: Record<string, string> = {
-    US: "US", TR: "TR", EU: "EU", GB: "GB", JP: "JP",
-    SA: "SA", AE: "AE", CA: "CA", AU: "AU", CN: "CN", AB: "EU",
-    ABD: "US",
-  };
-  return map[flag] ?? flag;
-}
-
 const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  box: { alignItems: "center", justifyContent: "center" },
 });
