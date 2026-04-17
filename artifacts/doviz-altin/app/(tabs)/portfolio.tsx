@@ -36,7 +36,7 @@ function EmptyPortfolio({ colors, onAdd }: { colors: any; onAdd: () => void }) {
         <Icon name="briefcase-outline" size={42} color={colors.mutedForeground} />
       </View>
       <Text style={{ fontSize: 22, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 24, textAlign: "center", letterSpacing: -0.5 }}>
-        Portföyün boş
+        Portföyün Boş
       </Text>
       <Text style={{ fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 10, textAlign: "center", lineHeight: 21 }}>
         Döviz ve maden yatırımlarını ekleyerek toplam değerini canlı kurla takip et.
