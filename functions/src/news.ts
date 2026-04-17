@@ -169,8 +169,9 @@ export async function fetchAndParseRss(source: RssSource): Promise<ParsedItem[]>
 }
 
 export function dedupeByTitle(items: ParsedItem[]): ParsedItem[] {
+  const withImage = items.filter((it) => !!it.imageUrl && it.imageUrl.length > 0);
   const seen = new Map<string, ParsedItem>();
-  for (const it of items.sort((a, b) => b.publishedAt - a.publishedAt)) {
+  for (const it of withImage.sort((a, b) => b.publishedAt - a.publishedAt)) {
     const k = normalizeKey(it.title);
     if (!seen.has(k)) seen.set(k, it);
   }
