@@ -108,8 +108,13 @@ const MarqueeTicker = React.memo(function MarqueeTicker({
 export default function MarketScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { currencies, goldRates, favorites, toggleFavorite, isLoading, refreshData, lastUpdated } = useApp();
+  const { currencies, goldRates, favorites, toggleFavorite, refreshData, lastUpdated } = useApp();
   const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  const onManualRefresh = useCallback(async () => {
+    setManualRefreshing(true);
+    try { await refreshData(); } finally { setManualRefreshing(false); }
+  }, [refreshData]);
 
   const featuredGold = goldRates.find((g) => g.code === "ALTIN") ?? goldRates[0];
   const featuredUsd = currencies.find((c) => c.code === "USD");
@@ -145,7 +150,7 @@ export default function MarketScreen() {
     brand: {
       flexDirection: "row",
       alignItems: "center",
-      marginLeft: -14,
+      marginLeft: -4,
     },
     brandLogo: { width: 170, height: 64 },
     brandDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent },
@@ -306,7 +311,6 @@ export default function MarketScreen() {
             </View>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <View style={styles.liveBadge}>
-                <Icon name="time-outline" size={13} color="#FFFFFF" />
                 <Text style={styles.liveText}>{lastUpdated ? formatTime(lastUpdated) : "BAĞLANIYOR"}</Text>
               </View>
               <Pressable
@@ -443,7 +447,7 @@ export default function MarketScreen() {
         }
         contentContainerStyle={styles.list}
         refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refreshData} tintColor={colors.primary} />
+          <RefreshControl refreshing={manualRefreshing} onRefresh={onManualRefresh} tintColor={colors.primary} />
         }
       />
     </View>
