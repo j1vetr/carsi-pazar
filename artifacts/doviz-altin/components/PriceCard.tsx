@@ -28,6 +28,20 @@ function formatPrice(n: number): string {
   return n.toLocaleString("tr-TR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 }
 
+function bidFontSizeFor(len: number): number {
+  if (len <= 7) return 15;
+  if (len <= 8) return 14;
+  if (len <= 9) return 13;
+  if (len <= 10) return 12;
+  return 11;
+}
+
+function askFontSizeFor(len: number): number {
+  if (len <= 7) return 11;
+  if (len <= 9) return 10;
+  return 9;
+}
+
 export function PriceCard({
   item,
   type,
@@ -70,6 +84,8 @@ export function PriceCard({
   const isPositive = item.changePercent >= 0;
   const hasChange = Math.abs(item.changePercent) >= 0.005;
   const changeColor = hasChange ? (isPositive ? colors.rise : colors.fall) : colors.mutedForeground;
+  const bidStr = formatPrice(item.buy);
+  const askStr = formatPrice(item.sell);
 
   const styles = StyleSheet.create({
     pressable: {
@@ -145,12 +161,11 @@ export function PriceCard({
       <View style={styles.priceCol}>
         <View style={styles.bidAsk}>
           <Text
-            style={styles.bid}
+            style={[styles.bid, { fontSize: bidFontSizeFor(bidStr.length) }]}
             numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.75}
+            ellipsizeMode="clip"
           >
-            {formatPrice(item.buy)}
+            {bidStr}
           </Text>
         </View>
         <View style={styles.changeWrap}>
@@ -165,12 +180,11 @@ export function PriceCard({
             {hasChange ? `${isPositive ? "+" : ""}${item.changePercent.toFixed(2)}%` : "—"}
           </Text>
           <Text
-            style={[styles.ask, { marginLeft: 6, flexShrink: 1 }]}
+            style={[styles.ask, { marginLeft: 6, flexShrink: 1, fontSize: askFontSizeFor(askStr.length) }]}
             numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.8}
+            ellipsizeMode="clip"
           >
-            {formatPrice(item.sell)}
+            {askStr}
           </Text>
         </View>
       </View>
