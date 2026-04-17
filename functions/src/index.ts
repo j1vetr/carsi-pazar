@@ -5,6 +5,7 @@ import { onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
 import { logger } from "firebase-functions";
 import { HAREMAPI_KEY, fetchHaremPrices, priceOf, type HaremPrice } from "./harem";
+import { RSS_SOURCES, fetchAndParseRss, dedupeByTitle, type ParsedItem } from "./news";
 
 initializeApp();
 const db = getFirestore();
@@ -176,6 +177,127 @@ export const saveAlert = onRequest(COMMON, async (req, res) => {
   }
   const ref = await db.collection("alerts").add(data);
   res.json({ id: ref.id });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// HABERLER
+// ──────────────────────────────────────────────────────────────────────────────
+
+const NEWS_KEEP = 200;
+
+export const pollNews = onSchedule(
+  { region: REGION, schedule: "every 30 minutes", memory: "256MiB", timeoutSeconds: 60 },
+  async () => {
+    const all = (await Promise.all(RSS_SOURCES.map(fetchAndParseRss))).flat();
+    const fresh = dedupeByTitle(all);
+    if (fresh.length === 0) {
+      logger.warn("[news] no items fetched");
+      return;
+    }
+    const now = Date.now();
+    let writes = 0;
+    const batch = db.batch();
+    for (const it of fresh.slice(0, NEWS_KEEP)) {
+      batch.set(
+        db.doc(`news/${it.hashId}`),
+        {
+          title: it.title,
+          summary: it.summary,
+          url: it.url,
+          source: it.source,
+          category: it.category,
+          imageUrl: it.imageUrl,
+          publishedAt: it.publishedAt,
+          fetchedAt: now,
+        },
+        { merge: true }
+      );
+      writes++;
+      if (writes >= 400) break; // safety: batch limit 500
+    }
+    await batch.commit();
+
+    // Eski haberleri temizle (NEWS_KEEP'i aşan en eskiler)
+    const old = await db
+      .collection("news")
+      .orderBy("publishedAt", "desc")
+      .offset(NEWS_KEEP)
+      .limit(50)
+      .get();
+    if (!old.empty) {
+      const delBatch = db.batch();
+      old.docs.forEach((d) => delBatch.delete(d.ref));
+      await delBatch.commit();
+    }
+    logger.info(`[news] saved=${writes} pruned=${old.size}`);
+  }
+);
+
+type NewsCacheItem = ParsedItem & { fetchedAt: number };
+let newsCache: { ts: number; data: NewsCacheItem[] } | null = null;
+const NEWS_CACHE_MS = 60_000;
+
+export const getNews = onRequest(COMMON, async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(String(req.query.limit ?? "50"), 10) || 50, 100);
+    const category = getString(req.query.category as string | undefined);
+    const now = Date.now();
+    let items: NewsCacheItem[];
+    if (newsCache && now - newsCache.ts < NEWS_CACHE_MS) {
+      items = newsCache.data;
+    } else {
+      const snap = await db.collection("news").orderBy("publishedAt", "desc").limit(NEWS_KEEP).get();
+      items = snap.docs.map((d) => {
+        const x = d.data() as Record<string, unknown>;
+        return {
+          hashId: d.id,
+          title: String(x.title ?? ""),
+          summary: String(x.summary ?? ""),
+          url: String(x.url ?? ""),
+          source: String(x.source ?? ""),
+          category: x.category as ParsedItem["category"],
+          imageUrl: (x.imageUrl as string | null) ?? null,
+          publishedAt: Number(x.publishedAt ?? 0),
+          fetchedAt: Number(x.fetchedAt ?? 0),
+        };
+      });
+      newsCache = { ts: now, data: items };
+    }
+    const filtered = category && category !== "all"
+      ? items.filter((it) => it.category === category)
+      : items;
+    res.json({ items: filtered.slice(0, limit) });
+  } catch (err) {
+    logger.error("getNews failed", err);
+    bad(res, 500, (err as Error).message);
+  }
+});
+
+export const setPrefs = onRequest(COMMON, async (req, res) => {
+  if (req.method !== "POST") return bad(res, 405, "POST only");
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const deviceId = getString(body.deviceId);
+  if (!deviceId) return bad(res, 400, "deviceId required");
+  const newsEnabled = typeof body.newsEnabled === "boolean" ? body.newsEnabled : null;
+  const newsCategories = Array.isArray(body.newsCategories)
+    ? (body.newsCategories.filter((c): c is string => typeof c === "string"))
+    : null;
+  const update: Record<string, unknown> = { updatedAt: FieldValue.serverTimestamp() };
+  if (newsEnabled !== null) update.newsEnabled = newsEnabled;
+  if (newsCategories) update.newsCategories = newsCategories;
+  await db.doc(`prefs/${deviceId}`).set(update, { merge: true });
+  res.json({ ok: true });
+});
+
+export const getPrefs = onRequest(COMMON, async (req, res) => {
+  const deviceId = getString(req.query.deviceId as string | undefined);
+  if (!deviceId) return bad(res, 400, "deviceId required");
+  const snap = await db.doc(`prefs/${deviceId}`).get();
+  const d = snap.data() ?? {};
+  res.json({
+    newsEnabled: typeof d.newsEnabled === "boolean" ? d.newsEnabled : false,
+    newsCategories: Array.isArray(d.newsCategories) ? d.newsCategories : [],
+  });
 });
 
 export const deleteAlert = onRequest(COMMON, async (req, res) => {

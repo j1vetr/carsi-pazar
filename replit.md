@@ -33,7 +33,13 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - UI ekranları:
   - `(tabs)/index.tsx` — hero + marquee + döviz listesi
   - `(tabs)/gold.tsx` — SectionList: Gram Altın & Ons / Sarrafiye (Yeni/Eski toggle pill) / Külçe / Bilezik / Platin & Paladyum / Gümüş / Altın Pariteleri / Au-Ag Oranı
-  - `(tabs)/more.tsx` — 3 sekme: Pariteler (Uluslararası + Çapraz) / Haberler / Takvim
+  - `(tabs)/more.tsx` — 2 sekme: Haberler (kategori filtreli, featured + listeden, RSS bildirim toggle, hızlı eylem kartları) / Pariteler (Uluslararası + Çapraz)
+
+**Backend haberler:**
+- `functions/src/news.ts` — 6 Türkçe RSS kaynağı (Bloomberg HT, AA, TRT, Dünya, CNN Türk, BBC Türkçe), dedup + kategorize (Döviz/Altın/Merkez Bankası/Emtia/Parite/Ekonomi)
+- HTTP endpoint'leri: `pollNews` (30dk schedule), `getNews`, `setPrefs`, `getPrefs`
+
+**Cleanup notu:** finansveri.com tamamen kaldırıldı; eski `FINANSVERI_API_KEY` secret'ı Secrets panelinden manuel silinmelidir.
 
 ## Key Commands
 

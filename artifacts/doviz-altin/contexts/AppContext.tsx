@@ -22,7 +22,12 @@ import {
   apiListAlerts,
   apiSaveAlert,
   apiDeleteAlert,
+  apiGetNews,
+  apiGetPrefs,
+  apiSetPrefs,
   type ServerAlert,
+  type ServerNewsItem,
+  type UserPrefs,
 } from "@/lib/api";
 import { setupPushAndRegister } from "@/lib/notifications";
 import * as Notifications from "expo-notifications";
@@ -88,19 +93,7 @@ export interface NewsItem {
   publishedAt: string;
   url: string;
   category: string;
-}
-
-export interface EconomicEvent {
-  id: string;
-  date: string;
-  time: string;
-  country: string;
-  flag: string;
-  event: string;
-  actual?: string;
-  forecast?: string;
-  previous?: string;
-  impact: "low" | "medium" | "high";
+  imageUrl: string | null;
 }
 
 export interface HistoricalPoint {
@@ -129,7 +122,11 @@ interface AppContextType {
   portfolio: PortfolioItem[];
   alerts: PriceAlert[];
   news: NewsItem[];
-  economicEvents: EconomicEvent[];
+  newsLoading: boolean;
+  refreshNews: () => Promise<void>;
+  prefs: UserPrefs;
+  setNewsEnabled: (enabled: boolean) => Promise<void>;
+  setNewsCategories: (cats: string[]) => Promise<void>;
   isLoading: boolean;
   isStale: boolean;
   lastUpdated: Date | null;
@@ -156,139 +153,6 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
-const DEMO_NEWS: NewsItem[] = [
-  {
-    id: "1",
-    title: "Fed Başkanı Powell: Faiz kararlarında sabırlı olacağız",
-    summary:
-      "Federal Rezerv Başkanı Jerome Powell, yüksek enflasyonun geride kaldığını ancak faiz indirimlerinde aceleci olmayacaklarını belirtti.",
-    source: "Bloomberg HT",
-    publishedAt: "2026-04-16T09:30:00",
-    url: "#",
-    category: "Merkez Bankası",
-  },
-  {
-    id: "2",
-    title: "Altın fiyatları jeopolitik gerilimle rekor kırdı",
-    summary:
-      "Ons altın, küresel belirsizlik ortamında 4.700 dolar sınırını aşarak yeni rekor seviyesine ulaştı.",
-    source: "Anadolu Ajansı",
-    publishedAt: "2026-04-16T08:15:00",
-    url: "#",
-    category: "Emtia",
-  },
-  {
-    id: "3",
-    title: "TCMB faiz kararı açıklandı: Beklenmedik değişiklik yok",
-    summary:
-      "Türkiye Cumhuriyet Merkez Bankası Para Politikası Kurulu, politika faizini sabit tutmaya devam etti.",
-    source: "TCMB",
-    publishedAt: "2026-04-16T07:45:00",
-    url: "#",
-    category: "TCMB",
-  },
-  {
-    id: "4",
-    title: "Dolar/TL kurunda son durum: Piyasalar ne bekliyor?",
-    summary:
-      "ABD-Türkiye ticaret ilişkilerindeki gelişmeler ve yurt içi ekonomik veriler doların seyrine yön veriyor.",
-    source: "Ekonomist",
-    publishedAt: "2026-04-15T22:00:00",
-    url: "#",
-    category: "Döviz",
-  },
-  {
-    id: "5",
-    title: "Platin ve Paladyum fiyatları yükselişte",
-    summary:
-      "Endüstriyel talebin artmasıyla birlikte platin ve paladyum yatırımcıların radarına girmeye başladı.",
-    source: "Reuters",
-    publishedAt: "2026-04-15T19:30:00",
-    url: "#",
-    category: "Emtia",
-  },
-  {
-    id: "6",
-    title: "Euro/Dolar paritesinde sert hareketler",
-    summary:
-      "ECB'nin açıkladığı politika kararları sonrasında Euro/Dolar paritesi gün içinde %0.8 değer kazandı.",
-    source: "Reuters",
-    publishedAt: "2026-04-15T17:20:00",
-    url: "#",
-    category: "Parite",
-  },
-];
-
-const DEMO_EVENTS: EconomicEvent[] = [
-  {
-    id: "1",
-    date: "2026-04-17",
-    time: "15:30",
-    country: "ABD",
-    flag: "US",
-    event: "Perakende Satışlar (Aylık)",
-    forecast: "0.4%",
-    previous: "0.2%",
-    impact: "high",
-  },
-  {
-    id: "2",
-    date: "2026-04-17",
-    time: "12:00",
-    country: "TR",
-    flag: "TR",
-    event: "İşsizlik Oranı",
-    forecast: "8.9%",
-    previous: "9.1%",
-    impact: "high",
-  },
-  {
-    id: "3",
-    date: "2026-04-16",
-    time: "13:00",
-    country: "AB",
-    flag: "EU",
-    event: "Sanayi Üretimi (Yıllık)",
-    actual: "-1.2%",
-    forecast: "-0.8%",
-    previous: "-1.5%",
-    impact: "medium",
-  },
-  {
-    id: "4",
-    date: "2026-04-16",
-    time: "16:15",
-    country: "ABD",
-    flag: "US",
-    event: "Sanayi Üretimi (Aylık)",
-    actual: "0.3%",
-    forecast: "0.2%",
-    previous: "-0.1%",
-    impact: "medium",
-  },
-  {
-    id: "5",
-    date: "2026-04-18",
-    time: "09:30",
-    country: "TR",
-    flag: "TR",
-    event: "TCMB PPK Toplantısı",
-    forecast: "Sabit",
-    previous: "%46.00",
-    impact: "high",
-  },
-  {
-    id: "6",
-    date: "2026-04-18",
-    time: "14:30",
-    country: "ABD",
-    flag: "US",
-    event: "İşsizlik Başvuruları",
-    forecast: "215K",
-    previous: "220K",
-    impact: "medium",
-  },
-];
 
 function generateHistoricalData(
   basePrice: number,
@@ -372,12 +236,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isStale, setIsStale] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [newsLoading, setNewsLoading] = useState(false);
+  const [prefs, setPrefs] = useState<UserPrefs>({ newsEnabled: false, newsCategories: [] });
   const historicalCache = useRef<Map<string, HistoricalPoint[]>>(new Map());
   const priceHistoryRef = useRef<Record<string, { t: number; buy: number; sell: number }[]>>({});
   const lastSnapshotPersistRef = useRef<number>(0);
   const isFetching = useRef<boolean>(false);
   const isHydrated = useRef<boolean>(false);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const newsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deviceIdRef = useRef<string | null>(null);
 
   const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000;
@@ -484,6 +352,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setupPushAndRegister()
         .then(({ deviceId }) => {
           deviceIdRef.current = deviceId;
+          // Tercihleri yükle (paralel)
+          apiGetPrefs(deviceId)
+            .then((p) => mounted && setPrefs(p))
+            .catch(() => {});
           return apiListAlerts(deviceId);
         })
         .then((server) => {
@@ -491,6 +363,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setAlerts(server.map(serverAlertToLocal));
         })
         .catch((err) => console.warn("[alerts] sync hatası:", err));
+
+      // İlk haber çekme + 10dk'da bir yenile (backend zaten 30dk'da bir RSS poll ediyor)
+      void refreshNews();
+      newsIntervalRef.current = setInterval(() => void refreshNews(), 10 * 60 * 1000);
 
       // Notification tap → log (gelecekte detay sayfasına yönlendirilebilir)
       respSub = Notifications.addNotificationResponseReceivedListener((resp) => {
@@ -504,6 +380,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => {
       mounted = false;
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      if (newsIntervalRef.current) clearInterval(newsIntervalRef.current);
       if (respSub) respSub.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -797,6 +674,47 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [findRateByCode]
   );
 
+  const refreshNews = useCallback(async () => {
+    setNewsLoading(true);
+    try {
+      const items = await apiGetNews();
+      setNews(
+        items.map((it: ServerNewsItem) => ({
+          id: it.hashId,
+          title: it.title,
+          summary: it.summary,
+          source: it.source,
+          publishedAt: new Date(it.publishedAt).toISOString(),
+          url: it.url,
+          category: it.category,
+          imageUrl: it.imageUrl,
+        }))
+      );
+    } catch (err) {
+      console.warn("[news] fetch hatası:", err);
+    } finally {
+      setNewsLoading(false);
+    }
+  }, []);
+
+  const setNewsEnabled = useCallback(async (enabled: boolean) => {
+    setPrefs((p) => ({ ...p, newsEnabled: enabled }));
+    const deviceId = deviceIdRef.current;
+    if (deviceId) {
+      try { await apiSetPrefs({ deviceId, newsEnabled: enabled }); }
+      catch (err) { console.warn("[prefs] kaydedilemedi:", err); }
+    }
+  }, []);
+
+  const setNewsCategories = useCallback(async (cats: string[]) => {
+    setPrefs((p) => ({ ...p, newsCategories: cats }));
+    const deviceId = deviceIdRef.current;
+    if (deviceId) {
+      try { await apiSetPrefs({ deviceId, newsCategories: cats }); }
+      catch (err) { console.warn("[prefs] kaydedilemedi:", err); }
+    }
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -816,8 +734,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         spreads: buckets.spreads,
         portfolio,
         alerts,
-        news: DEMO_NEWS,
-        economicEvents: DEMO_EVENTS,
+        news,
+        newsLoading,
+        refreshNews,
+        prefs,
+        setNewsEnabled,
+        setNewsCategories,
         isLoading,
         isStale,
         lastUpdated,

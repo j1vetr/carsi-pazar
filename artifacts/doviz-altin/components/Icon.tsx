@@ -3,9 +3,11 @@ import {
   AlertCircle,
   ArrowDownUp,
   ArrowLeftRight,
+  Banknote,
   Bell,
   BellOff,
   Briefcase,
+  Building2,
   Clock,
   CheckCircle2,
   ChevronDown,
@@ -13,8 +15,11 @@ import {
   ChevronRight,
   ChevronUp,
   Flag,
+  Flame,
   Gem,
+  LayoutGrid,
   MoreHorizontal,
+  Newspaper,
   Plus,
   Star,
   Trash2,
@@ -53,6 +58,12 @@ export type IconName =
   | "caret-up"
   | "caret-down"
   | "time-outline"
+  | "newspaper-outline"
+  | "grid-outline"
+  | "cash-outline"
+  | "diamond-outline"
+  | "business-outline"
+  | "flame-outline"
   | "x";
 
 const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
@@ -84,6 +95,12 @@ const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
   "caret-up": ChevronUp,
   "caret-down": ChevronDown,
   "time-outline": Clock,
+  "newspaper-outline": Newspaper,
+  "grid-outline": LayoutGrid,
+  "cash-outline": Banknote,
+  "diamond-outline": Gem,
+  "business-outline": Building2,
+  "flame-outline": Flame,
   "x": X,
 };
 

@@ -8,6 +8,9 @@ export const FN = {
   listAlerts: `${FUNCTIONS_BASE}/listAlerts`,
   saveAlert: `${FUNCTIONS_BASE}/saveAlert`,
   deleteAlert: `${FUNCTIONS_BASE}/deleteAlert`,
+  getNews: `${FUNCTIONS_BASE}/getNews`,
+  setPrefs: `${FUNCTIONS_BASE}/setPrefs`,
+  getPrefs: `${FUNCTIONS_BASE}/getPrefs`,
 };
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
@@ -67,4 +70,41 @@ export async function apiSaveAlert(input: {
 
 export async function apiDeleteAlert(input: { deviceId: string; id: string }): Promise<void> {
   await postJson<{ ok: boolean }>(FN.deleteAlert, input);
+}
+
+export type ServerNewsItem = {
+  hashId: string;
+  title: string;
+  summary: string;
+  url: string;
+  source: string;
+  category: string;
+  imageUrl: string | null;
+  publishedAt: number;
+};
+
+export async function apiGetNews(category?: string, limit = 50): Promise<ServerNewsItem[]> {
+  const params = new URLSearchParams();
+  if (category && category !== "all") params.set("category", category);
+  params.set("limit", String(limit));
+  const r = await fetch(`${FN.getNews}?${params.toString()}`);
+  if (!r.ok) throw new Error(`${r.status}`);
+  const j = (await r.json()) as { items: ServerNewsItem[] };
+  return j.items ?? [];
+}
+
+export type UserPrefs = { newsEnabled: boolean; newsCategories: string[] };
+
+export async function apiGetPrefs(deviceId: string): Promise<UserPrefs> {
+  const r = await fetch(`${FN.getPrefs}?deviceId=${encodeURIComponent(deviceId)}`);
+  if (!r.ok) throw new Error(`${r.status}`);
+  return (await r.json()) as UserPrefs;
+}
+
+export async function apiSetPrefs(input: {
+  deviceId: string;
+  newsEnabled?: boolean;
+  newsCategories?: string[];
+}): Promise<void> {
+  await postJson<{ ok: boolean }>(FN.setPrefs, input);
 }
