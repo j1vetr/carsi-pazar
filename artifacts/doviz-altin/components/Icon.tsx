@@ -1,8 +1,10 @@
 import React from "react";
 import {
   AlertCircle,
+  ArrowDown,
   ArrowDownUp,
   ArrowLeftRight,
+  ArrowUp,
   Banknote,
   Bell,
   BellOff,
@@ -21,6 +23,7 @@ import {
   MoreHorizontal,
   Newspaper,
   Plus,
+  Search,
   Star,
   Trash2,
   TrendingDown,
@@ -39,6 +42,9 @@ export type IconName =
   | "checkmark-circle"
   | "arrow-back"
   | "arrow-forward"
+  | "arrow-up"
+  | "arrow-down"
+  | "search"
   | "chevron-down"
   | "chevron-up"
   | "chevron-forward"
@@ -76,6 +82,9 @@ const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
   "checkmark-circle": CheckCircle2,
   "arrow-back": ChevronLeft,
   "arrow-forward": ChevronRight,
+  "arrow-up": ArrowUp,
+  "arrow-down": ArrowDown,
+  "search": Search,
   "chevron-down": ChevronDown,
   "chevron-up": ChevronUp,
   "chevron-forward": ChevronRight,
