@@ -47,5 +47,4 @@ Thumbs.db
 # Replit
 .cache/
 .local/
-google-services.json
 *firebase-adminsdk*.json

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "965820658101",
+    "project_id": "carsi-pazar-16191",
+    "storage_bucket": "carsi-pazar-16191.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:965820658101:android:4ad78a5454f295fb5629fc",
+        "android_client_info": {
+          "package_name": "com.toov1.dovizaltin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDt2dd3QgXGhw3P6gSgTvRNlZfaaFYMC9U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
