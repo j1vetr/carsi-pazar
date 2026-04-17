@@ -9,18 +9,23 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/icon.png",
+      "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A0A0F"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "icon": "./assets/images/icon.png"
     },
     "android": {
-      "backgroundColor": "#0A0A0F"
+      "backgroundColor": "#0A0A0F",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
     },
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       [
@@ -34,16 +39,16 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/icon.png",
-          "color": "#0B3D91",
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#083C8F",
           "defaultChannel": "price-alerts",
           "sounds": []
         }
       ]
     ],
     "notification": {
-      "icon": "./assets/images/icon.png",
-      "color": "#0B3D91",
+      "icon": "./assets/images/notification-icon.png",
+      "color": "#083C8F",
       "androidMode": "default",
       "androidCollapsedTitle": "Çarşı Pazar"
     },
