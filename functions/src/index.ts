@@ -11,6 +11,55 @@ const db = getFirestore();
 
 const REGION = "europe-west1";
 const COMMON = { region: REGION, cors: true, memory: "256MiB" as const, timeoutSeconds: 15 };
+const HISTORY_KEEP_MINUTES = 24 * 60; // 1440 dakika = tam 24 saat
+
+type CompactSnap = { s: string; b: number | null; a: number | null };
+
+function compactSnapshot(items: HaremPrice[]): CompactSnap[] {
+  const out: CompactSnap[] = [];
+  for (const p of items) {
+    const s = (p.symbol ?? p.code ?? "").toString().toUpperCase();
+    if (!s) continue;
+    const b = typeof p.bid === "number" ? p.bid : (typeof p.alis === "number" ? p.alis : null);
+    const a = typeof p.ask === "number" ? p.ask : (typeof p.satis === "number" ? p.satis : null);
+    if (b === null && a === null) continue;
+    out.push({ s, b, a });
+  }
+  return out;
+}
+
+type Prev24hMap = Record<string, { bid: number | null; ask: number | null }>;
+let prev24hCache: { ts: number; data: Prev24hMap } | null = null;
+const PREV24H_CACHE_MS = 60_000; // 60 sn — mobil polling 5sn olduğu için 12x azalma
+
+async function fetchPrev24h(): Promise<Prev24hMap> {
+  const now = Date.now();
+  if (prev24hCache && now - prev24hCache.ts < PREV24H_CACHE_MS) {
+    return prev24hCache.data;
+  }
+  const minute = Math.floor(now / 60000);
+  const targetMinute = minute - HISTORY_KEEP_MINUTES;
+  let snap = await db.doc(`history/${targetMinute}`).get();
+  if (!snap.exists) {
+    // En yakın eski snapshot'ı bul (24 saatten daha geri olabilir)
+    const q = await db
+      .collection("history")
+      .where("ts", "<=", Date.now() - HISTORY_KEEP_MINUTES * 60000)
+      .orderBy("ts", "desc")
+      .limit(1)
+      .get();
+    if (q.empty) return {};
+    snap = q.docs[0];
+  }
+  const data = snap.data() as { items?: CompactSnap[] } | undefined;
+  const out: Prev24hMap = {};
+  for (const it of data?.items ?? []) {
+    if (!it?.s) continue;
+    out[it.s] = { bid: it.b, ask: it.a };
+  }
+  prev24hCache = { ts: now, data: out };
+  return out;
+}
 
 function bad(res: Response, code: number, msg: string): void {
   res.status(code).json({ error: msg });
@@ -26,14 +75,21 @@ export const getPrices = onRequest(
     try {
       const snap = await db.doc("prices/latest").get();
       const data = snap.data();
+      let ts: number;
+      let items: HaremPrice[];
       if (data && typeof data.ts === "number" && Date.now() - data.ts < 8000) {
-        res.json({ ts: data.ts, items: data.items });
-        return;
+        ts = data.ts;
+        items = data.items as HaremPrice[];
+      } else {
+        items = await fetchHaremPrices(HAREMAPI_KEY.value());
+        ts = Date.now();
+        await db.doc("prices/latest").set({ ts, items }, { merge: false });
       }
-      const items = await fetchHaremPrices(HAREMAPI_KEY.value());
-      const ts = Date.now();
-      await db.doc("prices/latest").set({ ts, items }, { merge: false });
-      res.json({ ts, items });
+      const prev24h = await fetchPrev24h().catch((e) => {
+        logger.warn("prev24h fetch failed", e);
+        return {};
+      });
+      res.json({ ts, items, prev24h });
     } catch (err) {
       logger.error("getPrices failed", err);
       bad(res, 502, (err as Error).message);
@@ -46,7 +102,22 @@ export const pollPrices = onSchedule(
   async () => {
     const items = await fetchHaremPrices(HAREMAPI_KEY.value());
     const ts = Date.now();
+    const minute = Math.floor(ts / 60000);
+
     await db.doc("prices/latest").set({ ts, items }, { merge: false });
+
+    // Dakikalık snapshot — 24 saatlik gerçek değişim için
+    const compact = compactSnapshot(items);
+    if (compact.length > 0) {
+      await db.doc(`history/${minute}`).set({ ts, items: compact }, { merge: false });
+    }
+
+    // 24 saati dolmuş eski snapshot'ı sil (rolling window)
+    await db
+      .doc(`history/${minute - HISTORY_KEEP_MINUTES - 1}`)
+      .delete()
+      .catch(() => {});
+
     await checkAlerts(items);
   }
 );

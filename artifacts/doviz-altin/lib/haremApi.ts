@@ -133,22 +133,28 @@ export interface RawHaremPrice {
   created_at?: string;
 }
 
+export type ServerPrev24h = Record<string, { bid: number | null; ask: number | null }>;
+
 export interface RawHaremResponse {
   data: RawHaremPrice[];
   updatedAt?: string;
   stale?: boolean;
+  prev24h?: ServerPrev24h;
 }
 
 export async function fetchAllPrices(): Promise<RawHaremResponse> {
   const res = await fetch(FN.getPrices);
   if (!res.ok) throw new Error(`Backend hatası: ${res.status}`);
-  const json = (await res.json()) as { ts?: number; items?: RawHaremPrice[] } | RawHaremResponse;
+  const json = (await res.json()) as
+    | { ts?: number; items?: RawHaremPrice[]; prev24h?: ServerPrev24h }
+    | RawHaremResponse;
   if (Array.isArray((json as { items?: unknown }).items)) {
-    const j = json as { ts: number; items: RawHaremPrice[] };
+    const j = json as { ts: number; items: RawHaremPrice[]; prev24h?: ServerPrev24h };
     return {
       data: j.items,
       updatedAt: j.ts ? new Date(j.ts).toISOString() : undefined,
       stale: false,
+      prev24h: j.prev24h ?? undefined,
     };
   }
   return json as RawHaremResponse;
@@ -173,13 +179,22 @@ export function mapPrices(
   prevCache: PreviousPriceCache
 ): AssetRate[] {
   if (!data?.data || !Array.isArray(data.data)) return [];
+  const serverPrev = data.prev24h ?? {};
   const out: AssetRate[] = [];
   for (const raw of data.data) {
     const meta = findMetaBySymbol(raw.symbol);
     if (!meta) continue;
     if (raw.bid === 0 && raw.ask === 0) continue;
-    const prev = prevCache[meta.code];
-    const prevClose = prev?.buy ?? raw.bid;
+    // Backend 24h snapshot öncelikli (sembol uppercase ile key'lenmiş);
+    // yoksa local hafıza fallback'ine düşer; o da yoksa değişim 0 gösterilir.
+    const sKey = meta.symbol.toUpperCase();
+    const sp = serverPrev[sKey];
+    const localPrev = prevCache[meta.code];
+    const prevBuy =
+      typeof sp?.bid === "number" && Number.isFinite(sp.bid)
+        ? sp.bid
+        : localPrev?.buy;
+    const prevClose = typeof prevBuy === "number" ? prevBuy : raw.bid;
     const change = raw.bid - prevClose;
     const changePercent = prevClose !== 0 ? (change / prevClose) * 100 : 0;
     let ts = 0;
