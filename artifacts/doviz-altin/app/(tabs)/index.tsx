@@ -143,7 +143,7 @@ export default function MarketScreen() {
       marginBottom: 14,
     },
     brand: { flexDirection: "row", alignItems: "center" },
-    brandLogo: { width: 110, height: 38 },
+    brandLogo: { width: 180, height: 64 },
     brandDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent },
     brandText: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#FFFFFF", letterSpacing: 1.4 },
     heroIconBtn: {
