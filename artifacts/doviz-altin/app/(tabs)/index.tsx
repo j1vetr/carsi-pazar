@@ -17,6 +17,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
@@ -141,7 +142,8 @@ export default function MarketScreen() {
       alignItems: "center",
       marginBottom: 14,
     },
-    brand: { flexDirection: "row", alignItems: "center", gap: 8 },
+    brand: { flexDirection: "row", alignItems: "center" },
+    brandLogo: { width: 110, height: 38 },
     brandDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent },
     brandText: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#FFFFFF", letterSpacing: 1.4 },
     heroIconBtn: {
@@ -292,8 +294,11 @@ export default function MarketScreen() {
         >
           <View style={styles.heroTopRow}>
             <View style={styles.brand}>
-              <View style={styles.brandDot} />
-              <Text style={styles.brandText}>CANLI PİYASA</Text>
+              <Image
+                source={require("@/assets/images/logo-dark.png")}
+                style={styles.brandLogo}
+                contentFit="contain"
+              />
             </View>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <View style={styles.liveBadge}>
