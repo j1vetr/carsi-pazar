@@ -164,7 +164,7 @@ function NewsPrefCard({ colors, enabled, onToggle }: { colors: any; enabled: boo
           Haber Bildirimleri
         </Text>
         <Text style={{ fontSize: 12, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 2 }}>
-          {enabled ? "Önemli finans haberleri için bildirim alacaksın." : "Bildirimleri açarak son dakika gelişmelerini kaçırma."}
+          {enabled ? "Yeni finans haberleri geldiğinde bildirim alacaksın." : "Bildirimleri açarak son dakika gelişmelerini kaçırma."}
         </Text>
       </View>
       <Switch

@@ -25,6 +25,15 @@ export async function ensureAndroidChannel(): Promise<void> {
     sound: "default",
     showBadge: false,
   });
+  await Notifications.setNotificationChannelAsync("news", {
+    name: "Finans Haberleri",
+    description: "Yeni döviz, altın ve ekonomi haberleri",
+    importance: Notifications.AndroidImportance.DEFAULT,
+    vibrationPattern: [0, 200, 150, 200],
+    lightColor: "#0B3D91",
+    sound: "default",
+    showBadge: false,
+  });
 }
 
 export async function registerForPushAsync(): Promise<string | null> {

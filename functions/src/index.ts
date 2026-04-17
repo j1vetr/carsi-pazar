@@ -186,7 +186,7 @@ export const saveAlert = onRequest(COMMON, async (req, res) => {
 const NEWS_KEEP = 200;
 
 export const pollNews = onSchedule(
-  { region: REGION, schedule: "every 30 minutes", memory: "256MiB", timeoutSeconds: 60 },
+  { region: REGION, schedule: "every 30 minutes", memory: "256MiB", timeoutSeconds: 90 },
   async () => {
     const all = (await Promise.all(RSS_SOURCES.map(fetchAndParseRss))).flat();
     const fresh = dedupeByTitle(all);
@@ -194,10 +194,22 @@ export const pollNews = onSchedule(
       logger.warn("[news] no items fetched");
       return;
     }
+
+    // Firestore'daki mevcut hash'leri topla → hangileri gerçekten yeni?
+    const existingSnap = await db.collection("news").select().get();
+    const existingIds = new Set(existingSnap.docs.map((d) => d.id));
+    const isFirstRun = existingIds.size === 0;
+
     const now = Date.now();
+    const twoHoursAgo = now - 2 * 60 * 60 * 1000;
+    const fresh200 = fresh.slice(0, NEWS_KEEP);
+    const newItems = fresh200.filter(
+      (it) => !existingIds.has(it.hashId) && it.publishedAt >= twoHoursAgo
+    );
+
     let writes = 0;
     const batch = db.batch();
-    for (const it of fresh.slice(0, NEWS_KEEP)) {
+    for (const it of fresh200) {
       batch.set(
         db.doc(`news/${it.hashId}`),
         {
@@ -229,9 +241,79 @@ export const pollNews = onSchedule(
       old.docs.forEach((d) => delBatch.delete(d.ref));
       await delBatch.commit();
     }
-    logger.info(`[news] saved=${writes} pruned=${old.size}`);
+    logger.info(`[news] saved=${writes} pruned=${old.size} new=${newItems.length} firstRun=${isFirstRun}`);
+
+    // İlk deploy'da spam yapmamak için — Firestore boşsa hiç bildirim gönderme
+    if (!isFirstRun && newItems.length > 0) {
+      try {
+        await sendNewsPush(newItems);
+      } catch (err) {
+        logger.warn("[news] push failed", err);
+      }
+    }
   }
 );
+
+async function sendNewsPush(newItems: ParsedItem[]): Promise<void> {
+  // newsEnabled=true olan cihazları bul
+  const prefsSnap = await db.collection("prefs").where("newsEnabled", "==", true).get();
+  if (prefsSnap.empty) {
+    logger.info("[news-push] no devices with newsEnabled=true");
+    return;
+  }
+  const deviceIds = prefsSnap.docs.map((d) => d.id);
+
+  // Token'ları getir
+  const refs = deviceIds.map((id) => db.doc(`tokens/${id}`));
+  const tokenDocs = await db.getAll(...refs);
+  const tokens: string[] = [];
+  for (const td of tokenDocs) {
+    const d = td.data() as { expoPushToken?: string } | undefined;
+    if (d?.expoPushToken) tokens.push(d.expoPushToken);
+  }
+  if (tokens.length === 0) {
+    logger.info("[news-push] no tokens");
+    return;
+  }
+
+  // Bildirim başlık & gövde — en yeni 3 başlık + "+N daha"
+  const sorted = [...newItems].sort((a, b) => b.publishedAt - a.publishedAt);
+  const count = sorted.length;
+  const topTitles = sorted.slice(0, 3).map((it) => it.title.trim());
+  const extra = count - topTitles.length;
+
+  let title: string;
+  let body: string;
+  if (count === 1) {
+    title = `📰 ${sorted[0].source}`;
+    body = sorted[0].title.trim();
+  } else {
+    title = `📰 ${count} yeni haber`;
+    body = topTitles.join(" • ");
+    if (extra > 0) body += ` • +${extra} daha`;
+  }
+
+  const messages = tokens.map((to) => ({
+    to,
+    sound: "default" as const,
+    priority: "normal" as const,
+    channelId: "news",
+    title,
+    body,
+    data: { type: "news", count, firstUrl: sorted[0].url },
+  }));
+
+  // Expo Push API max 100 mesaj/chunk
+  for (let i = 0; i < messages.length; i += 100) {
+    const chunk = messages.slice(i, i + 100);
+    const r = await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(chunk),
+    });
+    logger.info(`[news-push] status=${r.status} count=${chunk.length}`);
+  }
+}
 
 type NewsCacheItem = ParsedItem & { fetchedAt: number };
 let newsCache: { ts: number; data: NewsCacheItem[] } | null = null;
