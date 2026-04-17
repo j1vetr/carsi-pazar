@@ -506,9 +506,24 @@ export default function PortfolioScreen() {
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
         ListFooterComponent={
           portfolio.length > 0 ? (
-            <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: colors.mutedForeground, textAlign: "center", marginTop: 18, opacity: 0.6 }}>
-              Bir varlığı silmek için basılı tut
-            </Text>
+            <View style={{ alignItems: "center", marginTop: 20 }}>
+              <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                backgroundColor: colors.secondary,
+                paddingHorizontal: 12,
+                paddingVertical: 7,
+                borderRadius: 999,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: colors.border,
+              }}>
+                <Icon name="trash-outline" size={11} color={colors.mutedForeground} />
+                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, letterSpacing: -0.1 }}>
+                  Silmek için basılı tut
+                </Text>
+              </View>
+            </View>
           ) : null
         }
         contentContainerStyle={[
