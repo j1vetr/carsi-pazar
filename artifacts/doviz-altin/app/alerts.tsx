@@ -120,7 +120,7 @@ export default function AlertsScreen() {
         <Text style={styles.headerTitle}>Fiyat Alarmları</Text>
         <View style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: colors.secondary, borderRadius: 20 }}>
           <Text style={{ fontSize: 13, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground }}>
-            {alerts.length} alarm
+            {alerts.length} Alarm
           </Text>
         </View>
       </View>
