@@ -107,15 +107,14 @@ export default function DetailScreen() {
   const { code, type } = useLocalSearchParams<{ code: string; type: "currency" | "gold" }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { currencies, goldRates, favorites, toggleFavorite, getHistoricalData } = useApp();
+  const { findRateByCode, favorites, toggleFavorite, getHistoricalData } = useApp();
   const [period, setPeriod] = useState<"1D" | "1W" | "1M" | "3M" | "1Y">("1M");
   const [showAlertModal, setShowAlertModal] = useState(false);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const bottomPadding = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const allRates = [...currencies, ...goldRates] as any[];
-  const item = allRates.find((r) => r.code === code);
+  const item = code ? (findRateByCode(code) as any) : undefined;
 
   if (!item) return null;
 

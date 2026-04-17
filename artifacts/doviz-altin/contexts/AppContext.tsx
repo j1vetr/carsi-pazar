@@ -3,22 +3,26 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   fetchAllPrices,
-  mapToCurrencies,
-  mapToGold,
+  mapPrices,
+  type AssetRate,
+  type AssetGroup,
   type PreviousPriceCache,
-  type RawPricesResponse,
-} from "@/lib/finansveriApi";
-import { connectFinansveriSocket } from "@/lib/finansveriSocket";
+  type RawHaremResponse,
+  type SymbolMeta,
+} from "@/lib/haremApi";
+import { connectHaremSocket } from "@/lib/haremSocket";
 import type { Socket } from "socket.io-client";
 
 export interface CurrencyRate {
   code: string;
+  symbol?: string;
   name: string;
   nameTR: string;
   buy: number;
@@ -27,18 +31,23 @@ export interface CurrencyRate {
   changePercent: number;
   prevClose: number;
   flag?: string;
+  group?: AssetGroup;
 }
 
 export interface GoldRate {
   code: string;
+  symbol?: string;
   name: string;
   nameTR: string;
   buy: number;
   sell: number;
   change: number;
   changePercent: number;
+  prevClose?: number;
   unit: string;
   icon?: string;
+  group?: AssetGroup;
+  emission?: "yeni" | "eski" | "standart";
 }
 
 export interface PortfolioItem {
@@ -97,12 +106,25 @@ export interface HistoricalPoint {
 
 interface AppContextType {
   currencies: CurrencyRate[];
+  currencyParities: CurrencyRate[];
+  parities: CurrencyRate[];
   goldRates: GoldRate[];
+  goldGram: GoldRate[];
+  goldCoinsYeni: GoldRate[];
+  goldCoinsEski: GoldRate[];
+  goldBars: GoldRate[];
+  goldBracelets: GoldRate[];
+  goldParities: GoldRate[];
+  metals: GoldRate[];
+  silvers: GoldRate[];
+  ratios: GoldRate[];
+  spreads: GoldRate[];
   portfolio: PortfolioItem[];
   alerts: PriceAlert[];
   news: NewsItem[];
   economicEvents: EconomicEvent[];
   isLoading: boolean;
+  isStale: boolean;
   lastUpdated: Date | null;
   favorites: string[];
   addToPortfolio: (item: Omit<PortfolioItem, "id">) => Promise<void>;
@@ -122,230 +144,17 @@ interface AppContextType {
     toCode: string,
     amount: number
   ) => number;
+  findRateByCode: (code: string) => CurrencyRate | GoldRate | undefined;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
-
-const DEMO_CURRENCIES: CurrencyRate[] = [
-  {
-    code: "USD",
-    name: "US Dollar",
-    nameTR: "Amerikan Doları",
-    buy: 38.2540,
-    sell: 38.2980,
-    change: 0.1240,
-    changePercent: 0.325,
-    prevClose: 38.1300,
-    flag: "US",
-  },
-  {
-    code: "EUR",
-    name: "Euro",
-    nameTR: "Euro",
-    buy: 41.1820,
-    sell: 41.2350,
-    change: -0.0980,
-    changePercent: -0.238,
-    prevClose: 41.2800,
-    flag: "EU",
-  },
-  {
-    code: "GBP",
-    name: "British Pound",
-    nameTR: "İngiliz Sterlini",
-    buy: 48.2960,
-    sell: 48.3620,
-    change: 0.2140,
-    changePercent: 0.444,
-    prevClose: 48.0820,
-    flag: "GB",
-  },
-  {
-    code: "CHF",
-    name: "Swiss Franc",
-    nameTR: "İsviçre Frangı",
-    buy: 42.8450,
-    sell: 42.9100,
-    change: -0.1560,
-    changePercent: -0.363,
-    prevClose: 43.0010,
-    flag: "CH",
-  },
-  {
-    code: "JPY",
-    name: "Japanese Yen",
-    nameTR: "Japon Yeni",
-    buy: 0.2482,
-    sell: 0.2491,
-    change: 0.0012,
-    changePercent: 0.486,
-    prevClose: 0.2470,
-    flag: "JP",
-  },
-  {
-    code: "SAR",
-    name: "Saudi Riyal",
-    nameTR: "Suudi Arabistan Riyali",
-    buy: 10.1820,
-    sell: 10.2140,
-    change: 0.0320,
-    changePercent: 0.315,
-    prevClose: 10.1500,
-    flag: "SA",
-  },
-  {
-    code: "AED",
-    name: "UAE Dirham",
-    nameTR: "Birleşik Arap Emirlikleri Dirhemi",
-    buy: 10.4120,
-    sell: 10.4480,
-    change: 0.0340,
-    changePercent: 0.327,
-    prevClose: 10.3780,
-    flag: "AE",
-  },
-  {
-    code: "CAD",
-    name: "Canadian Dollar",
-    nameTR: "Kanada Doları",
-    buy: 27.2840,
-    sell: 27.3280,
-    change: -0.0420,
-    changePercent: -0.154,
-    prevClose: 27.3260,
-    flag: "CA",
-  },
-  {
-    code: "AUD",
-    name: "Australian Dollar",
-    nameTR: "Avustralya Doları",
-    buy: 24.0120,
-    sell: 24.0580,
-    change: 0.0890,
-    changePercent: 0.372,
-    prevClose: 23.9230,
-    flag: "AU",
-  },
-  {
-    code: "CNY",
-    name: "Chinese Yuan",
-    nameTR: "Çin Yuanı",
-    buy: 5.2840,
-    sell: 5.3020,
-    change: 0.0140,
-    changePercent: 0.265,
-    prevClose: 5.2700,
-    flag: "CN",
-  },
-];
-
-const DEMO_GOLD: GoldRate[] = [
-  {
-    code: "ALTIN",
-    name: "Has Altın",
-    nameTR: "Has Altın (24 Ayar)",
-    buy: 4124.50,
-    sell: 4138.20,
-    change: 24.80,
-    changePercent: 0.604,
-    unit: "gr",
-    icon: "ALTIN",
-  },
-  {
-    code: "CEYREK",
-    name: "Çeyrek Altın",
-    nameTR: "Çeyrek Altın",
-    buy: 6852.40,
-    sell: 6875.30,
-    change: 38.20,
-    changePercent: 0.559,
-    unit: "adet",
-    icon: "CEYREK",
-  },
-  {
-    code: "YARIM",
-    name: "Yarım Altın",
-    nameTR: "Yarım Altın",
-    buy: 13704.80,
-    sell: 13750.60,
-    change: 76.40,
-    changePercent: 0.559,
-    unit: "adet",
-    icon: "YARIM",
-  },
-  {
-    code: "TAM",
-    name: "Tam Altın",
-    nameTR: "Tam Altın (Cumhuriyet)",
-    buy: 27409.60,
-    sell: 27501.20,
-    change: 152.80,
-    changePercent: 0.559,
-    unit: "adet",
-    icon: "TAM",
-  },
-  {
-    code: "ATA",
-    name: "Ata Altın",
-    nameTR: "Atatürk Altını",
-    buy: 28960.40,
-    sell: 29053.80,
-    change: 161.20,
-    changePercent: 0.558,
-    unit: "adet",
-    icon: "ATA",
-  },
-  {
-    code: "ATA5",
-    name: "Ata 5'li",
-    nameTR: "5'li Atatürk Altını",
-    buy: 144302.00,
-    sell: 144780.00,
-    change: 806.00,
-    changePercent: 0.560,
-    unit: "adet",
-    icon: "ATA5",
-  },
-  {
-    code: "GRAM22",
-    name: "22 Ayar Bilezik",
-    nameTR: "22 Ayar Altın (gram)",
-    buy: 3780.20,
-    sell: 3792.40,
-    change: 21.60,
-    changePercent: 0.574,
-    unit: "gr",
-    icon: "GRAM22",
-  },
-  {
-    code: "RESAT",
-    name: "Reşat Altını",
-    nameTR: "Reşat Altını",
-    buy: 29240.60,
-    sell: 29334.00,
-    change: 163.00,
-    changePercent: 0.560,
-    unit: "adet",
-    icon: "RESAT",
-  },
-  {
-    code: "GUMUS",
-    name: "Gümüş",
-    nameTR: "Gümüş (gram)",
-    buy: 47.82,
-    sell: 48.04,
-    change: 0.28,
-    changePercent: 0.588,
-    unit: "gr",
-    icon: "GUMUS",
-  },
-];
 
 const DEMO_NEWS: NewsItem[] = [
   {
     id: "1",
     title: "Fed Başkanı Powell: Faiz kararlarında sabırlı olacağız",
-    summary: "Federal Rezerv Başkanı Jerome Powell, yüksek enflasyonun geride kaldığını ancak faiz indirimlerinde aceleci olmayacaklarını belirtti.",
+    summary:
+      "Federal Rezerv Başkanı Jerome Powell, yüksek enflasyonun geride kaldığını ancak faiz indirimlerinde aceleci olmayacaklarını belirtti.",
     source: "Bloomberg HT",
     publishedAt: "2026-04-16T09:30:00",
     url: "#",
@@ -354,7 +163,8 @@ const DEMO_NEWS: NewsItem[] = [
   {
     id: "2",
     title: "Altın fiyatları jeopolitik gerilimle rekor kırdı",
-    summary: "Ons altın, küresel belirsizlik ortamında 3.250 dolar sınırını aşarak yeni rekor seviyesine ulaştı.",
+    summary:
+      "Ons altın, küresel belirsizlik ortamında 4.700 dolar sınırını aşarak yeni rekor seviyesine ulaştı.",
     source: "Anadolu Ajansı",
     publishedAt: "2026-04-16T08:15:00",
     url: "#",
@@ -363,7 +173,8 @@ const DEMO_NEWS: NewsItem[] = [
   {
     id: "3",
     title: "TCMB faiz kararı açıklandı: Beklenmedik değişiklik yok",
-    summary: "Türkiye Cumhuriyet Merkez Bankası Para Politikası Kurulu, politika faizini sabit tutmaya devam etti.",
+    summary:
+      "Türkiye Cumhuriyet Merkez Bankası Para Politikası Kurulu, politika faizini sabit tutmaya devam etti.",
     source: "TCMB",
     publishedAt: "2026-04-16T07:45:00",
     url: "#",
@@ -372,7 +183,8 @@ const DEMO_NEWS: NewsItem[] = [
   {
     id: "4",
     title: "Dolar/TL kurunda son durum: Piyasalar ne bekliyor?",
-    summary: "ABD-Türkiye ticaret ilişkilerindeki gelişmeler ve yurt içi ekonomik veriler doların seyrine yön veriyor.",
+    summary:
+      "ABD-Türkiye ticaret ilişkilerindeki gelişmeler ve yurt içi ekonomik veriler doların seyrine yön veriyor.",
     source: "Ekonomist",
     publishedAt: "2026-04-15T22:00:00",
     url: "#",
@@ -380,21 +192,23 @@ const DEMO_NEWS: NewsItem[] = [
   },
   {
     id: "5",
-    title: "Enflasyon verisi açıklandı: TÜİK rakamları",
-    summary: "Mart 2026 enflasyon rakamları piyasa beklentilerinin altında kaldı. Analistler önümüzdeki dönem için tahminlerini revize ediyor.",
-    source: "TÜİK",
+    title: "Platin ve Paladyum fiyatları yükselişte",
+    summary:
+      "Endüstriyel talebin artmasıyla birlikte platin ve paladyum yatırımcıların radarına girmeye başladı.",
+    source: "Reuters",
     publishedAt: "2026-04-15T19:30:00",
     url: "#",
-    category: "Ekonomi",
+    category: "Emtia",
   },
   {
     id: "6",
     title: "Euro/Dolar paritesinde sert hareketler",
-    summary: "ECB'nin açıkladığı politika kararları sonrasında Euro/Dolar paritesi gün içinde %0.8 değer kazandı.",
+    summary:
+      "ECB'nin açıkladığı politika kararları sonrasında Euro/Dolar paritesi gün içinde %0.8 değer kazandı.",
     source: "Reuters",
     publishedAt: "2026-04-15T17:20:00",
     url: "#",
-    category: "Döviz",
+    category: "Parite",
   },
 ];
 
@@ -406,7 +220,6 @@ const DEMO_EVENTS: EconomicEvent[] = [
     country: "ABD",
     flag: "US",
     event: "Perakende Satışlar (Aylık)",
-    actual: undefined,
     forecast: "0.4%",
     previous: "0.2%",
     impact: "high",
@@ -418,7 +231,6 @@ const DEMO_EVENTS: EconomicEvent[] = [
     country: "TR",
     flag: "TR",
     event: "İşsizlik Oranı",
-    actual: undefined,
     forecast: "8.9%",
     previous: "9.1%",
     impact: "high",
@@ -454,7 +266,6 @@ const DEMO_EVENTS: EconomicEvent[] = [
     country: "TR",
     flag: "TR",
     event: "TCMB PPK Toplantısı",
-    actual: undefined,
     forecast: "Sabit",
     previous: "%46.00",
     impact: "high",
@@ -466,22 +277,9 @@ const DEMO_EVENTS: EconomicEvent[] = [
     country: "ABD",
     flag: "US",
     event: "İşsizlik Başvuruları",
-    actual: undefined,
     forecast: "215K",
     previous: "220K",
     impact: "medium",
-  },
-  {
-    id: "7",
-    date: "2026-04-20",
-    time: "10:00",
-    country: "TR",
-    flag: "TR",
-    event: "Turizm Gelirleri",
-    actual: undefined,
-    forecast: undefined,
-    previous: "$4.2B",
-    impact: "low",
   },
 ];
 
@@ -507,26 +305,157 @@ function generateHistoricalData(
     price = close;
   }
 
-  data[data.length - 1].close = basePrice;
+  if (data.length > 0) data[data.length - 1].close = basePrice;
   return data;
 }
 
+function toCurrencyRate(r: AssetRate): CurrencyRate {
+  return {
+    code: r.meta.code,
+    symbol: r.meta.symbol,
+    name: r.meta.name,
+    nameTR: r.meta.nameTR,
+    buy: r.buy,
+    sell: r.sell,
+    change: r.change,
+    changePercent: r.changePercent,
+    prevClose: r.prevClose,
+    flag: r.meta.flag,
+    group: r.meta.group,
+  };
+}
+
+function toGoldRate(r: AssetRate): GoldRate {
+  return {
+    code: r.meta.code,
+    symbol: r.meta.symbol,
+    name: r.meta.name,
+    nameTR: r.meta.nameTR,
+    buy: r.buy,
+    sell: r.sell,
+    change: r.change,
+    changePercent: r.changePercent,
+    prevClose: r.prevClose,
+    unit: r.meta.unit,
+    icon: r.meta.iconKey,
+    group: r.meta.group,
+    emission: r.meta.emission,
+  };
+}
+
+const CURRENCY_GROUP_PRIORITY: Record<string, number> = {
+  USD: 1, EUR: 2, GBP: 3, CHF: 4, AUD: 5, CAD: 6, JPY: 7, SAR: 8,
+  DKK: 9, NOK: 10, SEK: 11, XUSDTRY: 12,
+};
+const COIN_PRIORITY: Record<string, number> = {
+  CEYREK: 1, YARIM: 2, TAM: 3, ATA: 4, ATA5: 5, GREMESE_YENI: 6,
+  CEYREK_ESKI: 1, YARIM_ESKI: 2, TAM_ESKI: 3, ATA_ESKI: 4, ATA5_ESKI: 5, GREMESE_ESKI: 6,
+};
+const BAR_PRIORITY: Record<string, number> = {
+  GRAM5: 1, GRAM10: 2, GRAM20: 3, GRAM50: 4, GRAM100: 5, KULCE: 6,
+};
+const sortBy = <T,>(items: T[], priority: Record<string, number>, key: (i: T) => string) =>
+  [...items].sort((a, b) => (priority[key(a)] ?? 99) - (priority[key(b)] ?? 99));
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [currencies, setCurrencies] = useState<CurrencyRate[]>(DEMO_CURRENCIES);
-  const [goldRates, setGoldRates] = useState<GoldRate[]>(DEMO_GOLD);
+  const [allRates, setAllRates] = useState<AssetRate[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [favorites, setFavorites] = useState<string[]>(["USD", "EUR", "GBP", "ALTIN", "CEYREK"]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStale, setIsStale] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const historicalCache = useRef<Map<string, HistoricalPoint[]>>(new Map());
-  const prevPriceCache = useRef<PreviousPriceCache>({});
   const priceHistoryRef = useRef<Record<string, { t: number; buy: number; sell: number }[]>>({});
   const lastSnapshotPersistRef = useRef<number>(0);
   const isFetching = useRef<boolean>(false);
   const isHydrated = useRef<boolean>(false);
   const socketRef = useRef<Socket | null>(null);
   const fallbackInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000;
+  const HISTORY_MAX_AGE_MS = 48 * 60 * 60 * 1000;
+  const TARGET_AGE_MS = 24 * 60 * 60 * 1000;
+  const PERSIST_THROTTLE_MS = 5 * 60 * 1000;
+
+  const buildBaselineCache = (now: number): PreviousPriceCache => {
+    const baseline: PreviousPriceCache = {};
+    const target = now - TARGET_AGE_MS;
+    for (const [code, arr] of Object.entries(priceHistoryRef.current)) {
+      if (!arr || arr.length === 0) continue;
+      let best = arr[0];
+      let bestDist = Math.abs(best.t - target);
+      for (let i = 1; i < arr.length; i++) {
+        const d = Math.abs(arr[i].t - target);
+        if (d < bestDist) {
+          best = arr[i];
+          bestDist = d;
+        }
+      }
+      const ageHours = (now - best.t) / (60 * 60 * 1000);
+      if (ageHours >= 1) {
+        baseline[code] = { buy: best.buy, sell: best.sell };
+      }
+    }
+    return baseline;
+  };
+
+  const applyPrices = useCallback((data: RawHaremResponse, mode: "snapshot" | "update" = "snapshot") => {
+    const now = Date.now();
+    const baseline = buildBaselineCache(now);
+    const newRates = mapPrices(data, baseline);
+    if (newRates.length === 0) return;
+
+    if (mode === "update") {
+      // Delta merge: keep existing rates, replace only the codes present in the update
+      setAllRates((prev) => {
+        const map = new Map(prev.map((r) => [r.meta.code, r]));
+        for (const r of newRates) map.set(r.meta.code, r);
+        return Array.from(map.values());
+      });
+    } else {
+      setAllRates(newRates);
+    }
+    if (typeof data.stale === "boolean") setIsStale(data.stale);
+
+    let snapshotAdded = false;
+    newRates.forEach((r) => {
+      const arr = priceHistoryRef.current[r.meta.code] ?? [];
+      const lastT = arr.length > 0 ? arr[arr.length - 1].t : 0;
+      if (now - lastT >= SNAPSHOT_INTERVAL_MS) {
+        arr.push({ t: now, buy: r.buy, sell: r.sell });
+        snapshotAdded = true;
+      }
+      const cutoff = now - HISTORY_MAX_AGE_MS;
+      const trimmed = arr.filter((s) => s.t >= cutoff);
+      priceHistoryRef.current[r.meta.code] = trimmed.length > 0 ? trimmed : [arr[arr.length - 1]];
+    });
+
+    if (snapshotAdded && now - lastSnapshotPersistRef.current > PERSIST_THROTTLE_MS) {
+      lastSnapshotPersistRef.current = now;
+      AsyncStorage.setItem(
+        "priceHistory_v1",
+        JSON.stringify(priceHistoryRef.current)
+      ).catch(() => {});
+    }
+
+    setLastUpdated(new Date());
+  }, []);
+
+  const refreshData = useCallback(async () => {
+    if (isFetching.current) return;
+    isFetching.current = true;
+    setIsLoading(true);
+    try {
+      const data = await fetchAllPrices();
+      applyPrices(data);
+    } catch (err) {
+      console.warn("Fiyatlar alınamadı:", err);
+    } finally {
+      isFetching.current = false;
+      setIsLoading(false);
+    }
+  }, [applyPrices]);
 
   useEffect(() => {
     let mounted = true;
@@ -536,31 +465,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (!mounted) return;
       await refreshData();
       try {
-        const socket = connectFinansveriSocket({
+        const socket = connectHaremSocket({
           onConnect: () => {
-            console.log("[finansveri] Socket bağlandı");
+            console.log("[harem] Socket bağlandı");
             if (fallbackInterval.current) {
               clearInterval(fallbackInterval.current);
               fallbackInterval.current = null;
             }
           },
           onDisconnect: (reason) => {
-            console.warn("[finansveri] Socket koptu:", reason);
+            console.warn("[harem] Socket koptu:", reason);
             if (!fallbackInterval.current) {
               fallbackInterval.current = setInterval(() => refreshData(), 30000);
             }
           },
           onError: (err) => {
-            console.warn("[finansveri] Socket hatası:", err.message);
+            console.warn("[harem] Socket hatası:", err.message);
             if (!fallbackInterval.current) {
               fallbackInterval.current = setInterval(() => refreshData(), 30000);
             }
           },
-          onPrices: (data) => applyPrices(data),
+          onPrices: (data, mode) => applyPrices(data, mode),
+          onStale: () => setIsStale(true),
+          onLive: () => setIsStale(false),
         });
         socketRef.current = socket;
       } catch (err) {
-        console.warn("[finansveri] Socket başlatılamadı, polling'e düşülüyor", err);
+        console.warn("[harem] Socket başlatılamadı, polling'e düşülüyor", err);
         fallbackInterval.current = setInterval(() => refreshData(), 30000);
       }
     })();
@@ -598,91 +529,119 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   };
 
-  const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000;
-  const HISTORY_MAX_AGE_MS = 48 * 60 * 60 * 1000;
-  const TARGET_AGE_MS = 24 * 60 * 60 * 1000;
-  const PERSIST_THROTTLE_MS = 5 * 60 * 1000;
+  // Derived state
+  const buckets = useMemo(() => {
+    const currencies: CurrencyRate[] = [];
+    const currencyParities: CurrencyRate[] = [];
+    const parities: CurrencyRate[] = [];
+    const spreadsCurr: CurrencyRate[] = [];
 
-  const buildBaselineCache = (now: number): PreviousPriceCache => {
-    const baseline: PreviousPriceCache = {};
-    const target = now - TARGET_AGE_MS;
-    for (const [code, arr] of Object.entries(priceHistoryRef.current)) {
-      if (!arr || arr.length === 0) continue;
-      let best = arr[0];
-      let bestDist = Math.abs(best.t - target);
-      for (let i = 1; i < arr.length; i++) {
-        const d = Math.abs(arr[i].t - target);
-        if (d < bestDist) {
-          best = arr[i];
-          bestDist = d;
-        }
-      }
-      const ageHours = (now - best.t) / (60 * 60 * 1000);
-      if (ageHours >= 1) {
-        baseline[code] = { buy: best.buy, sell: best.sell };
+    const goldGram: GoldRate[] = [];
+    const goldCoinsYeni: GoldRate[] = [];
+    const goldCoinsEski: GoldRate[] = [];
+    const goldBars: GoldRate[] = [];
+    const goldBracelets: GoldRate[] = [];
+    const goldParities: GoldRate[] = [];
+    const metals: GoldRate[] = [];
+    const silvers: GoldRate[] = [];
+    const ratios: GoldRate[] = [];
+    const spreadsMaden: GoldRate[] = [];
+
+    for (const r of allRates) {
+      const g = r.meta.group;
+      const cat = r.meta.category;
+
+      if (g === "currency") {
+        currencies.push(toCurrencyRate(r));
+      } else if (g === "parity" && cat === "DOVIZ") {
+        currencyParities.push(toCurrencyRate(r));
+      } else if (g === "parity" && cat === "PARITE") {
+        parities.push(toCurrencyRate(r));
+      } else if (g === "spread" && cat === "DOVIZ") {
+        spreadsCurr.push(toCurrencyRate(r));
+      } else if (g === "gold-gram") {
+        goldGram.push(toGoldRate(r));
+      } else if (g === "gold-coin") {
+        if (r.meta.emission === "eski") goldCoinsEski.push(toGoldRate(r));
+        else goldCoinsYeni.push(toGoldRate(r));
+      } else if (g === "gold-bar") {
+        goldBars.push(toGoldRate(r));
+      } else if (g === "gold-bracelet") {
+        goldBracelets.push(toGoldRate(r));
+      } else if (g === "gold-parity") {
+        goldParities.push(toGoldRate(r));
+      } else if (g === "metal") {
+        metals.push(toGoldRate(r));
+      } else if (g === "silver") {
+        silvers.push(toGoldRate(r));
+      } else if (g === "ratio") {
+        ratios.push(toGoldRate(r));
+      } else if (g === "spread") {
+        spreadsMaden.push(toGoldRate(r));
       }
     }
-    return baseline;
-  };
 
-  const applyPrices = useCallback((data: RawPricesResponse) => {
-    const now = Date.now();
-    const baseline = buildBaselineCache(now);
+    const sortedCurrencies = [...currencies].sort(
+      (a, b) => (CURRENCY_GROUP_PRIORITY[a.code] ?? 99) - (CURRENCY_GROUP_PRIORITY[b.code] ?? 99)
+    );
+    const sortedCoinsYeni = sortBy(goldCoinsYeni, COIN_PRIORITY, (c) => c.code);
+    const sortedCoinsEski = sortBy(goldCoinsEski, COIN_PRIORITY, (c) => c.code);
+    const sortedBars = sortBy(goldBars, BAR_PRIORITY, (c) => c.code);
 
-    const newCurrencies = mapToCurrencies(data, baseline);
-    const newGold = mapToGold(data, baseline);
+    // goldRates: tüm altın varlıklar (UI eski uyum için)
+    const goldRates: GoldRate[] = [
+      ...goldGram,
+      ...sortedCoinsYeni,
+      ...sortedBars,
+      ...goldBracelets,
+    ];
 
-    if (newCurrencies.length > 0) setCurrencies(newCurrencies);
-    if (newGold.length > 0) setGoldRates(newGold);
+    return {
+      currencies: sortedCurrencies,
+      currencyParities,
+      parities,
+      goldRates,
+      goldGram,
+      goldCoinsYeni: sortedCoinsYeni,
+      goldCoinsEski: sortedCoinsEski,
+      goldBars: sortedBars,
+      goldBracelets,
+      goldParities,
+      metals,
+      silvers,
+      ratios,
+      spreads: [
+        ...spreadsCurr.map((c) => ({
+          code: c.code, symbol: c.symbol, name: c.name, nameTR: c.nameTR,
+          buy: c.buy, sell: c.sell, change: c.change, changePercent: c.changePercent,
+          prevClose: c.prevClose, unit: "", icon: "FARK", group: c.group,
+        }) as GoldRate),
+        ...spreadsMaden,
+      ],
+    };
+  }, [allRates]);
 
-    const newCache: PreviousPriceCache = {};
-    [...newCurrencies, ...newGold].forEach((r) => {
-      newCache[r.code] = { buy: r.buy, sell: r.sell };
-    });
-    prevPriceCache.current = newCache;
-
-    let snapshotAdded = false;
-    [...newCurrencies, ...newGold].forEach((r) => {
-      const arr = priceHistoryRef.current[r.code] ?? [];
-      const lastT = arr.length > 0 ? arr[arr.length - 1].t : 0;
-      if (now - lastT >= SNAPSHOT_INTERVAL_MS) {
-        arr.push({ t: now, buy: r.buy, sell: r.sell });
-        snapshotAdded = true;
-      }
-      const cutoff = now - HISTORY_MAX_AGE_MS;
-      const trimmed = arr.filter((s) => s.t >= cutoff);
-      if (trimmed.length > 0) {
-        priceHistoryRef.current[r.code] = trimmed;
-      } else if (arr.length > 0) {
-        priceHistoryRef.current[r.code] = [arr[arr.length - 1]];
-      }
-    });
-
-    if (snapshotAdded && now - lastSnapshotPersistRef.current > PERSIST_THROTTLE_MS) {
-      lastSnapshotPersistRef.current = now;
-      AsyncStorage.setItem(
-        "priceHistory_v1",
-        JSON.stringify(priceHistoryRef.current)
-      ).catch(() => {});
-    }
-
-    setLastUpdated(new Date());
-  }, []);
-
-  const refreshData = useCallback(async () => {
-    if (isFetching.current) return;
-    isFetching.current = true;
-    setIsLoading(true);
-    try {
-      const data = await fetchAllPrices();
-      applyPrices(data);
-    } catch (err) {
-      console.warn("Fiyatlar alınamadı:", err);
-    } finally {
-      isFetching.current = false;
-      setIsLoading(false);
-    }
-  }, [applyPrices]);
+  const findRateByCode = useCallback(
+    (code: string): CurrencyRate | GoldRate | undefined => {
+      const all: (CurrencyRate | GoldRate)[] = [
+        ...buckets.currencies,
+        ...buckets.currencyParities,
+        ...buckets.parities,
+        ...buckets.goldGram,
+        ...buckets.goldCoinsYeni,
+        ...buckets.goldCoinsEski,
+        ...buckets.goldBars,
+        ...buckets.goldBracelets,
+        ...buckets.goldParities,
+        ...buckets.metals,
+        ...buckets.silvers,
+        ...buckets.ratios,
+        ...buckets.spreads,
+      ];
+      return all.find((r) => r.code === code);
+    },
+    [buckets]
+  );
 
   const addToPortfolio = useCallback(
     async (item: Omit<PortfolioItem, "id">) => {
@@ -745,11 +704,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (historicalCache.current.has(cacheKey)) {
         return historicalCache.current.get(cacheKey)!;
       }
-
-      const allRates = [...currencies, ...goldRates] as (CurrencyRate | GoldRate)[];
-      const rate = allRates.find((r) => r.code === code);
-      const basePrice = rate ? (rate as CurrencyRate).buy ?? (rate as GoldRate).buy : 100;
-
+      const rate = findRateByCode(code);
+      const basePrice = rate ? rate.buy : 100;
       const pointsMap = { "1D": 48, "1W": 84, "1M": 90, "3M": 180, "1Y": 365 };
       const volatilityMap = {
         "1D": basePrice * 0.002,
@@ -758,26 +714,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         "3M": basePrice * 0.04,
         "1Y": basePrice * 0.08,
       };
-
-      const data = generateHistoricalData(
-        basePrice,
-        volatilityMap[period],
-        pointsMap[period]
-      );
+      const data = generateHistoricalData(basePrice, volatilityMap[period], pointsMap[period]);
       historicalCache.current.set(cacheKey, data);
       return data;
     },
-    [currencies, goldRates]
+    [findRateByCode]
   );
 
   const getPortfolioTotalValue = useCallback(() => {
     return portfolio.reduce((total, item) => {
-      const allRates = [...currencies, ...goldRates] as (CurrencyRate | GoldRate)[];
-      const rate = allRates.find((r) => r.code === item.code);
-      const currentPrice = rate ? (rate as CurrencyRate).buy ?? (rate as GoldRate).buy : item.purchasePrice;
+      const rate = findRateByCode(item.code);
+      const currentPrice = rate?.buy ?? item.purchasePrice;
       return total + item.amount * currentPrice;
     }, 0);
-  }, [portfolio, currencies, goldRates]);
+  }, [portfolio, findRateByCode]);
 
   const getPortfolioGainLoss = useCallback(() => {
     const totalValue = getPortfolioTotalValue();
@@ -789,42 +739,47 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const convertAmount = useCallback(
     (fromCode: string, toCode: string, amount: number): number => {
-      const allRates = [...currencies, ...goldRates] as (CurrencyRate | GoldRate)[];
-
       if (fromCode === "TRY") {
-        const toRate = allRates.find((r) => r.code === toCode);
+        const toRate = findRateByCode(toCode);
         if (!toRate) return 0;
-        const price = (toRate as CurrencyRate).sell ?? (toRate as GoldRate).sell;
-        return amount / price;
+        return amount / toRate.sell;
       }
-
       if (toCode === "TRY") {
-        const fromRate = allRates.find((r) => r.code === fromCode);
+        const fromRate = findRateByCode(fromCode);
         if (!fromRate) return 0;
-        const price = (fromRate as CurrencyRate).buy ?? (fromRate as GoldRate).buy;
-        return amount * price;
+        return amount * fromRate.buy;
       }
-
-      const fromRate = allRates.find((r) => r.code === fromCode);
-      const toRate = allRates.find((r) => r.code === toCode);
+      const fromRate = findRateByCode(fromCode);
+      const toRate = findRateByCode(toCode);
       if (!fromRate || !toRate) return 0;
-      const fromPrice = (fromRate as CurrencyRate).buy ?? (fromRate as GoldRate).buy;
-      const toPrice = (toRate as CurrencyRate).sell ?? (toRate as GoldRate).sell;
-      return (amount * fromPrice) / toPrice;
+      return (amount * fromRate.buy) / toRate.sell;
     },
-    [currencies, goldRates]
+    [findRateByCode]
   );
 
   return (
     <AppContext.Provider
       value={{
-        currencies,
-        goldRates,
+        currencies: buckets.currencies,
+        currencyParities: buckets.currencyParities,
+        parities: buckets.parities,
+        goldRates: buckets.goldRates,
+        goldGram: buckets.goldGram,
+        goldCoinsYeni: buckets.goldCoinsYeni,
+        goldCoinsEski: buckets.goldCoinsEski,
+        goldBars: buckets.goldBars,
+        goldBracelets: buckets.goldBracelets,
+        goldParities: buckets.goldParities,
+        metals: buckets.metals,
+        silvers: buckets.silvers,
+        ratios: buckets.ratios,
+        spreads: buckets.spreads,
         portfolio,
         alerts,
         news: DEMO_NEWS,
         economicEvents: DEMO_EVENTS,
         isLoading,
+        isStale,
         lastUpdated,
         favorites,
         addToPortfolio,
@@ -837,6 +792,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         getPortfolioTotalValue,
         getPortfolioGainLoss,
         convertAmount,
+        findRateByCode,
       }}
     >
       {children}

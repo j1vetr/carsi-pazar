@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
-  FlatList,
   Platform,
   Pressable,
   RefreshControl,
+  SectionList,
   StyleSheet,
   Text,
   View,
@@ -130,17 +130,45 @@ function GoldHero({
   );
 }
 
+interface Section {
+  title: string;
+  subtitle?: string;
+  data: GoldRate[];
+}
+
 export default function GoldScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { goldRates, favorites, toggleFavorite, isLoading, refreshData } = useApp();
+  const {
+    goldGram, goldCoinsYeni, goldCoinsEski, goldBars, goldBracelets,
+    metals, silvers, goldParities, ratios, favorites, toggleFavorite,
+    isLoading, refreshData,
+  } = useApp();
+  const [emission, setEmission] = useState<"yeni" | "eski">("yeni");
 
   const topPadding = Platform.OS === "web" ? 14 : insets.top;
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
 
-  const goldItems = goldRates.filter((g) => !["GUMUS"].includes(g.code));
-  const silverItems = goldRates.filter((g) => ["GUMUS"].includes(g.code));
+  const sections: Section[] = useMemo(() => {
+    const list: Section[] = [];
+    if (goldGram.length) list.push({ title: "Gram Altın & Ons", subtitle: `${goldGram.length} varlık`, data: goldGram });
+    const coins = emission === "yeni" ? goldCoinsYeni : goldCoinsEski;
+    if (coins.length) {
+      list.push({
+        title: "Sarrafiye Altın",
+        subtitle: emission === "yeni" ? "Yeni Emisyon" : "Eski Emisyon",
+        data: coins,
+      });
+    }
+    if (goldBars.length) list.push({ title: "Külçe Altın", subtitle: "Boyutlar", data: goldBars });
+    if (goldBracelets.length) list.push({ title: "Bilezik & Ayar", data: goldBracelets });
+    if (metals.length) list.push({ title: "Platin & Paladyum", data: metals });
+    if (silvers.length) list.push({ title: "Gümüş", data: silvers });
+    if (goldParities.length) list.push({ title: "Altın Pariteleri", subtitle: "1 oz altın paritesi", data: goldParities });
+    if (ratios.length) list.push({ title: "Altın / Gümüş Oranı", data: ratios });
+    return list;
+  }, [emission, goldGram, goldCoinsYeni, goldCoinsEski, goldBars, goldBracelets, metals, silvers, goldParities, ratios]);
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
@@ -152,49 +180,73 @@ export default function GoldScreen() {
       paddingHorizontal: 20,
       paddingTop: 18,
       paddingBottom: 8,
+      backgroundColor: colors.background,
     },
+    sectionLeft: { flexDirection: "row", alignItems: "baseline", gap: 8 },
     sectionTitle: {
       fontSize: 16, fontFamily: "Inter_700Bold",
       color: colors.foreground, letterSpacing: -0.2,
     },
-    sectionMeta: {
-      fontSize: 10, fontFamily: "Inter_500Medium",
-      color: colors.mutedForeground, letterSpacing: 1,
+    sectionSubtitle: {
+      fontSize: 11, fontFamily: "Inter_500Medium",
+      color: colors.mutedForeground,
     },
-    tableHead: {
-      flexDirection: "row",
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-      backgroundColor: colors.surface,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+    emissionPill: {
+      flexDirection: "row", backgroundColor: colors.secondary,
+      borderRadius: 8, padding: 2,
     },
-    th: {
-      fontSize: 10, fontFamily: "Inter_600SemiBold",
-      color: colors.mutedForeground, letterSpacing: 1,
-    },
-    silverHeader: {
-      paddingHorizontal: 20,
-      paddingTop: 22,
-      paddingBottom: 8,
-    },
+    emissionBtn: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
+    emissionBtnActive: { backgroundColor: colors.card },
+    emissionText: { fontSize: 11, fontFamily: "Inter_700Bold" },
     list: { paddingBottom: bottomPadding + 16 },
   });
 
   return (
     <View style={styles.container}>
-      <View style={styles.heroWrap}>
-        <GoldHero
-          ons={goldRates.find((g) => g.code === "ONS")}
-          gram={goldRates.find((g) => g.code === "ALTIN")}
-          ceyrek={goldRates.find((g) => g.code === "CEYREK")}
-          colors={colors}
-        />
-      </View>
-
-      <FlatList
-        data={goldItems}
-        keyExtractor={(item) => item.code}
+      <SectionList
+        sections={sections}
+        keyExtractor={(item, idx) => `${item.code}_${idx}`}
+        stickySectionHeadersEnabled={false}
+        ListHeaderComponent={
+          <View style={styles.heroWrap}>
+            <GoldHero
+              ons={goldGram.find((g) => g.code === "ONS")}
+              gram={goldGram.find((g) => g.code === "ALTIN")}
+              ceyrek={goldCoinsYeni.find((g) => g.code === "CEYREK")}
+              colors={colors}
+            />
+          </View>
+        }
+        renderSectionHeader={({ section }) => (
+          <View style={styles.sectionRow}>
+            <View style={styles.sectionLeft}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+              {section.subtitle ? (
+                <Text style={styles.sectionSubtitle}>{section.subtitle}</Text>
+              ) : null}
+            </View>
+            {section.title === "Sarrafiye Altın" ? (
+              <View style={styles.emissionPill}>
+                <Pressable
+                  onPress={() => setEmission("yeni")}
+                  style={[styles.emissionBtn, emission === "yeni" && styles.emissionBtnActive]}
+                >
+                  <Text style={[styles.emissionText, { color: emission === "yeni" ? colors.foreground : colors.mutedForeground }]}>
+                    Yeni
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => setEmission("eski")}
+                  style={[styles.emissionBtn, emission === "eski" && styles.emissionBtnActive]}
+                >
+                  <Text style={[styles.emissionText, { color: emission === "eski" ? colors.foreground : colors.mutedForeground }]}>
+                    Eski
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
+        )}
         renderItem={({ item }) => (
           <PriceCard
             item={item}
@@ -204,38 +256,6 @@ export default function GoldScreen() {
             onPress={() => router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "gold" } })}
           />
         )}
-        ListHeaderComponent={
-          <>
-            <View style={styles.sectionRow}>
-              <Text style={styles.sectionTitle}>Altın Çeşitleri</Text>
-            </View>
-            <View style={styles.tableHead}>
-              <Text style={styles.th}>BİRİM</Text>
-              <View style={{ flex: 1 }} />
-              <Text style={styles.th}>ALIŞ</Text>
-              <Text style={[styles.th, { marginLeft: 16 }]}>SATIŞ</Text>
-            </View>
-          </>
-        }
-        ListFooterComponent={
-          silverItems.length > 0 ? (
-            <>
-              <View style={styles.silverHeader}>
-                <Text style={styles.sectionTitle}>Gümüş</Text>
-              </View>
-              {silverItems.map((item) => (
-                <PriceCard
-                  key={item.code}
-                  item={item}
-                  type="gold"
-                  isFavorite={favorites.includes(item.code)}
-                  onFavoriteToggle={() => toggleFavorite(item.code)}
-                  onPress={() => router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "gold" } })}
-                />
-              ))}
-            </>
-          ) : null
-        }
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshData} tintColor={colors.primary} />}
       />

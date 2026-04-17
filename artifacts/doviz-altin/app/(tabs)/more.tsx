@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   FlatList,
   Platform,
   Pressable,
-  ScrollView,
+  SectionList,
   StyleSheet,
   Text,
   View,
@@ -12,8 +12,9 @@ import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
-import { useApp, NewsItem, EconomicEvent } from "@/contexts/AppContext";
+import { useApp, NewsItem, EconomicEvent, CurrencyRate } from "@/contexts/AppContext";
 import { AssetIcon } from "@/components/AssetIcon";
+import { PriceCard } from "@/components/PriceCard";
 
 function NewsCard({ item, colors }: { item: NewsItem; colors: any }) {
   const timeAgo = (dateStr: string) => {
@@ -29,6 +30,7 @@ function NewsCard({ item, colors }: { item: NewsItem; colors: any }) {
     "TCMB": "#EF4444",
     "Döviz": "#10B981",
     "Ekonomi": "#8B5CF6",
+    "Parite": "#06B6D4",
   };
   const catColor = categoryColors[item.category] ?? colors.primary;
 
@@ -99,27 +101,42 @@ function EventCard({ event, colors }: { event: EconomicEvent; colors: any }) {
   );
 }
 
+interface PaSection { title: string; subtitle?: string; data: CurrencyRate[]; }
+
 export default function MoreScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { news, economicEvents } = useApp();
-  const [activeTab, setActiveTab] = useState<"news" | "calendar">("news");
+  const { news, economicEvents, parities, currencyParities, favorites, toggleFavorite } = useApp();
+  const [activeTab, setActiveTab] = useState<"parities" | "news" | "calendar">("parities");
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
 
+  const paritySections: PaSection[] = useMemo(() => {
+    const list: PaSection[] = [];
+    if (parities.length) list.push({ title: "Uluslararası Pariteler", subtitle: `${parities.length} parite`, data: parities });
+    if (currencyParities.length) list.push({ title: "Döviz Çapraz Pariteler", subtitle: `${currencyParities.length} parite`, data: currencyParities });
+    return list;
+  }, [parities, currencyParities]);
+
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
-    header: { paddingTop: topPadding + 16, paddingHorizontal: 20, paddingBottom: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+    header: { paddingTop: topPadding + 16, paddingHorizontal: 20, paddingBottom: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
     headerTitle: { fontSize: 28, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.5 },
-    tabRow: { flexDirection: "row", marginHorizontal: 20, marginBottom: 16, backgroundColor: colors.secondary, borderRadius: 10, padding: 3 },
+    tabRow: { flexDirection: "row", marginHorizontal: 20, marginBottom: 14, backgroundColor: colors.secondary, borderRadius: 10, padding: 3 },
     tabBtn: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 8 },
-    tabText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+    tabText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
     listContent: { paddingHorizontal: 16, gap: 10, paddingBottom: bottomPadding + 16 },
+    sectionHeader: {
+      paddingHorizontal: 4, paddingTop: 18, paddingBottom: 8,
+      flexDirection: "row", alignItems: "baseline", gap: 8,
+    },
+    sectionTitle: { fontSize: 16, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.2 },
+    sectionSubtitle: { fontSize: 11, fontFamily: "Inter_500Medium", color: colors.mutedForeground },
     alertBanner: {
       flexDirection: "row", alignItems: "center",
-      marginHorizontal: 20, marginBottom: 16,
+      marginHorizontal: 20, marginBottom: 14,
       backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
       borderRadius: 14, padding: 14,
     },
@@ -134,7 +151,7 @@ export default function MoreScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Haberler & Takvim</Text>
+        <Text style={styles.headerTitle}>Diğer Varlıklar</Text>
         <Pressable onPress={() => router.push("/alerts")} style={{ padding: 6 }}>
           <Icon name="notifications-outline" size={24} color={colors.foreground} />
         </Pressable>
@@ -154,25 +171,47 @@ export default function MoreScreen() {
       </Pressable>
 
       <View style={styles.tabRow}>
-        <Pressable
-          style={[styles.tabBtn, activeTab === "news" && { backgroundColor: colors.card }]}
-          onPress={() => setActiveTab("news")}
-        >
-          <Text style={[styles.tabText, { color: activeTab === "news" ? colors.foreground : colors.mutedForeground }]}>
-            Haberler
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.tabBtn, activeTab === "calendar" && { backgroundColor: colors.card }]}
-          onPress={() => setActiveTab("calendar")}
-        >
-          <Text style={[styles.tabText, { color: activeTab === "calendar" ? colors.foreground : colors.mutedForeground }]}>
-            Ekonomik Takvim
-          </Text>
-        </Pressable>
+        {(["parities", "news", "calendar"] as const).map((t) => (
+          <Pressable
+            key={t}
+            style={[styles.tabBtn, activeTab === t && { backgroundColor: colors.card }]}
+            onPress={() => setActiveTab(t)}
+          >
+            <Text style={[styles.tabText, { color: activeTab === t ? colors.foreground : colors.mutedForeground }]}>
+              {t === "parities" ? "Pariteler" : t === "news" ? "Haberler" : "Takvim"}
+            </Text>
+          </Pressable>
+        ))}
       </View>
 
-      {activeTab === "news" ? (
+      {activeTab === "parities" ? (
+        <SectionList
+          sections={paritySections}
+          keyExtractor={(item, idx) => `${item.code}_${idx}`}
+          stickySectionHeadersEnabled={false}
+          renderSectionHeader={({ section }) => (
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+              {section.subtitle ? <Text style={styles.sectionSubtitle}>{section.subtitle}</Text> : null}
+            </View>
+          )}
+          renderItem={({ item }) => (
+            <PriceCard
+              item={item}
+              type="currency"
+              isFavorite={favorites.includes(item.code)}
+              onFavoriteToggle={() => toggleFavorite(item.code)}
+              onPress={() => router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "currency" } })}
+            />
+          )}
+          contentContainerStyle={{ paddingHorizontal: 4, paddingBottom: bottomPadding + 16 }}
+          ListEmptyComponent={
+            <View style={{ padding: 30, alignItems: "center" }}>
+              <Text style={{ color: colors.mutedForeground, fontFamily: "Inter_500Medium" }}>Parite verisi bekleniyor…</Text>
+            </View>
+          }
+        />
+      ) : activeTab === "news" ? (
         <FlatList
           data={news}
           keyExtractor={(item) => item.id}

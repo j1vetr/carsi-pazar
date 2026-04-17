@@ -22,16 +22,71 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 const GOLD_LABELS: Record<string, string> = {
   ALTIN: "GR",
   ONS: "OZ",
+  ONS_SPOT: "OZS",
+  ONS_EUR: "€OZ",
   CEYREK: "¼",
+  CEYREK_ESKI: "¼E",
   YARIM: "½",
+  YARIM_ESKI: "½E",
   TAM: "1",
+  TAM_ESKI: "1E",
   ATA: "A",
+  ATA_ESKI: "AE",
   ATA5: "A5",
+  ATA5_ESKI: "A5E",
+  GREMESE: "GR",
+  GREMESE_YENI: "GR",
+  GREMESE_ESKI: "GRE",
   GRAM22: "22",
+  AYAR22: "22",
   AYAR14: "14",
-  KULCE: "K",
+  KULCE: "KU",
   GUMUS: "Ag",
+  GUMUS_TRY: "Ag",
+  GUMUS_USD_GR: "Ag$",
+  ONS_GUMUS: "AgZ",
+  KG_GUMUS: "AgK",
+  PLATIN: "Pt",
+  PLATIN_USD: "Pt$",
+  PALADYUM: "Pd",
+  PALADYUM_USD: "Pd$",
+  PAR_USD: "P$",
+  PAR_EUR: "P€",
+  PAR_GBP: "P£",
+  PAR_CHF: "P₣",
+  AU_AG: "Au/Ag",
+  FARK: "F",
+  VADE_FARK: "VF",
   RESAT: "R",
+  BAR5: "5g",
+  BAR10: "10g",
+  BAR20: "20g",
+  BAR50: "50g",
+  BAR100: "100",
+  GRAM5: "5g",
+  GRAM10: "10g",
+  GRAM20: "20g",
+  GRAM50: "50g",
+  GRAM100: "100",
+};
+
+const PARITY_LABELS: Record<string, string> = {
+  EURUSD: "€$",
+  GBPUSD: "£$",
+  AUDUSD: "A$",
+  USDCHF: "$₣",
+  USDCAD: "$C",
+  USDJPY: "$¥",
+  USDSAR: "$SR",
+  USDDKK: "$kr",
+  USDNOK: "$kr",
+  USDSEK: "$kr",
+  USDRUB: "$₽",
+  EURGBP: "€£",
+  EURCHF: "€₣",
+  EURUSDS: "€$",
+  XUSDTRY: "$₺",
+  FARKEUR: "F€",
 };
 
 interface AssetIconProps {
@@ -84,7 +139,7 @@ export function AssetIcon({ code, type, size = 40, variant = "soft", tone }: Ass
   }
 
   if (type === "gold") {
-    const label = GOLD_LABELS[code] ?? "Au";
+    const label = GOLD_LABELS[code] ?? PARITY_LABELS[code] ?? "Au";
     const fontSize = label.length > 2 ? size * 0.32 : size * 0.4;
     return (
       <View style={[styles.box, { width: size, height: size, borderRadius: size / 2 }, containerStyle]}>

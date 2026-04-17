@@ -30,3 +30,8 @@ externalPort = 8081
 [[ports]]
 localPort = 25391
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+EXPO_PUBLIC_HAREMAPI_KEY = "hapi_9d98a231907842efa19d2dbdc3d53784"
