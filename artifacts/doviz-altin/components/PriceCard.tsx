@@ -5,7 +5,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { CurrencyRate, GoldRate } from "@/contexts/AppContext";
@@ -131,7 +131,7 @@ export function PriceCard({
           <Text style={styles.bid}>{formatPrice(item.buy)}</Text>
         </View>
         <View style={styles.changeWrap}>
-          <Ionicons
+          <Icon
             name={isPositive ? "caret-up" : "caret-down"}
             size={9}
             color={changeColor}
@@ -144,7 +144,7 @@ export function PriceCard({
       </View>
       {onFavoriteToggle && (
         <Pressable onPress={onFavoriteToggle} style={styles.starBtn} hitSlop={8}>
-          <Ionicons
+          <Icon
             name={isFavorite ? "star" : "star-outline"}
             size={16}
             color={isFavorite ? colors.gold : colors.mutedForeground}

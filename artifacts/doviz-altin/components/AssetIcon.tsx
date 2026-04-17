@@ -1,6 +1,5 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -20,19 +19,19 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   TRY: "\u20BA",
 };
 
-const GOLD_GLYPHS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  ALTIN: "ellipse",
-  ONS: "ellipse",
-  CEYREK: "ellipse-outline",
-  YARIM: "ellipse-outline",
-  TAM: "disc",
-  ATA: "ribbon",
-  ATA5: "ribbon-outline",
-  GRAM22: "link",
-  AYAR14: "link-outline",
-  KULCE: "cube",
-  GUMUS: "ellipse",
-  RESAT: "ribbon",
+const GOLD_LABELS: Record<string, string> = {
+  ALTIN: "GR",
+  ONS: "OZ",
+  CEYREK: "¼",
+  YARIM: "½",
+  TAM: "1",
+  ATA: "A",
+  ATA5: "A5",
+  GRAM22: "22",
+  AYAR14: "14",
+  KULCE: "K",
+  GUMUS: "Ag",
+  RESAT: "R",
 };
 
 interface AssetIconProps {
@@ -85,17 +84,39 @@ export function AssetIcon({ code, type, size = 40, variant = "soft", tone }: Ass
   }
 
   if (type === "gold") {
-    const glyph = GOLD_GLYPHS[code] ?? "ellipse";
+    const label = GOLD_LABELS[code] ?? "Au";
+    const fontSize = label.length > 2 ? size * 0.32 : size * 0.4;
     return (
       <View style={[styles.box, { width: size, height: size, borderRadius: size / 2 }, containerStyle]}>
-        <Ionicons name={glyph} size={size * 0.5} color={fgColor} />
+        <Text
+          style={{
+            fontSize,
+            lineHeight: size,
+            fontFamily: "Inter_700Bold",
+            color: fgColor,
+            includeFontPadding: false,
+            textAlignVertical: "center",
+          }}
+        >
+          {label}
+        </Text>
       </View>
     );
   }
 
   return (
     <View style={[styles.box, { width: size, height: size, borderRadius: size / 2 }, containerStyle]}>
-      <Ionicons name="flag" size={size * 0.5} color={fgColor} />
+      <Text
+        style={{
+          fontSize: size * 0.5,
+          lineHeight: size,
+          color: fgColor,
+          includeFontPadding: false,
+          textAlignVertical: "center",
+        }}
+      >
+        {"\uD83C\uDFF3"}
+      </Text>
     </View>
   );
 }

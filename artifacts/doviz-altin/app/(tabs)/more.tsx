@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
@@ -136,13 +136,13 @@ export default function MoreScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Haberler & Takvim</Text>
         <Pressable onPress={() => router.push("/alerts")} style={{ padding: 6 }}>
-          <Ionicons name="notifications-outline" size={24} color={colors.foreground} />
+          <Icon name="notifications-outline" size={24} color={colors.foreground} />
         </Pressable>
       </View>
 
       <Pressable style={styles.alertBanner} onPress={() => router.push("/alerts")}>
         <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}>
-          <Ionicons name="notifications" size={18} color={colors.primary} />
+          <Icon name="notifications" size={18} color={colors.primary} />
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: colors.foreground }}>Fiyat Alarmları</Text>
@@ -150,7 +150,7 @@ export default function MoreScreen() {
             İstediğin seviyeye ulaşınca anında bildirim al
           </Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
+        <Icon name="chevron-forward" size={18} color={colors.mutedForeground} />
       </Pressable>
 
       <View style={styles.tabRow}>

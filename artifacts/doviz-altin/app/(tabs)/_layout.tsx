@@ -1,9 +1,9 @@
 import { BlurView } from "expo-blur";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
-import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
+import { Icon as NativeTabIcon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,23 +13,23 @@ function NativeTabLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: "chart.line.uptrend.xyaxis", selected: "chart.line.uptrend.xyaxis" }} />
+        <NativeTabIcon sf={{ default: "chart.line.uptrend.xyaxis", selected: "chart.line.uptrend.xyaxis" }} />
         <Label>Piyasa</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="gold">
-        <Icon sf={{ default: "circle.hexagongrid", selected: "circle.hexagongrid.fill" }} />
+        <NativeTabIcon sf={{ default: "circle.hexagongrid", selected: "circle.hexagongrid.fill" }} />
         <Label>Altın</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="portfolio">
-        <Icon sf={{ default: "briefcase", selected: "briefcase.fill" }} />
+        <NativeTabIcon sf={{ default: "briefcase", selected: "briefcase.fill" }} />
         <Label>Portföy</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="converter">
-        <Icon sf={{ default: "arrow.2.squarepath", selected: "arrow.2.squarepath" }} />
+        <NativeTabIcon sf={{ default: "arrow.2.squarepath", selected: "arrow.2.squarepath" }} />
         <Label>Çevirici</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="more">
-        <Icon sf={{ default: "ellipsis.circle", selected: "ellipsis.circle.fill" }} />
+        <NativeTabIcon sf={{ default: "ellipsis.circle", selected: "ellipsis.circle.fill" }} />
         <Label>Daha Fazla</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
@@ -86,7 +86,7 @@ function ClassicTabLayout() {
             isIOS ? (
               <SymbolView name="chart.line.uptrend.xyaxis" tintColor={color} size={size} />
             ) : (
-              <Ionicons name="trending-up" size={size} color={color} />
+              <Icon name="trending-up" size={size} color={color} />
             ),
         }}
       />
@@ -98,7 +98,7 @@ function ClassicTabLayout() {
             isIOS ? (
               <SymbolView name="circle.hexagongrid.fill" tintColor={color} size={size} />
             ) : (
-              <Ionicons name="diamond" size={size} color={color} />
+              <Icon name="diamond" size={size} color={color} />
             ),
         }}
       />
@@ -110,7 +110,7 @@ function ClassicTabLayout() {
             isIOS ? (
               <SymbolView name="briefcase.fill" tintColor={color} size={size} />
             ) : (
-              <Ionicons name="briefcase" size={size} color={color} />
+              <Icon name="briefcase" size={size} color={color} />
             ),
         }}
       />
@@ -122,7 +122,7 @@ function ClassicTabLayout() {
             isIOS ? (
               <SymbolView name="arrow.2.squarepath" tintColor={color} size={size} />
             ) : (
-              <Ionicons name="swap-horizontal" size={size} color={color} />
+              <Icon name="swap-horizontal" size={size} color={color} />
             ),
         }}
       />
@@ -134,7 +134,7 @@ function ClassicTabLayout() {
             isIOS ? (
               <SymbolView name="ellipsis.circle" tintColor={color} size={size} />
             ) : (
-              <Ionicons name="ellipsis-horizontal" size={size} color={color} />
+              <Icon name="ellipsis-horizontal" size={size} color={color} />
             ),
         }}
       />

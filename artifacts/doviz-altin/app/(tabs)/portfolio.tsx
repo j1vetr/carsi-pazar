@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
@@ -21,7 +21,7 @@ import { useApp, PortfolioItem } from "@/contexts/AppContext";
 function EmptyPortfolio({ colors, onAdd }: { colors: any; onAdd: () => void }) {
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 }}>
-      <Ionicons name="briefcase-outline" size={64} color={colors.mutedForeground} />
+      <Icon name="briefcase-outline" size={64} color={colors.mutedForeground} />
       <Text style={{ fontSize: 18, fontFamily: "Inter_600SemiBold", color: colors.foreground, marginTop: 20, textAlign: "center" }}>
         Portföyünüz boş
       </Text>
@@ -92,7 +92,7 @@ function AddAssetModal({
             Varlık Ekle
           </Text>
           <Pressable onPress={onClose}>
-            <Ionicons name="close" size={24} color={colors.foreground} />
+            <Icon name="close" size={24} color={colors.foreground} />
           </Pressable>
         </View>
 
@@ -224,7 +224,7 @@ function PortfolioItemCard({ item, colors, onDelete }: { item: PortfolioItem; co
           </Text>
         </View>
         <Pressable onPress={onDelete} style={{ padding: 4 }}>
-          <Ionicons name="trash-outline" size={18} color={colors.fall} />
+          <Icon name="trash-outline" size={18} color={colors.fall} />
         </Pressable>
       </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border }}>
@@ -281,7 +281,7 @@ export default function PortfolioScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Portföyüm</Text>
         <Pressable onPress={() => setShowAddModal(true)} style={styles.addBtn}>
-          <Ionicons name="add" size={22} color={colors.primaryForeground} />
+          <Icon name="add" size={22} color={colors.primaryForeground} />
         </Pressable>
       </View>
 
@@ -300,7 +300,7 @@ export default function PortfolioScreen() {
               ₺{totalValue.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
-              <Ionicons name={isPos ? "trending-up" : "trending-down"} size={14} color={isPos ? "#22C55E" : "#EF4444"} />
+              <Icon name={isPos ? "trending-up" : "trending-down"} size={14} color={isPos ? "#22C55E" : "#EF4444"} />
               <Text style={{ fontSize: 14, fontFamily: "Inter_600SemiBold", color: isPos ? "#22C55E" : "#EF4444", marginLeft: 4 }}>
                 {isPos ? "+" : ""}₺{Math.abs(gainLoss).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({isPos ? "+" : ""}{gainLossPercent.toFixed(2)}%)
               </Text>

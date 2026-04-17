@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
@@ -57,7 +57,7 @@ function GoldHero({
           }}
           hitSlop={6}
         >
-          <Ionicons name="notifications-outline" size={17} color="#FFFFFF" />
+          <Icon name="notifications-outline" size={17} color="#FFFFFF" />
         </Pressable>
       </View>
 
@@ -75,7 +75,7 @@ function GoldHero({
               paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
               backgroundColor: isPos ? "rgba(94,234,168,0.15)" : "rgba(255,133,133,0.15)",
             }}>
-              <Ionicons name={isPos ? "caret-up" : "caret-down"} size={11} color={isPos ? "#5EEAA8" : "#FF8585"} />
+              <Icon name={isPos ? "caret-up" : "caret-down"} size={11} color={isPos ? "#5EEAA8" : "#FF8585"} />
               <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: isPos ? "#5EEAA8" : "#FF8585" }}>
                 {isPos ? "+" : ""}{gramPct.toFixed(2)}%
               </Text>

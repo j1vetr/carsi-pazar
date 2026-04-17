@@ -10,7 +10,7 @@ import {
   TextInput,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -54,7 +54,7 @@ function AddAlertModal({
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={{ paddingTop: 20, paddingHorizontal: 20, paddingBottom: 16, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: colors.border }}>
           <Text style={{ flex: 1, fontSize: 18, fontFamily: "Inter_700Bold", color: colors.foreground }}>Fiyat Alarmı</Text>
-          <Pressable onPress={onClose}><Ionicons name="close" size={24} color={colors.foreground} /></Pressable>
+          <Pressable onPress={onClose}><Icon name="close" size={24} color={colors.foreground} /></Pressable>
         </View>
         <View style={{ padding: 20, gap: 20 }}>
           <View>
@@ -64,14 +64,14 @@ function AddAlertModal({
                 onPress={() => setDirection("above")}
                 style={{ flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: direction === "above" ? colors.rise + "20" : colors.secondary, borderWidth: 1, borderColor: direction === "above" ? colors.rise : colors.border, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 6 }}
               >
-                <Ionicons name="trending-up" size={16} color={direction === "above" ? colors.rise : colors.mutedForeground} />
+                <Icon name="trending-up" size={16} color={direction === "above" ? colors.rise : colors.mutedForeground} />
                 <Text style={{ fontSize: 14, fontFamily: "Inter_600SemiBold", color: direction === "above" ? colors.rise : colors.mutedForeground }}>Üzerine Çıkınca</Text>
               </Pressable>
               <Pressable
                 onPress={() => setDirection("below")}
                 style={{ flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: direction === "below" ? colors.fall + "20" : colors.secondary, borderWidth: 1, borderColor: direction === "below" ? colors.fall : colors.border, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 6 }}
               >
-                <Ionicons name="trending-down" size={16} color={direction === "below" ? colors.fall : colors.mutedForeground} />
+                <Icon name="trending-down" size={16} color={direction === "below" ? colors.fall : colors.mutedForeground} />
                 <Text style={{ fontSize: 14, fontFamily: "Inter_600SemiBold", color: direction === "below" ? colors.fall : colors.mutedForeground }}>Altına Düşünce</Text>
               </Pressable>
             </View>
@@ -143,18 +143,18 @@ export default function DetailScreen() {
       >
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
           <Pressable onPress={() => router.back()} style={{ padding: 8, marginLeft: -8, marginRight: 8 }}>
-            <Ionicons name="arrow-back" size={22} color={type === "gold" ? "#FFD700" : colors.foreground} />
+            <Icon name="arrow-back" size={22} color={type === "gold" ? "#FFD700" : colors.foreground} />
           </Pressable>
           <Text style={{ flex: 1 }} />
           <Pressable onPress={() => toggleFavorite(code!)} style={{ padding: 8 }}>
-            <Ionicons
+            <Icon
               name={isFav ? "star" : "star-outline"}
               size={22}
               color={isFav ? colors.gold : (type === "gold" ? "#FFD700" : colors.mutedForeground)}
             />
           </Pressable>
           <Pressable onPress={() => setShowAlertModal(true)} style={{ padding: 8 }}>
-            <Ionicons name="notifications-outline" size={22} color={type === "gold" ? "#FFD700" : colors.foreground} />
+            <Icon name="notifications-outline" size={22} color={type === "gold" ? "#FFD700" : colors.foreground} />
           </Pressable>
         </View>
 
@@ -182,7 +182,7 @@ export default function DetailScreen() {
 
         <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6, gap: 8 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: changeColor + "15", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 }}>
-            <Ionicons name={isPositive ? "trending-up" : "trending-down"} size={14} color={changeColor} />
+            <Icon name={isPositive ? "trending-up" : "trending-down"} size={14} color={changeColor} />
             <Text style={{ fontSize: 13, fontFamily: "Inter_600SemiBold", color: changeColor }}>
               {isPositive ? "+" : ""}{item.changePercent.toFixed(2)}% ({isPositive ? "+" : ""}{item.change.toFixed(2)})
             </Text>
@@ -240,7 +240,7 @@ export default function DetailScreen() {
             gap: 8,
           }}
         >
-          <Ionicons name="notifications" size={20} color={colors.primaryForeground} />
+          <Icon name="notifications" size={20} color={colors.primaryForeground} />
           <Text style={{ fontSize: 15, fontFamily: "Inter_600SemiBold", color: colors.primaryForeground }}>
             Fiyat Alarmı Kur
           </Text>

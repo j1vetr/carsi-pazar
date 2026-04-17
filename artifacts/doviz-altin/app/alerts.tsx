@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -42,7 +42,7 @@ function AlertCard({ alert, colors, onDelete }: { alert: PriceAlert; colors: any
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <Text style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: colors.foreground }}>{alert.code}</Text>
             <View style={{ backgroundColor: directionColor + "15", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, flexDirection: "row", alignItems: "center", gap: 3 }}>
-              <Ionicons name={directionIcon} size={11} color={directionColor} />
+              <Icon name={directionIcon} size={11} color={directionColor} />
               <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: directionColor }}>
                 {alert.direction === "above" ? "Üzerine çıkınca" : "Altına düşünce"}
               </Text>
@@ -54,12 +54,12 @@ function AlertCard({ alert, colors, onDelete }: { alert: PriceAlert; colors: any
           </Text>
         </View>
         <Pressable onPress={onDelete} style={{ padding: 8 }}>
-          <Ionicons name="trash-outline" size={20} color={colors.fall} />
+          <Icon name="trash-outline" size={20} color={colors.fall} />
         </Pressable>
       </View>
       {alert.triggered && (
         <View style={{ marginTop: 10, backgroundColor: colors.primary + "15", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
+          <Icon name="checkmark-circle" size={14} color={colors.primary} />
           <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.primary }}>Alarm tetiklendi</Text>
         </View>
       )}
@@ -70,7 +70,7 @@ function AlertCard({ alert, colors, onDelete }: { alert: PriceAlert; colors: any
 function EmptyAlerts({ colors }: { colors: any }) {
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 }}>
-      <Ionicons name="notifications-off-outline" size={64} color={colors.mutedForeground} />
+      <Icon name="notifications-off-outline" size={64} color={colors.mutedForeground} />
       <Text style={{ fontSize: 18, fontFamily: "Inter_600SemiBold", color: colors.foreground, marginTop: 20, textAlign: "center" }}>
         Aktif alarm yok
       </Text>
@@ -115,7 +115,7 @@ export default function AlertsScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={colors.foreground} />
+          <Icon name="arrow-back" size={22} color={colors.foreground} />
         </Pressable>
         <Text style={styles.headerTitle}>Fiyat Alarmları</Text>
         <View style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: colors.secondary, borderRadius: 20 }}>

@@ -10,7 +10,7 @@ import {
   Modal,
   FlatList,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
@@ -42,7 +42,7 @@ function CurrencyPickerModal({
         <View style={{ paddingTop: 20, paddingHorizontal: 20, paddingBottom: 16, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: colors.border }}>
           <Text style={{ flex: 1, fontSize: 18, fontFamily: "Inter_700Bold", color: colors.foreground }}>Para Birimi Seç</Text>
           <Pressable onPress={onClose}>
-            <Ionicons name="close" size={24} color={colors.foreground} />
+            <Icon name="close" size={24} color={colors.foreground} />
           </Pressable>
         </View>
         <FlatList
@@ -240,7 +240,7 @@ export default function ConverterScreen() {
           </Pressable>
 
           <Pressable onPress={handleSwap} style={styles.swapBtn}>
-            <Ionicons name="swap-vertical" size={22} color={colors.primaryForeground} />
+            <Icon name="swap-vertical" size={22} color={colors.primaryForeground} />
           </Pressable>
 
           <View style={styles.resultSection}>
@@ -255,7 +255,7 @@ export default function ConverterScreen() {
                 <Text style={styles.currencyCode}>{toCode}</Text>
                 <Text style={styles.currencyName}>{toAsset?.nameTR ?? ""}</Text>
               </View>
-              <Ionicons name="chevron-down" size={20} color={colors.mutedForeground} />
+              <Icon name="chevron-down" size={20} color={colors.mutedForeground} />
             </Pressable>
             <Text style={styles.resultAmount}>{formatResult(convertedAmount)}</Text>
             <Text style={styles.resultCode}>{toCode} karşılığı</Text>
@@ -301,7 +301,7 @@ export default function ConverterScreen() {
                   <Text style={{ fontSize: 14, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>
                     1 {pair.from}
                   </Text>
-                  <Ionicons name="arrow-forward" size={14} color={colors.mutedForeground} style={{ marginHorizontal: 8 }} />
+                  <Icon name="arrow-forward" size={14} color={colors.mutedForeground} style={{ marginHorizontal: 8 }} />
                   <View style={{ marginRight: 6 }}>
                     <AssetIcon code={pair.to} type={toA?.assetType ?? "currency"} size={24} />
                   </View>

@@ -18,7 +18,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
@@ -304,7 +304,7 @@ export default function MarketScreen() {
                 onPress={() => router.push("/alerts")}
                 hitSlop={6}
               >
-                <Ionicons name="notifications-outline" size={17} color="#FFFFFF" />
+                <Icon name="notifications-outline" size={17} color="#FFFFFF" />
               </Pressable>
             </View>
           </View>
@@ -318,7 +318,7 @@ export default function MarketScreen() {
                 </Text>
                 <View style={styles.heroSubRow}>
                   <View style={[styles.heroChangePill, { backgroundColor: goldUp ? "rgba(94,234,168,0.15)" : "rgba(255,133,133,0.15)" }]}>
-                    <Ionicons
+                    <Icon
                       name={goldUp ? "caret-up" : "caret-down"}
                       size={11}
                       color={goldUp ? "#5EEAA8" : "#FF8585"}
@@ -417,7 +417,7 @@ export default function MarketScreen() {
                 style={[styles.segment, activeTab === "favorites" && styles.segmentActive]}
                 onPress={() => setActiveTab("favorites")}
               >
-                <Ionicons name="star" size={11} color={activeTab === "favorites" ? "#FFFFFF" : colors.mutedForeground} />
+                <Icon name="star" size={11} color={activeTab === "favorites" ? "#FFFFFF" : colors.mutedForeground} />
                 <Text style={[styles.segmentText, activeTab === "favorites" && styles.segmentTextActive]}>
                   Favoriler
                 </Text>
