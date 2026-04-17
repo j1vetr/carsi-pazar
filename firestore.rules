@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /prices/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /tokens/{deviceId} {
+      allow read: if false;
+      allow create, update: if request.resource.data.keys().hasOnly(['expoPushToken','platform','updatedAt'])
+                            && request.resource.data.expoPushToken is string;
+      allow delete: if false;
+    }
+
+    match /alerts/{alertId} {
+      allow read: if request.auth == null
+                    ? resource.data.deviceId == request.query.deviceId
+                    : false;
+      allow create: if request.resource.data.keys().hasAll(['deviceId','code','type','target','currency','active','createdAt'])
+                    && request.resource.data.type in ['above','below']
+                    && request.resource.data.target is number
+                    && request.resource.data.active == true;
+      allow update, delete: if resource.data.deviceId == request.resource.data.deviceId;
+    }
+  }
+}
