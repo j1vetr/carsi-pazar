@@ -311,7 +311,7 @@ export default function MarketScreen() {
             </View>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <View style={styles.liveBadge}>
-                <View style={styles.statusDot} />
+                <Icon name="time-outline" size={13} color="#FFFFFF" />
                 <Text style={styles.liveText}>{lastUpdated ? formatTime(lastUpdated) : "BAĞLANIYOR"}</Text>
               </View>
               <Pressable
