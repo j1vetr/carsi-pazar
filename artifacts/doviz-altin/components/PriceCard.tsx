@@ -19,6 +19,7 @@ interface PriceCardProps {
   onFavoriteToggle?: () => void;
   compact?: boolean;
   hideIcon?: boolean;
+  nameFirst?: boolean;
 }
 
 function formatPrice(n: number): string {
@@ -34,6 +35,7 @@ export function PriceCard({
   onPress,
   onFavoriteToggle,
   hideIcon,
+  nameFirst,
 }: PriceCardProps) {
   const colors = useColors();
   const flashOpacity = useSharedValue(0);
@@ -128,8 +130,17 @@ export function PriceCard({
         </View>
       )}
       <View style={styles.nameCol}>
-        <Text style={styles.code} numberOfLines={1}>{item.code}</Text>
-        <Text style={styles.name} numberOfLines={1}>{item.nameTR}</Text>
+        {nameFirst ? (
+          <>
+            <Text style={styles.code} numberOfLines={1}>{item.nameTR}</Text>
+            <Text style={styles.name} numberOfLines={1}>{item.code}</Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.code} numberOfLines={1}>{item.code}</Text>
+            <Text style={styles.name} numberOfLines={1}>{item.nameTR}</Text>
+          </>
+        )}
       </View>
       <View style={styles.priceCol}>
         <View style={styles.bidAsk}>

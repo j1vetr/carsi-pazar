@@ -252,6 +252,7 @@ export default function GoldScreen() {
             item={item}
             type="gold"
             hideIcon
+            nameFirst
             isFavorite={favorites.includes(item.code)}
             onFavoriteToggle={() => toggleFavorite(item.code)}
             onPress={() => router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "gold" } })}
