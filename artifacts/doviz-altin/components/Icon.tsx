@@ -6,6 +6,7 @@ import {
   Bell,
   BellOff,
   Briefcase,
+  Clock,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
@@ -51,6 +52,7 @@ export type IconName =
   | "alert-circle"
   | "caret-up"
   | "caret-down"
+  | "time-outline"
   | "x";
 
 const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
@@ -81,6 +83,7 @@ const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
   "alert-circle": AlertCircle,
   "caret-up": ChevronUp,
   "caret-down": ChevronDown,
+  "time-outline": Clock,
   "x": X,
 };
 

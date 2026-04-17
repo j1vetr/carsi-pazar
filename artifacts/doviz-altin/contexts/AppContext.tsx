@@ -16,9 +16,16 @@ import {
   type PreviousPriceCache,
   type RawHaremResponse,
   type SymbolMeta,
+  findMetaByCode,
 } from "@/lib/haremApi";
-import { connectHaremSocket } from "@/lib/haremSocket";
-import type { Socket } from "socket.io-client";
+import {
+  apiListAlerts,
+  apiSaveAlert,
+  apiDeleteAlert,
+  type ServerAlert,
+} from "@/lib/api";
+import { setupPushAndRegister } from "@/lib/notifications";
+import * as Notifications from "expo-notifications";
 
 export interface CurrencyRate {
   code: string;
@@ -370,8 +377,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const lastSnapshotPersistRef = useRef<number>(0);
   const isFetching = useRef<boolean>(false);
   const isHydrated = useRef<boolean>(false);
-  const socketRef = useRef<Socket | null>(null);
-  const fallbackInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const deviceIdRef = useRef<string | null>(null);
 
   const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000;
   const HISTORY_MAX_AGE_MS = 48 * 60 * 60 * 1000;
@@ -466,64 +473,72 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let respSub: Notifications.EventSubscription | null = null;
     (async () => {
       await loadStoredData();
       isHydrated.current = true;
       if (!mounted) return;
       await refreshData();
-      try {
-        const socket = connectHaremSocket({
-          onConnect: () => {
-            console.log("[harem] Socket bağlandı");
-            if (fallbackInterval.current) {
-              clearInterval(fallbackInterval.current);
-              fallbackInterval.current = null;
-            }
-          },
-          onDisconnect: (reason) => {
-            console.warn("[harem] Socket koptu:", reason);
-            if (!fallbackInterval.current) {
-              fallbackInterval.current = setInterval(() => refreshData(), 30000);
-            }
-          },
-          onError: (err) => {
-            console.warn("[harem] Socket hatası:", err.message);
-            if (!fallbackInterval.current) {
-              fallbackInterval.current = setInterval(() => refreshData(), 30000);
-            }
-          },
-          onPrices: (data, mode) => applyPrices(data, mode),
-          onStale: () => setIsStale(true),
-          onLive: () => setIsStale(false),
-        });
-        socketRef.current = socket;
-      } catch (err) {
-        console.warn("[harem] Socket başlatılamadı, polling'e düşülüyor", err);
-        fallbackInterval.current = setInterval(() => refreshData(), 30000);
-      }
+
+      // Push + alarm sync (non-blocking)
+      setupPushAndRegister()
+        .then(({ deviceId }) => {
+          deviceIdRef.current = deviceId;
+          return apiListAlerts(deviceId);
+        })
+        .then((server) => {
+          if (!mounted) return;
+          setAlerts(server.map(serverAlertToLocal));
+        })
+        .catch((err) => console.warn("[alerts] sync hatası:", err));
+
+      // Notification tap → log (gelecekte detay sayfasına yönlendirilebilir)
+      respSub = Notifications.addNotificationResponseReceivedListener((resp) => {
+        const data = resp.notification.request.content.data;
+        console.log("[push] tapped", data);
+      });
+
+      // Polling 5sn — backend zaten 8sn cache'li
+      pollIntervalRef.current = setInterval(() => refreshData(), 5000);
     })();
     return () => {
       mounted = false;
-      if (fallbackInterval.current) clearInterval(fallbackInterval.current);
-      if (socketRef.current) {
-        socketRef.current.removeAllListeners();
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      if (respSub) respSub.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function serverAlertToLocal(s: ServerAlert): PriceAlert {
+    const meta = findMetaByCode(s.code);
+    const isGold =
+      meta?.group?.startsWith("gold") ||
+      meta?.group === "metal" ||
+      meta?.group === "silver" ||
+      meta?.category === "MADEN" ||
+      meta?.category === "SARRAFIYE" ||
+      meta?.category === "GRAM ALTIN";
+    return {
+      id: s.id,
+      type: isGold ? "gold" : "currency",
+      code: s.code,
+      name: s.name,
+      nameTR: s.nameTR,
+      targetPrice: s.target,
+      direction: s.type,
+      active: s.active,
+      triggered: !s.active && Boolean(s.triggeredAt),
+    };
+  }
+
   const loadStoredData = async () => {
     try {
-      const [storedPortfolio, storedAlerts, storedFavorites, storedHistory] = await Promise.all([
+      const [storedPortfolio, storedFavorites, storedHistory] = await Promise.all([
         AsyncStorage.getItem("portfolio"),
-        AsyncStorage.getItem("alerts"),
         AsyncStorage.getItem("favorites"),
         AsyncStorage.getItem("priceHistory_v1"),
       ]);
       if (storedPortfolio) setPortfolio(JSON.parse(storedPortfolio));
-      if (storedAlerts) setAlerts(JSON.parse(storedAlerts));
       if (storedFavorites) setFavorites(JSON.parse(storedFavorites));
       if (storedHistory) {
         try {
@@ -674,24 +689,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addAlert = useCallback(
     async (alert: Omit<PriceAlert, "id">) => {
-      const newAlert: PriceAlert = {
-        ...alert,
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      };
-      const updated = [...alerts, newAlert];
-      setAlerts(updated);
-      await AsyncStorage.setItem("alerts", JSON.stringify(updated));
+      const deviceId = deviceIdRef.current;
+      if (!deviceId) {
+        console.warn("[alerts] deviceId hazır değil, alarm eklenemedi");
+        return;
+      }
+      try {
+        const { id } = await apiSaveAlert({
+          deviceId,
+          code: alert.code,
+          type: alert.direction,
+          target: alert.targetPrice,
+          currency: "TRY",
+          name: alert.name,
+          nameTR: alert.nameTR,
+        });
+        setAlerts((prev) => [...prev, { ...alert, id }]);
+      } catch (err) {
+        console.warn("[alerts] eklenemedi:", err);
+      }
     },
-    [alerts]
+    []
   );
 
   const removeAlert = useCallback(
     async (id: string) => {
-      const updated = alerts.filter((a) => a.id !== id);
-      setAlerts(updated);
-      await AsyncStorage.setItem("alerts", JSON.stringify(updated));
+      const deviceId = deviceIdRef.current;
+      // Optimistic remove
+      setAlerts((prev) => prev.filter((a) => a.id !== id));
+      if (!deviceId) return;
+      try {
+        await apiDeleteAlert({ deviceId, id });
+      } catch (err) {
+        console.warn("[alerts] silinemedi:", err);
+      }
     },
-    [alerts]
+    []
   );
 
   const toggleFavorite = useCallback(

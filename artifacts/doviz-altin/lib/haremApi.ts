@@ -1,19 +1,4 @@
-import { Platform } from "react-native";
-
-// SECURITY NOTE: API_KEY only used as fallback on native dev builds.
-// In production, point EXPO_PUBLIC_API_BASE_URL to a backend that holds the key,
-// so the secret never ships in the client bundle.
-const HAREM_DIRECT = "https://haremapi.tr/api/v1";
-const API_KEY = process.env.EXPO_PUBLIC_HAREMAPI_KEY ?? "";
-
-function getProxyBase(): string | null {
-  const explicit = process.env.EXPO_PUBLIC_API_BASE_URL;
-  if (explicit) return explicit.replace(/\/$/, "");
-  const domain = process.env.EXPO_PUBLIC_DOMAIN;
-  if (domain) return `https://${domain}/api`;
-  if (Platform.OS === "web") return "/api";
-  return null;
-}
+import { FN } from "./api";
 
 export type AssetCategory =
   | "DOVIZ"
@@ -155,18 +140,18 @@ export interface RawHaremResponse {
 }
 
 export async function fetchAllPrices(): Promise<RawHaremResponse> {
-  const proxyBase = getProxyBase();
-  if (proxyBase) {
-    const res = await fetch(`${proxyBase}/harem/prices`);
-    if (!res.ok) throw new Error(`Proxy hatası: ${res.status}`);
-    return (await res.json()) as RawHaremResponse;
+  const res = await fetch(FN.getPrices);
+  if (!res.ok) throw new Error(`Backend hatası: ${res.status}`);
+  const json = (await res.json()) as { ts?: number; items?: RawHaremPrice[] } | RawHaremResponse;
+  if (Array.isArray((json as { items?: unknown }).items)) {
+    const j = json as { ts: number; items: RawHaremPrice[] };
+    return {
+      data: j.items,
+      updatedAt: j.ts ? new Date(j.ts).toISOString() : undefined,
+      stale: false,
+    };
   }
-  if (!API_KEY) throw new Error("HAREMAPI_KEY tanımlı değil");
-  const res = await fetch(`${HAREM_DIRECT}/prices`, {
-    headers: { "X-API-Key": API_KEY, Authorization: `Bearer ${API_KEY}` },
-  });
-  if (!res.ok) throw new Error(`HaremAPI hatası: ${res.status}`);
-  return (await res.json()) as RawHaremResponse;
+  return json as RawHaremResponse;
 }
 
 export interface AssetRate {
