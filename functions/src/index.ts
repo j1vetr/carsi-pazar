@@ -186,7 +186,7 @@ export const saveAlert = onRequest(COMMON, async (req, res) => {
 const NEWS_KEEP = 200;
 
 export const pollNews = onSchedule(
-  { region: REGION, schedule: "every 30 minutes", memory: "256MiB", timeoutSeconds: 90 },
+  { region: REGION, schedule: "every 60 minutes", memory: "256MiB", timeoutSeconds: 90 },
   async () => {
     const all = (await Promise.all(RSS_SOURCES.map(fetchAndParseRss))).flat();
     const fresh = dedupeByTitle(all);
@@ -276,22 +276,15 @@ async function sendNewsPush(newItems: ParsedItem[]): Promise<void> {
     return;
   }
 
-  // Bildirim başlık & gövde — en yeni 3 başlık + "+N daha"
+  // 1 saatte 1 bildirim — en taze haberin başlığını gönder, gerisi için uygulamaya yönlendir
   const sorted = [...newItems].sort((a, b) => b.publishedAt - a.publishedAt);
+  const top = sorted[0];
   const count = sorted.length;
-  const topTitles = sorted.slice(0, 3).map((it) => it.title.trim());
-  const extra = count - topTitles.length;
-
-  let title: string;
-  let body: string;
-  if (count === 1) {
-    title = `📰 ${sorted[0].source}`;
-    body = sorted[0].title.trim();
-  } else {
-    title = `📰 ${count} yeni haber`;
-    body = topTitles.join(" • ");
-    if (extra > 0) body += ` • +${extra} daha`;
-  }
+  const title = `📰 ${top.source}`;
+  const body =
+    count > 1
+      ? `${top.title.trim()}\nDiğer ${count - 1} haber için dokun`
+      : `${top.title.trim()}\nTüm haberler için dokun`;
 
   const messages = tokens.map((to) => ({
     to,
@@ -300,7 +293,7 @@ async function sendNewsPush(newItems: ParsedItem[]): Promise<void> {
     channelId: "news",
     title,
     body,
-    data: { type: "news", count, firstUrl: sorted[0].url },
+    data: { type: "news", count, url: top.url },
   }));
 
   // Expo Push API max 100 mesaj/chunk

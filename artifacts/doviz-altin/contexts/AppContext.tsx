@@ -368,10 +368,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       void refreshNews();
       newsIntervalRef.current = setInterval(() => void refreshNews(), 10 * 60 * 1000);
 
-      // Notification tap → log (gelecekte detay sayfasına yönlendirilebilir)
+      // Notification tap → yönlendirme
       respSub = Notifications.addNotificationResponseReceivedListener((resp) => {
-        const data = resp.notification.request.content.data;
-        console.log("[push] tapped", data);
+        const data = resp.notification.request.content.data as
+          | { type?: string; route?: string }
+          | undefined;
+        try {
+          if (data?.type === "news") {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            const { router } = require("expo-router");
+            router.push("/(tabs)/more");
+          }
+        } catch (err) {
+          console.warn("[push] routing error", err);
+        }
       });
 
       // Polling 5sn — backend zaten 8sn cache'li
