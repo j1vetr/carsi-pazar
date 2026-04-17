@@ -23,25 +23,6 @@ import { useColors } from "@/hooks/useColors";
 import { useApp, NewsItem, CurrencyRate } from "@/contexts/AppContext";
 import { PriceCard } from "@/components/PriceCard";
 
-const CATEGORIES = [
-  { id: "all", label: "Tümü", icon: "grid-outline" as const },
-  { id: "Döviz", label: "Döviz", icon: "cash-outline" as const },
-  { id: "Altın", label: "Altın", icon: "diamond-outline" as const },
-  { id: "Merkez Bankası", label: "Merkez B.", icon: "business-outline" as const },
-  { id: "Emtia", label: "Emtia", icon: "flame-outline" as const },
-  { id: "Parite", label: "Parite", icon: "swap-horizontal" as const },
-  { id: "Ekonomi", label: "Ekonomi", icon: "trending-up" as const },
-];
-
-const CATEGORY_COLORS: Record<string, string> = {
-  "Döviz": "#10B981",
-  "Altın": "#F59E0B",
-  "Merkez Bankası": "#3B82F6",
-  "Emtia": "#EF4444",
-  "Parite": "#06B6D4",
-  "Ekonomi": "#8B5CF6",
-};
-
 function timeAgo(iso: string): string {
   const d = (Date.now() - new Date(iso).getTime()) / 1000;
   if (d < 60) return "şimdi";
@@ -63,7 +44,6 @@ function openUrl(url: string) {
 
 // ── Featured (hero) news card ────────────────────────────────────────────────
 function FeaturedNewsCard({ item, colors }: { item: NewsItem; colors: any }) {
-  const cat = CATEGORY_COLORS[item.category] ?? colors.primary;
   return (
     <Animated.View entering={FadeInDown.duration(400)}>
       <Pressable
@@ -97,11 +77,6 @@ function FeaturedNewsCard({ item, colors }: { item: NewsItem; colors: any }) {
             style={[StyleSheet.absoluteFill, { top: "40%" }]}
           />
           <View style={{ position: "absolute", top: 14, left: 14, flexDirection: "row", gap: 8 }}>
-            <View style={{ backgroundColor: cat, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 }}>
-              <Text style={{ color: "#fff", fontSize: 11, fontFamily: "Inter_700Bold", letterSpacing: 0.3 }}>
-                {item.category.toUpperCase()}
-              </Text>
-            </View>
             <View style={{ backgroundColor: "rgba(0,0,0,0.45)", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, flexDirection: "row", alignItems: "center", gap: 4 }}>
               <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#22C55E" }} />
               <Text style={{ color: "#fff", fontSize: 11, fontFamily: "Inter_500Medium" }}>ÖNE ÇIKAN</Text>
@@ -125,7 +100,6 @@ function FeaturedNewsCard({ item, colors }: { item: NewsItem; colors: any }) {
 
 // ── Compact news row ────────────────────────────────────────────────────────
 function NewsRow({ item, colors, index }: { item: NewsItem; colors: any; index: number }) {
-  const cat = CATEGORY_COLORS[item.category] ?? colors.primary;
   return (
     <Animated.View entering={FadeInDown.delay(index * 30).duration(280)}>
       <Pressable
@@ -150,11 +124,6 @@ function NewsRow({ item, colors, index }: { item: NewsItem; colors: any; index: 
         </View>
         <View style={{ flex: 1, justifyContent: "space-between" }}>
           <View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
-              <View style={{ backgroundColor: cat + "20", paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
-                <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: cat, letterSpacing: 0.2 }}>{item.category}</Text>
-              </View>
-            </View>
             <Text numberOfLines={3} style={{ fontSize: 14, fontFamily: "Inter_600SemiBold", color: colors.foreground, lineHeight: 19, letterSpacing: -0.1 }}>
               {item.title}
             </Text>
@@ -252,20 +221,14 @@ export default function MoreScreen() {
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<"news" | "parities">("news");
-  const [activeCat, setActiveCat] = useState<string>("all");
   const [refreshing, setRefreshing] = useState(false);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 100 : 76 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
 
-  const filteredNews = useMemo(() => {
-    if (activeCat === "all") return news;
-    return news.filter((n) => n.category === activeCat);
-  }, [news, activeCat]);
-
-  const featured = filteredNews[0];
-  const rest = filteredNews.slice(1);
+  const featured = news[0];
+  const rest = news.slice(1);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -369,46 +332,8 @@ export default function MoreScreen() {
             />
           </View>
 
-          {/* Category filter chips */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8, paddingVertical: 18, paddingHorizontal: 0 }}
-            style={{ marginHorizontal: -20 }}
-          >
-            <View style={{ width: 12 }} />
-            {CATEGORIES.map((c) => {
-              const isActive = activeCat === c.id;
-              const tint = c.id === "all" ? colors.primary : (CATEGORY_COLORS[c.id] ?? colors.primary);
-              return (
-                <Pressable
-                  key={c.id}
-                  onPress={() => { Haptics.selectionAsync().catch(() => {}); setActiveCat(c.id); }}
-                  style={({ pressed }) => [{
-                    flexDirection: "row", alignItems: "center", gap: 6,
-                    paddingHorizontal: 14, paddingVertical: 8,
-                    borderRadius: 999,
-                    backgroundColor: isActive ? tint : colors.card,
-                    borderWidth: StyleSheet.hairlineWidth,
-                    borderColor: isActive ? tint : colors.border,
-                    opacity: pressed ? 0.7 : 1,
-                  }]}
-                >
-                  <Icon name={c.icon} size={13} color={isActive ? "#fff" : colors.mutedForeground} />
-                  <Text style={{
-                    fontSize: 12, fontFamily: "Inter_700Bold",
-                    color: isActive ? "#fff" : colors.foreground,
-                    letterSpacing: -0.1,
-                  }}>
-                    {c.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-            <View style={{ width: 12 }} />
-          </ScrollView>
-
           {/* News content */}
+          <View style={{ height: 18 }} />
           {newsLoading && news.length === 0 ? (
             <View style={{ paddingVertical: 60, alignItems: "center" }}>
               <ActivityIndicator color={colors.primary} />
@@ -416,7 +341,7 @@ export default function MoreScreen() {
                 Haberler yükleniyor…
               </Text>
             </View>
-          ) : filteredNews.length === 0 ? (
+          ) : news.length === 0 ? (
             <View style={{ paddingVertical: 50, paddingHorizontal: 20, alignItems: "center" }}>
               <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
                 <Icon name="newspaper-outline" size={26} color={colors.mutedForeground} />
@@ -425,7 +350,7 @@ export default function MoreScreen() {
                 Henüz haber yok
               </Text>
               <Text style={{ fontSize: 12, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 4, textAlign: "center" }}>
-                Bu kategoride şu an haber bulunmuyor.{"\n"}Aşağı çekerek yenile.
+                Şu an haber bulunmuyor.{"\n"}Aşağı çekerek yenile.
               </Text>
             </View>
           ) : (
