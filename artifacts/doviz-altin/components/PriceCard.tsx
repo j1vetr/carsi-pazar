@@ -30,8 +30,8 @@ function formatPrice(n: number): string {
 
 function bidFontSizeFor(len: number): number {
   if (len <= 6) return 15;
-  if (len <= 7) return 14;
-  if (len <= 8) return 13;
+  if (len <= 7) return 13;
+  if (len <= 8) return 12;
   if (len <= 9) return 12;
   if (len <= 10) return 11;
   return 10;
@@ -101,7 +101,7 @@ export function PriceCard({
     },
     flash: { ...StyleSheet.absoluteFillObject },
     iconWrap: { marginRight: 12 },
-    nameCol: { flex: 1.3, justifyContent: "center", paddingRight: 8 },
+    nameCol: { flex: 1.1, justifyContent: "center", paddingRight: 8 },
     code: {
       fontSize: 15,
       fontFamily: "Inter_700Bold",
