@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Canlı Döviz & Altın",
+    "name": "Çarşı Pazar - Canlı Döviz & Altın",
     "slug": "doviz-altin",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,14 +11,14 @@
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0A0A0F"
+      "backgroundColor": "#FFFFFF"
     },
     "ios": {
       "supportsTablet": false,
       "icon": "./assets/images/icon.png"
     },
     "android": {
-      "backgroundColor": "#0A0A0F",
+      "backgroundColor": "#FFFFFF",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"

@@ -8,7 +8,9 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import LottieView from "lottie-react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Platform, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -37,6 +39,8 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+  const [lottieDone, setLottieDone] = useState(false);
+  const lottieRef = useRef<LottieView>(null);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
@@ -54,6 +58,20 @@ export default function RootLayout() {
             <GestureHandlerRootView style={{ flex: 1 }}>
               <KeyboardProvider>
                 <RootLayoutNav />
+                {!lottieDone && (
+                  <View style={styles.splash} pointerEvents="none">
+                    <LottieView
+                      ref={lottieRef}
+                      source={require("../assets/lottie/splash.json")}
+                      autoPlay
+                      loop={false}
+                      resizeMode="contain"
+                      style={styles.lottie}
+                      onAnimationFinish={() => setLottieDone(true)}
+                      {...(Platform.OS === "web" ? { renderMode: "SOFTWARE" as const } : {})}
+                    />
+                  </View>
+                )}
               </KeyboardProvider>
             </GestureHandlerRootView>
           </AppProvider>
@@ -62,3 +80,17 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  splash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+  },
+  lottie: {
+    width: "85%",
+    height: "60%",
+  },
+});
