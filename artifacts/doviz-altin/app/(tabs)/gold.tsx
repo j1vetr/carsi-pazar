@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Platform,
   Pressable,
@@ -142,9 +142,14 @@ export default function GoldScreen() {
   const {
     goldGram, goldCoinsYeni, goldCoinsEski, goldBars, goldBracelets,
     metals, silvers, goldParities, ratios, favorites, toggleFavorite,
-    isLoading, refreshData,
+    refreshData,
   } = useApp();
   const [emission, setEmission] = useState<"yeni" | "eski">("yeni");
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  const onManualRefresh = useCallback(async () => {
+    setManualRefreshing(true);
+    try { await refreshData(); } finally { setManualRefreshing(false); }
+  }, [refreshData]);
 
   const topPadding = Platform.OS === "web" ? 14 : insets.top;
   const isAndroid = Platform.OS === "android";
@@ -259,7 +264,7 @@ export default function GoldScreen() {
           />
         )}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshData} tintColor={colors.primary} />}
+        refreshControl={<RefreshControl refreshing={manualRefreshing} onRefresh={onManualRefresh} tintColor={colors.primary} />}
       />
     </View>
   );
