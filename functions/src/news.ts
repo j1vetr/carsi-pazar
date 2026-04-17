@@ -142,6 +142,7 @@ export async function fetchAndParseRss(source: RssSource): Promise<ParsedItem[]>
       const summary = stripHtml(rawDesc).slice(0, 280);
       const pubDate = parsePubDate(takeTag(block, "pubDate") ?? takeTag(block, "dc:date") ?? takeTag(block, "published"));
       const image = findFirstImage(block);
+      if (!image) continue;
       const category = categorize(title, summary, source.defaultCategory);
       const key = normalizeKey(title);
       items.push({
