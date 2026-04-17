@@ -12,7 +12,10 @@ import {
   mapToCurrencies,
   mapToGold,
   type PreviousPriceCache,
+  type RawPricesResponse,
 } from "@/lib/finansveriApi";
+import { connectFinansveriSocket } from "@/lib/finansveriSocket";
+import type { Socket } from "socket.io-client";
 
 export interface CurrencyRate {
   code: string;
@@ -522,22 +525,53 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const dailyOpenDate = useRef<string>("");
   const isFetching = useRef<boolean>(false);
   const isHydrated = useRef<boolean>(false);
+  const socketRef = useRef<Socket | null>(null);
+  const fallbackInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     let mounted = true;
-    let interval: ReturnType<typeof setInterval> | null = null;
     (async () => {
       await loadStoredData();
       isHydrated.current = true;
       if (!mounted) return;
       await refreshData();
-      interval = setInterval(() => {
-        refreshData();
-      }, 30000);
+      try {
+        const socket = connectFinansveriSocket({
+          onConnect: () => {
+            console.log("[finansveri] Socket bağlandı");
+            if (fallbackInterval.current) {
+              clearInterval(fallbackInterval.current);
+              fallbackInterval.current = null;
+            }
+          },
+          onDisconnect: (reason) => {
+            console.warn("[finansveri] Socket koptu:", reason);
+            if (!fallbackInterval.current) {
+              fallbackInterval.current = setInterval(() => refreshData(), 30000);
+            }
+          },
+          onError: (err) => {
+            console.warn("[finansveri] Socket hatası:", err.message);
+            if (!fallbackInterval.current) {
+              fallbackInterval.current = setInterval(() => refreshData(), 30000);
+            }
+          },
+          onPrices: (data) => applyPrices(data),
+        });
+        socketRef.current = socket;
+      } catch (err) {
+        console.warn("[finansveri] Socket başlatılamadı, polling'e düşülüyor", err);
+        fallbackInterval.current = setInterval(() => refreshData(), 30000);
+      }
     })();
     return () => {
       mounted = false;
-      if (interval) clearInterval(interval);
+      if (fallbackInterval.current) clearInterval(fallbackInterval.current);
+      if (socketRef.current) {
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -563,48 +597,52 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   };
 
+  const applyPrices = useCallback((data: RawPricesResponse) => {
+    const today = new Date().toDateString();
+    const dayChanged = dailyOpenDate.current !== today;
+    const hasOpen = Object.keys(dailyOpenCache.current).length > 0;
+    const refCache = !dayChanged && hasOpen
+      ? dailyOpenCache.current
+      : prevPriceCache.current;
+
+    const newCurrencies = mapToCurrencies(data, refCache);
+    const newGold = mapToGold(data, refCache);
+
+    if (newCurrencies.length > 0) setCurrencies(newCurrencies);
+    if (newGold.length > 0) setGoldRates(newGold);
+
+    const newCache: PreviousPriceCache = {};
+    [...newCurrencies, ...newGold].forEach((r) => {
+      newCache[r.code] = { buy: r.buy, sell: r.sell };
+    });
+    prevPriceCache.current = newCache;
+
+    if (dayChanged || !hasOpen) {
+      dailyOpenCache.current = newCache;
+      dailyOpenDate.current = today;
+      AsyncStorage.setItem(
+        "dailyOpen",
+        JSON.stringify({ date: today, cache: newCache })
+      ).catch(() => {});
+    }
+
+    setLastUpdated(new Date());
+  }, []);
+
   const refreshData = useCallback(async () => {
     if (isFetching.current) return;
     isFetching.current = true;
     setIsLoading(true);
     try {
       const data = await fetchAllPrices();
-      const today = new Date().toDateString();
-      const dayChanged = dailyOpenDate.current !== today;
-      const hasOpen = Object.keys(dailyOpenCache.current).length > 0;
-      const refCache = !dayChanged && hasOpen
-        ? dailyOpenCache.current
-        : prevPriceCache.current;
-
-      const newCurrencies = mapToCurrencies(data, refCache);
-      const newGold = mapToGold(data, refCache);
-
-      if (newCurrencies.length > 0) setCurrencies(newCurrencies);
-      if (newGold.length > 0) setGoldRates(newGold);
-
-      const newCache: PreviousPriceCache = {};
-      [...newCurrencies, ...newGold].forEach((r) => {
-        newCache[r.code] = { buy: r.buy, sell: r.sell };
-      });
-      prevPriceCache.current = newCache;
-
-      if (dayChanged || !hasOpen) {
-        dailyOpenCache.current = newCache;
-        dailyOpenDate.current = today;
-        await AsyncStorage.setItem(
-          "dailyOpen",
-          JSON.stringify({ date: today, cache: newCache })
-        );
-      }
-
-      setLastUpdated(new Date());
+      applyPrices(data);
     } catch (err) {
       console.warn("Fiyatlar alınamadı:", err);
     } finally {
       isFetching.current = false;
       setIsLoading(false);
     }
-  }, []);
+  }, [applyPrices]);
 
   const addToPortfolio = useCallback(
     async (item: Omit<PortfolioItem, "id">) => {
