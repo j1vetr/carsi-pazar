@@ -38,7 +38,8 @@ function TickerItem({ item, colors }: { item: CurrencyRate; colors: any }) {
 export default function MarketScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { currencies, favorites, toggleFavorite, isLoading, refreshData, lastUpdated } = useApp();
+  const { currencies, goldRates, favorites, toggleFavorite, isLoading, refreshData, lastUpdated } = useApp();
+  const featuredGold = goldRates.find((g) => g.code === "ALTIN") ?? goldRates[0];
   const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
   const [searchQuery] = useState("");
 
@@ -157,14 +158,28 @@ export default function MarketScreen() {
               >
                 <View style={styles.goldBannerRow}>
                   <View>
-                    <Text style={styles.goldLabel}>HAS ALTIN (GRAM)</Text>
-                    <Text style={styles.goldPrice}>₺4.124,50</Text>
-                    <Text style={styles.goldSubText}>Alış / Satış: 4.124,50 / 4.138,20</Text>
+                    <Text style={styles.goldLabel}>GRAM ALTIN (HAS)</Text>
+                    <Text style={styles.goldPrice}>
+                      ₺{(featuredGold?.buy ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Text>
+                    <Text style={styles.goldSubText}>
+                      Alış / Satış: {(featuredGold?.buy ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / {(featuredGold?.sell ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Text>
                   </View>
                   <View style={{ alignItems: "flex-end" }}>
-                    <Ionicons name="trending-up" size={32} color="rgba(255,255,255,0.8)" />
-                    <Text style={styles.goldChange}>+0.60%</Text>
-                    <Text style={styles.goldSubText}>+24,80 ₺</Text>
+                    <Ionicons
+                      name={(featuredGold?.changePercent ?? 0) >= 0 ? "trending-up" : "trending-down"}
+                      size={32}
+                      color="rgba(255,255,255,0.8)"
+                    />
+                    <Text style={styles.goldChange}>
+                      {(featuredGold?.changePercent ?? 0) >= 0 ? "+" : ""}
+                      {(featuredGold?.changePercent ?? 0).toFixed(2)}%
+                    </Text>
+                    <Text style={styles.goldSubText}>
+                      {(featuredGold?.change ?? 0) >= 0 ? "+" : ""}
+                      {(featuredGold?.change ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺
+                    </Text>
                   </View>
                 </View>
               </LinearGradient>

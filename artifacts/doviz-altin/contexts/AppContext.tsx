@@ -7,6 +7,12 @@ import React, {
   useState,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  fetchAllPrices,
+  mapToCurrencies,
+  mapToGold,
+  type PreviousPriceCache,
+} from "@/lib/finansveriApi";
 
 export interface CurrencyRate {
   code: string;
@@ -503,37 +509,101 @@ function generateHistoricalData(
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [currencies] = useState<CurrencyRate[]>(DEMO_CURRENCIES);
-  const [goldRates] = useState<GoldRate[]>(DEMO_GOLD);
+  const [currencies, setCurrencies] = useState<CurrencyRate[]>(DEMO_CURRENCIES);
+  const [goldRates, setGoldRates] = useState<GoldRate[]>(DEMO_GOLD);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [favorites, setFavorites] = useState<string[]>(["USD", "EUR", "GBP", "ALTIN", "CEYREK"]);
   const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(new Date());
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const historicalCache = useRef<Map<string, HistoricalPoint[]>>(new Map());
+  const prevPriceCache = useRef<PreviousPriceCache>({});
+  const dailyOpenCache = useRef<PreviousPriceCache>({});
+  const dailyOpenDate = useRef<string>("");
+  const isFetching = useRef<boolean>(false);
+  const isHydrated = useRef<boolean>(false);
 
   useEffect(() => {
-    loadStoredData();
+    let mounted = true;
+    let interval: ReturnType<typeof setInterval> | null = null;
+    (async () => {
+      await loadStoredData();
+      isHydrated.current = true;
+      if (!mounted) return;
+      await refreshData();
+      interval = setInterval(() => {
+        refreshData();
+      }, 30000);
+    })();
+    return () => {
+      mounted = false;
+      if (interval) clearInterval(interval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadStoredData = async () => {
     try {
-      const [storedPortfolio, storedAlerts, storedFavorites] = await Promise.all([
+      const [storedPortfolio, storedAlerts, storedFavorites, storedDailyOpen] = await Promise.all([
         AsyncStorage.getItem("portfolio"),
         AsyncStorage.getItem("alerts"),
         AsyncStorage.getItem("favorites"),
+        AsyncStorage.getItem("dailyOpen"),
       ]);
       if (storedPortfolio) setPortfolio(JSON.parse(storedPortfolio));
       if (storedAlerts) setAlerts(JSON.parse(storedAlerts));
       if (storedFavorites) setFavorites(JSON.parse(storedFavorites));
+      if (storedDailyOpen) {
+        const parsed = JSON.parse(storedDailyOpen);
+        if (parsed.date === new Date().toDateString()) {
+          dailyOpenCache.current = parsed.cache;
+          dailyOpenDate.current = parsed.date;
+        }
+      }
     } catch {}
   };
 
   const refreshData = useCallback(async () => {
+    if (isFetching.current) return;
+    isFetching.current = true;
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setLastUpdated(new Date());
-    setIsLoading(false);
+    try {
+      const data = await fetchAllPrices();
+      const today = new Date().toDateString();
+      const dayChanged = dailyOpenDate.current !== today;
+      const hasOpen = Object.keys(dailyOpenCache.current).length > 0;
+      const refCache = !dayChanged && hasOpen
+        ? dailyOpenCache.current
+        : prevPriceCache.current;
+
+      const newCurrencies = mapToCurrencies(data, refCache);
+      const newGold = mapToGold(data, refCache);
+
+      if (newCurrencies.length > 0) setCurrencies(newCurrencies);
+      if (newGold.length > 0) setGoldRates(newGold);
+
+      const newCache: PreviousPriceCache = {};
+      [...newCurrencies, ...newGold].forEach((r) => {
+        newCache[r.code] = { buy: r.buy, sell: r.sell };
+      });
+      prevPriceCache.current = newCache;
+
+      if (dayChanged || !hasOpen) {
+        dailyOpenCache.current = newCache;
+        dailyOpenDate.current = today;
+        await AsyncStorage.setItem(
+          "dailyOpen",
+          JSON.stringify({ date: today, cache: newCache })
+        );
+      }
+
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.warn("Fiyatlar alınamadı:", err);
+    } finally {
+      isFetching.current = false;
+      setIsLoading(false);
+    }
   }, []);
 
   const addToPortfolio = useCallback(

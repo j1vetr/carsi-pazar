@@ -16,7 +16,15 @@ import { useColors } from "@/hooks/useColors";
 import { useApp, GoldRate } from "@/contexts/AppContext";
 import { PriceCard } from "@/components/PriceCard";
 
-function GoldSummaryCard({ colors }: { colors: any }) {
+function GoldSummaryCard({ ons, gram }: { ons: GoldRate | undefined; gram: GoldRate | undefined }) {
+  const fmt = (n: number, frac = 2) =>
+    n.toLocaleString("tr-TR", { minimumFractionDigits: frac, maximumFractionDigits: frac });
+  const onsBuy = ons?.buy ?? 0;
+  const onsChange = ons?.change ?? 0;
+  const onsChangePct = ons?.changePercent ?? 0;
+  const isPos = onsChange >= 0;
+  const spread = (ons?.sell ?? 0) - (ons?.buy ?? 0);
+  const spreadPct = onsBuy > 0 ? (spread / onsBuy) * 100 : 0;
   return (
     <View style={{ marginHorizontal: 20, marginBottom: 16 }}>
       <LinearGradient
@@ -29,12 +37,12 @@ function GoldSummaryCard({ colors }: { colors: any }) {
           ONS ALTIN (USD)
         </Text>
         <Text style={{ fontSize: 32, fontFamily: "Inter_700Bold", color: "#FFD700", letterSpacing: -0.5 }}>
-          $3.248,40
+          ${fmt(onsBuy)}
         </Text>
         <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
-          <Ionicons name="trending-up" size={14} color="#22C55E" />
-          <Text style={{ fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#22C55E", marginLeft: 4 }}>
-            +18,60 (+0.58%)
+          <Ionicons name={isPos ? "trending-up" : "trending-down"} size={14} color={isPos ? "#22C55E" : "#EF4444"} />
+          <Text style={{ fontSize: 13, fontFamily: "Inter_600SemiBold", color: isPos ? "#22C55E" : "#EF4444", marginLeft: 4 }}>
+            {isPos ? "+" : ""}{fmt(onsChange)} ({isPos ? "+" : ""}{onsChangePct.toFixed(2)}%)
           </Text>
           <Text style={{ fontSize: 11, fontFamily: "Inter_400Regular", color: "rgba(255,215,0,0.5)", marginLeft: 12 }}>
             Bugün
@@ -42,9 +50,9 @@ function GoldSummaryCard({ colors }: { colors: any }) {
         </View>
         <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 16, paddingTop: 14, borderTopWidth: 1, borderTopColor: "rgba(255,215,0,0.15)" }}>
           {[
-            { label: "52H YÜK.", value: "$3.499,20" },
-            { label: "52H DÜŞ.", value: "$2.890,10" },
-            { label: "GÜNLÜK ARK.", value: "0.21%" },
+            { label: "GRAM ALTIN", value: `₺${fmt(gram?.buy ?? 0)}` },
+            { label: "ONS SATIŞ", value: `$${fmt(ons?.sell ?? 0)}` },
+            { label: "ONS SPREAD", value: `${spreadPct.toFixed(2)}%` },
           ].map((stat) => (
             <View key={stat.label} style={{ alignItems: "center" }}>
               <Text style={{ fontSize: 9, fontFamily: "Inter_400Regular", color: "rgba(255,215,0,0.5)", letterSpacing: 0.5 }}>
@@ -130,7 +138,10 @@ export default function GoldScreen() {
         )}
         ListHeaderComponent={
           <>
-            <GoldSummaryCard colors={colors} />
+            <GoldSummaryCard
+              ons={goldRates.find((g) => g.code === "ONS")}
+              gram={goldRates.find((g) => g.code === "ALTIN")}
+            />
             <Text style={styles.sectionLabel}>ALTIN ÇEŞİTLERİ</Text>
           </>
         }
