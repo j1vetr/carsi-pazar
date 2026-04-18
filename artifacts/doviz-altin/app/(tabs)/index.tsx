@@ -23,8 +23,11 @@ import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
-import { useApp, CurrencyRate } from "@/contexts/AppContext";
+import { useApp, CurrencyRate, GoldRate } from "@/contexts/AppContext";
 import { PriceCard } from "@/components/PriceCard";
+import { AssetPickerModal, PickerSection } from "@/components/AssetPickerModal";
+import { HOME_DEFAULT, loadHomeMiniCodes, saveHomeMiniCodes } from "@/lib/miniCardPrefs";
+import * as Haptics from "expo-haptics";
 
 const TickerItem = React.memo(
   function TickerItem({ item }: { item: CurrencyRate }) {
@@ -108,8 +111,55 @@ const MarqueeTicker = React.memo(function MarqueeTicker({
 export default function MarketScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { currencies, goldRates, favorites, toggleFavorite, refreshData, lastUpdated } = useApp();
+  const { currencies, goldRates, parities, currencyParities, favorites, toggleFavorite, refreshData, lastUpdated } = useApp();
   const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
+  const [miniCodes, setMiniCodes] = useState<string[]>(HOME_DEFAULT);
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    loadHomeMiniCodes().then(setMiniCodes);
+  }, []);
+
+  const updateMiniCode = useCallback((idx: number, code: string) => {
+    setMiniCodes((prev) => {
+      const next = [...prev];
+      next[idx] = code;
+      void saveHomeMiniCodes(next);
+      return next;
+    });
+  }, []);
+
+  const lookupAsset = useCallback(
+    (code: string): { type: "currency" | "gold"; item: CurrencyRate | GoldRate } | null => {
+      const c = currencies.find((x) => x.code === code)
+        ?? parities.find((x) => x.code === code)
+        ?? currencyParities.find((x) => x.code === code);
+      if (c) return { type: "currency", item: c };
+      const g = goldRates.find((x) => x.code === code);
+      if (g) return { type: "gold", item: g };
+      return null;
+    },
+    [currencies, parities, currencyParities, goldRates]
+  );
+
+  const homePickerSections = useMemo<PickerSection[]>(() => [
+    {
+      title: "Para Birimleri",
+      items: currencies.map((c) => ({ code: c.code, label: c.nameTR, sub: `${c.code}/TRY`, type: "currency" })),
+    },
+    ...(parities.length ? [{
+      title: "Pariteler",
+      items: parities.map((c) => ({ code: c.code, label: c.nameTR, sub: c.code, type: "currency" as const })),
+    }] : []),
+    ...(currencyParities.length ? [{
+      title: "Çapraz Kurlar",
+      items: currencyParities.map((c) => ({ code: c.code, label: c.nameTR, sub: c.code, type: "currency" as const })),
+    }] : []),
+    ...(goldRates.length ? [{
+      title: "Altın & Madenler",
+      items: goldRates.map((g) => ({ code: g.code, label: g.nameTR, sub: g.code, type: "gold" as const })),
+    }] : []),
+  ], [currencies, parities, currencyParities, goldRates]);
   const [manualRefreshing, setManualRefreshing] = useState(false);
   const onManualRefresh = useCallback(async () => {
     setManualRefreshing(true);
@@ -117,8 +167,6 @@ export default function MarketScreen() {
   }, [refreshData]);
 
   const featuredGold = goldRates.find((g) => g.code === "ALTIN") ?? goldRates[0];
-  const featuredUsd = currencies.find((c) => c.code === "USD");
-  const featuredEur = currencies.find((c) => c.code === "EUR");
 
   const topPadding = Platform.OS === "web" ? 14 : insets.top;
   const isAndroid = Platform.OS === "android";
@@ -359,42 +407,46 @@ export default function MarketScreen() {
           </Pressable>
 
           <View style={styles.miniRow}>
-            <Pressable
-              style={styles.miniCard}
-              onPress={() => router.push({ pathname: "/detail/[code]", params: { code: "USD", type: "currency" } })}
-            >
-              <Text style={styles.miniLabel}>USD/TRY</Text>
-              <Text style={styles.miniValue}>
-                {(featuredUsd?.buy ?? 0).toFixed(4)}
-              </Text>
-              <Text style={[styles.miniDelta, { color: (featuredUsd?.changePercent ?? 0) >= 0 ? "#5EEAA8" : "#FF8585" }]}>
-                {(featuredUsd?.changePercent ?? 0) >= 0 ? "▲" : "▼"} {Math.abs(featuredUsd?.changePercent ?? 0).toFixed(2)}%
-              </Text>
-            </Pressable>
-            <Pressable
-              style={styles.miniCard}
-              onPress={() => router.push({ pathname: "/detail/[code]", params: { code: "EUR", type: "currency" } })}
-            >
-              <Text style={styles.miniLabel}>EUR/TRY</Text>
-              <Text style={styles.miniValue}>
-                {(featuredEur?.buy ?? 0).toFixed(4)}
-              </Text>
-              <Text style={[styles.miniDelta, { color: (featuredEur?.changePercent ?? 0) >= 0 ? "#5EEAA8" : "#FF8585" }]}>
-                {(featuredEur?.changePercent ?? 0) >= 0 ? "▲" : "▼"} {Math.abs(featuredEur?.changePercent ?? 0).toFixed(2)}%
-              </Text>
-            </Pressable>
-            <Pressable
-              style={styles.miniCard}
-              onPress={() => router.push({ pathname: "/detail/[code]", params: { code: "ONS", type: "gold" } })}
-            >
-              <Text style={styles.miniLabel}>ONS · USD</Text>
-              <Text style={styles.miniValue}>
-                {(goldRates.find((g) => g.code === "ONS")?.buy ?? 0).toFixed(2)}
-              </Text>
-              <Text style={[styles.miniDelta, { color: (goldRates.find((g) => g.code === "ONS")?.changePercent ?? 0) >= 0 ? "#5EEAA8" : "#FF8585" }]}>
-                {(goldRates.find((g) => g.code === "ONS")?.changePercent ?? 0) >= 0 ? "▲" : "▼"} {Math.abs(goldRates.find((g) => g.code === "ONS")?.changePercent ?? 0).toFixed(2)}%
-              </Text>
-            </Pressable>
+            {miniCodes.map((code, idx) => {
+              const resolved = lookupAsset(code);
+              const item = resolved?.item;
+              const type = resolved?.type ?? "currency";
+              const labelSuffix = type === "gold" ? (item?.code === "ONS" ? "USD" : "TL") : "TRY";
+              const value = item?.buy ?? 0;
+              const decimals = type === "gold" ? 2 : 4;
+              const pct = item?.changePercent ?? 0;
+              const isPos = pct >= 0;
+              const hasChange = Math.abs(pct) >= 0.005;
+              return (
+                <Pressable
+                  key={`mini-${idx}`}
+                  style={styles.miniCard}
+                  onPress={() => {
+                    if (item) {
+                      router.push({ pathname: "/detail/[code]", params: { code: item.code, type } });
+                    }
+                  }}
+                  onLongPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+                    setEditingIdx(idx);
+                  }}
+                  delayLongPress={350}
+                >
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <Text style={styles.miniLabel} numberOfLines={1}>
+                      {item ? `${item.code}/${labelSuffix}` : "—"}
+                    </Text>
+                    <Icon name="ellipsis-horizontal" size={11} color="rgba(255,255,255,0.4)" />
+                  </View>
+                  <Text style={styles.miniValue} numberOfLines={1}>
+                    {value.toFixed(decimals)}
+                  </Text>
+                  <Text style={[styles.miniDelta, { color: hasChange ? (isPos ? "#5EEAA8" : "#FF8585") : "rgba(255,255,255,0.45)" }]}>
+                    {hasChange ? `${isPos ? "▲" : "▼"} ${Math.abs(pct).toFixed(2)}%` : "—"}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </LinearGradient>
 
@@ -449,6 +501,15 @@ export default function MarketScreen() {
         refreshControl={
           <RefreshControl refreshing={manualRefreshing} onRefresh={onManualRefresh} tintColor={colors.primary} />
         }
+      />
+
+      <AssetPickerModal
+        visible={editingIdx !== null}
+        title="Mini Kartı Seç"
+        sections={homePickerSections}
+        selectedCode={editingIdx !== null ? miniCodes[editingIdx] : undefined}
+        onSelect={(code) => editingIdx !== null && updateMiniCode(editingIdx, code)}
+        onClose={() => setEditingIdx(null)}
       />
     </View>
   );
