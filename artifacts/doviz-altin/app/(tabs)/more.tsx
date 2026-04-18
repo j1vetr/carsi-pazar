@@ -332,6 +332,23 @@ export default function MoreScreen() {
             />
           </View>
 
+          {/* Widget hint (Android only) */}
+          {Platform.OS === "android" ? (
+            <View style={{ marginTop: 12, padding: 14, borderRadius: 14, backgroundColor: colors.card, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}>
+                <Icon name="grid-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.2 }}>
+                  Ana Ekran Widget'ı
+                </Text>
+                <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 2, lineHeight: 16 }}>
+                  Ana ekrana uzun bas → Widget'lar → Çarşı Piyasa
+                </Text>
+              </View>
+            </View>
+          ) : null}
+
           {/* News content */}
           <View style={{ height: 18 }} />
           {newsLoading && news.length === 0 ? (

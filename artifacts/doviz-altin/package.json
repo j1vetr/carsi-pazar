@@ -59,6 +59,7 @@
     "expo-notifications": "^55.0.19",
     "lottie-react-native": "^7.3.6",
     "lucide-react-native": "^1.8.0",
+    "react-native-android-widget": "^0.20.1",
     "socket.io-client": "^4.8.3"
   }
 }

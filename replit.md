@@ -35,6 +35,13 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
   - `(tabs)/gold.tsx` — SectionList: Gram Altın & Ons / Sarrafiye (Yeni/Eski toggle pill) / Külçe / Bilezik / Platin & Paladyum / Gümüş / Altın Pariteleri / Au-Ag Oranı
   - `(tabs)/more.tsx` — 2 sekme: Haberler (kategori filtreli, featured + listeden, RSS bildirim toggle, hızlı eylem kartları) / Pariteler (Uluslararası + Çapraz)
 
+**Android Widget (4×2):**
+- `widgets/PriceWidget.tsx` — `react-native-android-widget` ile yazılmış FlexWidget tabanlı UI; `{ light, dark }` döndürür, sistem temasına göre Android otomatik seçer
+- `widgets/widget-task.tsx` — headless task; `WIDGET_ADDED/UPDATE/RESIZED/CLICK` event'lerinde `fetchAllPrices()` ile USD/EUR/Gram Altın/Çeyrek fiyatlarını çeker
+- `widgets/index.ts` — `registerWidgetTaskHandler` çağrısı; `app/_layout.tsx`'tan import edilerek hem app hem headless context'te kayıt olur
+- `app.json` plugin: `updatePeriodMillis: 1800000` (30 dk, Android minimumu); resizable; widget'a tıklayınca uygulama açılır
+- `more.tsx` Haberler sekmesinde Android-only "Ana Ekran Widget'ı" bilgi kartı
+
 **Backend haberler:**
 - `functions/src/news.ts` — 6 Türkçe RSS kaynağı (Bloomberg HT, AA, TRT, Dünya, CNN Türk, BBC Türkçe), dedup + kategorize (Döviz/Altın/Merkez Bankası/Emtia/Parite/Ekonomi)
 - HTTP endpoint'leri: `pollNews` (30dk schedule), `getNews`, `setPrefs`, `getPrefs`
