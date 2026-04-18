@@ -811,7 +811,7 @@ export default function PortfolioScreen() {
               }}>
                 <Icon name="ellipsis-horizontal" size={11} color={colors.mutedForeground} />
                 <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, letterSpacing: -0.1 }}>
-                  Detay için dokun, tüm alımları silmek için basılı tut
+                  Detay İçin Dokun, Tüm Alımları Silmek İçin Basılı Tut
                 </Text>
               </View>
             </View>
