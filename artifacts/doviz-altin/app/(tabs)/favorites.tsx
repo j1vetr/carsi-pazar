@@ -156,8 +156,8 @@ export default function FavoritesScreen() {
   };
 
   // ── Hero ───────────────────────────────────────────────────────────
-  const HeroSection = () => (
-    <Animated.View entering={FadeIn.duration(400)} style={{ paddingHorizontal: 20, paddingBottom: 24 }}>
+  const heroSection = (
+    <View style={{ paddingHorizontal: 20, paddingBottom: 24 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.gold }} />
         <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 1.4 }}>
@@ -166,17 +166,17 @@ export default function FavoritesScreen() {
       </View>
 
       {/* Big count */}
-      <Animated.View entering={FadeInUp.delay(80).duration(400)} style={{ flexDirection: "row", alignItems: "baseline", marginTop: 10 }}>
+      <View style={{ flexDirection: "row", alignItems: "baseline", marginTop: 10 }}>
         <Text style={{ fontSize: 56, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -2, includeFontPadding: false }}>
           {totalCount}
         </Text>
         <Text style={{ fontSize: 18, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, marginLeft: 10, letterSpacing: -0.4 }}>
           {totalCount === 1 ? "varlık" : "varlık"}
         </Text>
-      </Animated.View>
+      </View>
 
       {/* Avg change pill */}
-      <Animated.View entering={FadeInUp.delay(140).duration(400)} style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>
         <View style={{
           flexDirection: "row", alignItems: "center", gap: 5,
           backgroundColor: (isAvgPos ? colors.rise : colors.fall) + "1A",
@@ -190,11 +190,11 @@ export default function FavoritesScreen() {
         <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground }}>
           ortalama günlük değişim
         </Text>
-      </Animated.View>
+      </View>
 
       {/* Top gainer / loser strip */}
       {stats.topGainer && stats.topLoser && stats.topGainer.code !== stats.topLoser.code ? (
-        <Animated.View entering={FadeInUp.delay(200).duration(400)} style={{ flexDirection: "row", marginTop: 22, gap: 10 }}>
+        <View style={{ flexDirection: "row", marginTop: 22, gap: 10 }}>
           {/* Top gainer */}
           <View style={{
             flex: 1, backgroundColor: colors.card, borderRadius: 14,
@@ -233,12 +233,12 @@ export default function FavoritesScreen() {
               {stats.topLoser.changePercent.toFixed(2)}%
             </Text>
           </View>
-        </Animated.View>
+        </View>
       ) : null}
 
       {/* Distribution */}
       {totalCount > 1 ? (
-        <Animated.View entering={FadeInUp.delay(260).duration(400)} style={{ marginTop: 22 }}>
+        <View style={{ marginTop: 22 }}>
           <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 0.7, marginBottom: 10 }}>
             DAĞILIM
           </Text>
@@ -288,7 +288,7 @@ export default function FavoritesScreen() {
               </View>
             ) : null}
           </View>
-        </Animated.View>
+        </View>
       ) : null}
 
       {/* Pending data hint */}
@@ -305,7 +305,7 @@ export default function FavoritesScreen() {
           </Text>
         </View>
       ) : null}
-    </Animated.View>
+    </View>
   );
 
   // ── Render ─────────────────────────────────────────────────────────
@@ -342,8 +342,7 @@ export default function FavoritesScreen() {
         renderItem={({ item, index }) => {
           if (item.kind === "header") {
             return (
-              <Animated.View
-                entering={FadeInDown.delay(index * 20).duration(280)}
+              <View
                 style={{ paddingHorizontal: 20, paddingTop: index === 0 ? 0 : 22, paddingBottom: 10, flexDirection: "row", alignItems: "baseline", gap: 8 }}
               >
                 <Text style={{ fontSize: 17, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}>
@@ -352,14 +351,11 @@ export default function FavoritesScreen() {
                 <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: colors.mutedForeground }}>
                   {item.subtitle}
                 </Text>
-              </Animated.View>
+              </View>
             );
           }
           return (
-            <Animated.View
-              entering={FadeInDown.delay(index * 20).duration(260)}
-              style={{ paddingHorizontal: 16 }}
-            >
+            <View style={{ paddingHorizontal: 16 }}>
               <PriceCard
                 item={item.item}
                 type={item.type}
@@ -372,13 +368,13 @@ export default function FavoritesScreen() {
                   })
                 }
               />
-            </Animated.View>
+            </View>
           );
         }}
         ListHeaderComponent={
           totalCount > 0 ? (
             <>
-              <HeroSection />
+              {heroSection}
               <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginHorizontal: 20, marginBottom: 8 }} />
             </>
           ) : null
