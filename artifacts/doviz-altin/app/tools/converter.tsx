@@ -17,6 +17,7 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import { AssetIcon } from "@/components/AssetIcon";
+import { ScreenHeader } from "@/components/ScreenHeader";
 
 // ── Number formatting ──────────────────────────────────────────────────────
 const fmtAmount = (v: number): string => {
@@ -190,15 +191,7 @@ export default function ConverterScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Header */}
-      <View style={{ paddingTop: topPadding + 12, paddingHorizontal: 20, paddingBottom: 8 }}>
-        <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, letterSpacing: 0.6, textTransform: "uppercase" }}>
-          Hesaplayıcı
-        </Text>
-        <Text style={{ fontSize: 32, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 2, letterSpacing: -0.8 }}>
-          Çevirici
-        </Text>
-      </View>
+      <ScreenHeader eyebrow="Hesaplayıcı" title="Çevirici" />
 
       <ScrollView
         style={{ flex: 1 }}

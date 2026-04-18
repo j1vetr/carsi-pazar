@@ -16,7 +16,9 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { MenuDrawer } from "@/components/MenuDrawer";
 import { AppProvider } from "@/contexts/AppContext";
+import { DrawerProvider } from "@/contexts/DrawerContext";
 import { scheduleReviewPrompt } from "@/lib/reviewPrompt";
 
 SplashScreen.preventAutoHideAsync();
@@ -29,6 +31,14 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="detail/[code]" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="alerts" options={{ headerShown: false, animation: "slide_from_bottom" }} />
+      <Stack.Screen name="news" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="parities" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="about" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="settings/index" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="settings/theme" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="tools/converter" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="tools/gold-calc" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="tools/compare" options={{ headerShown: false, animation: "slide_from_right" }} />
     </Stack>
   );
 }
@@ -60,25 +70,28 @@ export default function RootLayout() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <AppProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <KeyboardProvider>
-                <RootLayoutNav />
-                {!lottieDone && (
-                  <View style={styles.splash} pointerEvents="none">
-                    <LottieView
-                      ref={lottieRef}
-                      source={require("../assets/lottie/splash.json")}
-                      autoPlay
-                      loop={false}
-                      resizeMode="contain"
-                      style={styles.lottie}
-                      onAnimationFinish={() => setLottieDone(true)}
-                      {...(Platform.OS === "web" ? { renderMode: "SOFTWARE" as const } : {})}
-                    />
-                  </View>
-                )}
-              </KeyboardProvider>
-            </GestureHandlerRootView>
+            <DrawerProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <KeyboardProvider>
+                  <RootLayoutNav />
+                  <MenuDrawer />
+                  {!lottieDone && (
+                    <View style={styles.splash} pointerEvents="none">
+                      <LottieView
+                        ref={lottieRef}
+                        source={require("../assets/lottie/splash.json")}
+                        autoPlay
+                        loop={false}
+                        resizeMode="contain"
+                        style={styles.lottie}
+                        onAnimationFinish={() => setLottieDone(true)}
+                        {...(Platform.OS === "web" ? { renderMode: "SOFTWARE" as const } : {})}
+                      />
+                    </View>
+                  )}
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+            </DrawerProvider>
           </AppProvider>
         </QueryClientProvider>
       </ErrorBoundary>

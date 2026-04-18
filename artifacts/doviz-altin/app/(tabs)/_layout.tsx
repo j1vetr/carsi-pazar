@@ -3,13 +3,15 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
 import { Icon as NativeTabIcon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
+import * as Haptics from "expo-haptics";
 import { Icon } from "@/components/Icon";
 import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import { useDrawer } from "@/contexts/DrawerContext";
 
-function NativeTabLayout() {
+function NativeTabLayout({ openDrawer }: { openDrawer: () => void }) {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
@@ -24,23 +26,22 @@ function NativeTabLayout() {
         <NativeTabIcon sf={{ default: "briefcase", selected: "briefcase.fill" }} />
         <Label>Portföy</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="converter">
-        <NativeTabIcon sf={{ default: "arrow.2.squarepath", selected: "arrow.2.squarepath" }} />
-        <Label>Çevirici</Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="favorites">
         <NativeTabIcon sf={{ default: "star", selected: "star.fill" }} />
         <Label>Favoriler</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="more">
-        <NativeTabIcon sf={{ default: "ellipsis.circle", selected: "ellipsis.circle.fill" }} />
-        <Label>Daha Fazla</Label>
+      <NativeTabs.Trigger
+        name="menu"
+        options={{}}
+      >
+        <NativeTabIcon sf={{ default: "line.3.horizontal", selected: "line.3.horizontal" }} />
+        <Label>Menü</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
 
-function ClassicTabLayout() {
+function ClassicTabLayout({ openDrawer }: { openDrawer: () => void }) {
   const colors = useColors();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -119,18 +120,6 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="converter"
-        options={{
-          title: "Çevirici",
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? (
-              <SymbolView name="arrow.2.squarepath" tintColor={color} size={size} />
-            ) : (
-              <Icon name="swap-horizontal" size={size} color={color} />
-            ),
-        }}
-      />
-      <Tabs.Screen
         name="favorites"
         options={{
           title: "Favoriler",
@@ -143,15 +132,22 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="more"
+        name="menu"
         options={{
-          title: "Daha Fazla",
+          title: "Menü",
           tabBarIcon: ({ color, size }) =>
             isIOS ? (
-              <SymbolView name="ellipsis.circle" tintColor={color} size={size} />
+              <SymbolView name="line.3.horizontal" tintColor={color} size={size} />
             ) : (
               <Icon name="ellipsis-horizontal" size={size} color={color} />
             ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            Haptics.selectionAsync().catch(() => {});
+            openDrawer();
+          },
         }}
       />
     </Tabs>
@@ -159,8 +155,9 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
+  const { open } = useDrawer();
   if (Platform.OS !== "web" && isLiquidGlassAvailable()) {
-    return <NativeTabLayout />;
+    return <NativeTabLayout openDrawer={open} />;
   }
-  return <ClassicTabLayout />;
+  return <ClassicTabLayout openDrawer={open} />;
 }
