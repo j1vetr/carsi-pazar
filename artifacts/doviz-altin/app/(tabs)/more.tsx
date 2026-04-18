@@ -23,6 +23,26 @@ import { useColors } from "@/hooks/useColors";
 import { useApp, NewsItem, CurrencyRate } from "@/contexts/AppContext";
 import { PriceCard } from "@/components/PriceCard";
 
+const NEWS_PLACEHOLDER = require("../../assets/images/news-placeholder.png");
+
+function NewsPlaceholder({ size }: { size: "hero" | "row" }) {
+  const logoSize = size === "hero" ? 92 : 52;
+  return (
+    <LinearGradient
+      colors={["#0B1A33", "#0B3D91"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}
+    >
+      <Image
+        source={NEWS_PLACEHOLDER}
+        style={{ width: logoSize, height: logoSize, opacity: 0.92 }}
+        contentFit="contain"
+      />
+    </LinearGradient>
+  );
+}
+
 function timeAgo(iso: string): string {
   const d = (Date.now() - new Date(iso).getTime()) / 1000;
   if (d < 60) return "şimdi";
@@ -68,9 +88,7 @@ function FeaturedNewsCard({ item, colors }: { item: NewsItem; colors: any }) {
               transition={200}
             />
           ) : (
-            <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}>
-              <Icon name="newspaper-outline" size={48} color={colors.mutedForeground} />
-            </View>
+            <NewsPlaceholder size="hero" />
           )}
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.85)"]}
@@ -117,9 +135,7 @@ function NewsRow({ item, colors, index }: { item: NewsItem; colors: any; index: 
           {item.imageUrl ? (
             <Image source={{ uri: item.imageUrl }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
           ) : (
-            <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}>
-              <Icon name="newspaper-outline" size={22} color={colors.mutedForeground} />
-            </View>
+            <NewsPlaceholder size="row" />
           )}
         </View>
         <View style={{ flex: 1, justifyContent: "space-between" }}>
