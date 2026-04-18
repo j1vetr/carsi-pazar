@@ -55,7 +55,7 @@ function buildSections(activeAlertCount: number): SectionDef[] {
       title: "ARAÇLAR",
       items: [
         { key: "converter", label: "Çevirici", icon: "swap-horizontal", color: "#3B82F6", route: "/tools/converter" },
-        { key: "gold-calc", label: "Saf Altın Hesaplayıcı", icon: "diamond", color: "#F59E0B", route: "/tools/gold-calc", soon: true },
+        { key: "gold-calc", label: "Saf Altın Hesaplayıcı", icon: "diamond", color: "#F59E0B", route: "/tools/gold-calc" },
         { key: "compare", label: "Karşılaştırma", icon: "swap-vertical", color: "#06B6D4", route: "/tools/compare", soon: true },
       ],
     },
