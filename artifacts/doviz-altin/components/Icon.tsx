@@ -10,6 +10,7 @@ import {
   BellOff,
   Briefcase,
   Building2,
+  Check,
   Clock,
   CheckCircle2,
   ChevronDown,
@@ -20,11 +21,14 @@ import {
   Flame,
   Gem,
   LayoutGrid,
+  Moon,
   MoreHorizontal,
   Newspaper,
   Plus,
   Search,
+  Settings,
   Star,
+  Sun,
   Trash2,
   TrendingDown,
   TrendingUp,
@@ -70,6 +74,10 @@ export type IconName =
   | "diamond-outline"
   | "business-outline"
   | "flame-outline"
+  | "settings-outline"
+  | "sunny-outline"
+  | "moon-outline"
+  | "checkmark"
   | "x";
 
 const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
@@ -110,6 +118,10 @@ const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
   "diamond-outline": Gem,
   "business-outline": Building2,
   "flame-outline": Flame,
+  "settings-outline": Settings,
+  "sunny-outline": Sun,
+  "moon-outline": Moon,
+  "checkmark": Check,
   "x": X,
 };
 

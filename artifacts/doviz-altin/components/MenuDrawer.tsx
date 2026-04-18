@@ -62,7 +62,7 @@ function buildSections(activeAlertCount: number): SectionDef[] {
       items: [
         { key: "converter", label: "Çevirici", icon: "swap-horizontal", color: "#3B82F6", route: "/tools/converter" },
         { key: "gold-calc", label: "Saf Altın Hesaplayıcı", icon: "diamond", color: "#F59E0B", route: "/tools/gold-calc" },
-        { key: "compare", label: "Karşılaştırma", icon: "swap-vertical", color: "#06B6D4", route: "/tools/compare", soon: true },
+        { key: "compare", label: "Karşılaştırma", icon: "swap-vertical", color: "#06B6D4", route: "/tools/compare" },
       ],
     },
     {
@@ -89,7 +89,7 @@ function buildSections(activeAlertCount: number): SectionDef[] {
       title: "AYARLAR",
       items: [
         { key: "settings", label: "Bildirimler & Tercihler", icon: "grid-outline", color: "#10B981", route: "/settings" },
-        { key: "theme", label: "Tema", icon: "flame-outline", color: "#EC4899", route: "/settings/theme", soon: true },
+        { key: "theme", label: "Tema", icon: "flame-outline", color: "#EC4899", route: "/settings/theme" },
       ],
     },
     {

@@ -19,6 +19,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { MenuDrawer } from "@/components/MenuDrawer";
 import { AppProvider } from "@/contexts/AppContext";
 import { DrawerProvider } from "@/contexts/DrawerContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { scheduleReviewPrompt } from "@/lib/reviewPrompt";
 
 SplashScreen.preventAutoHideAsync();
@@ -69,6 +70,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
           <AppProvider>
             <DrawerProvider>
               <GestureHandlerRootView style={{ flex: 1 }}>
@@ -93,6 +95,7 @@ export default function RootLayout() {
               </GestureHandlerRootView>
             </DrawerProvider>
           </AppProvider>
+          </ThemeProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>
