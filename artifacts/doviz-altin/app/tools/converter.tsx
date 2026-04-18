@@ -200,7 +200,7 @@ export default function ConverterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* FROM */}
-        <Animated.View entering={FadeIn.duration(300)} style={{ paddingHorizontal: 20, paddingTop: 18 }}>
+        <Animated.View entering={FadeIn.duration(300)} style={{ paddingHorizontal: 20, paddingTop: 10 }}>
           <AssetSelector
             code={fromCode}
             nameTR={fromAsset?.nameTR ?? ""}
@@ -211,7 +211,7 @@ export default function ConverterScreen() {
           />
 
           {/* Amount input — full-width hero */}
-          <Animated.View entering={FadeInUp.delay(60).duration(320)} style={{ marginTop: 14, paddingHorizontal: 4 }}>
+          <Animated.View entering={FadeInUp.delay(60).duration(320)} style={{ marginTop: 8, paddingHorizontal: 4 }}>
             <TextInput
               value={amount}
               onChangeText={setAmount}
@@ -220,25 +220,19 @@ export default function ConverterScreen() {
               placeholderTextColor={colors.mutedForeground + "60"}
               selectTextOnFocus
               style={{
-                fontSize: 56,
+                fontSize: 36,
                 fontFamily: "Inter_700Bold",
                 color: colors.foreground,
-                letterSpacing: -2,
+                letterSpacing: -1,
                 padding: 0,
                 includeFontPadding: false,
               }}
             />
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.gold }} />
-              <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, letterSpacing: -0.1 }}>
-                Çevrilecek tutar
-              </Text>
-            </View>
           </Animated.View>
 
           {/* Quick amounts */}
-          <Animated.View entering={FadeInUp.delay(120).duration(320)} style={{ marginTop: 14 }}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 8 }}>
+          <Animated.View entering={FadeInUp.delay(120).duration(320)} style={{ marginTop: 8 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingRight: 8 }}>
               {quickAmounts.map((qa) => {
                 const isActive = numAmount === qa;
                 return (
@@ -246,14 +240,14 @@ export default function ConverterScreen() {
                     key={qa}
                     onPress={() => { Haptics.selectionAsync().catch(() => {}); setAmount(qa.toString()); }}
                     style={({ pressed }) => [{
-                      paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999,
+                      paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999,
                       backgroundColor: isActive ? colors.primary : colors.card,
                       borderWidth: StyleSheet.hairlineWidth,
                       borderColor: isActive ? colors.primary : colors.border,
                       opacity: pressed ? 0.7 : 1,
                     }]}
                   >
-                    <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: isActive ? colors.primaryForeground : colors.foreground, letterSpacing: -0.1 }}>
+                    <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: isActive ? colors.primaryForeground : colors.foreground, letterSpacing: -0.1 }}>
                       {qa.toLocaleString("tr-TR")}
                     </Text>
                   </Pressable>
@@ -264,25 +258,25 @@ export default function ConverterScreen() {
         </Animated.View>
 
         {/* Swap divider */}
-        <Animated.View entering={FadeIn.delay(160).duration(320)} style={{ alignItems: "center", marginVertical: 20 }}>
+        <Animated.View entering={FadeIn.delay(160).duration(320)} style={{ alignItems: "center", marginVertical: 10 }}>
           <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, width: "100%" }}>
             <View style={{ flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border }} />
             <Pressable
               onPress={handleSwap}
               style={({ pressed }) => [{
-                width: 46, height: 46, borderRadius: 23,
+                width: 38, height: 38, borderRadius: 19,
                 backgroundColor: colors.primary,
                 alignItems: "center", justifyContent: "center",
                 marginHorizontal: 14,
                 opacity: pressed ? 0.8 : 1,
                 shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.25,
-                shadowRadius: 8,
-                elevation: 4,
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.22,
+                shadowRadius: 6,
+                elevation: 3,
               }]}
             >
-              <Icon name="swap-vertical" size={22} color={colors.primaryForeground} />
+              <Icon name="swap-vertical" size={18} color={colors.primaryForeground} />
             </Pressable>
             <View style={{ flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border }} />
           </View>
@@ -300,55 +294,42 @@ export default function ConverterScreen() {
           />
 
           {/* Result — full width, primary color */}
-          <Animated.View entering={FadeInUp.delay(60).duration(320)} style={{ marginTop: 14, paddingHorizontal: 4 }}>
+          <Animated.View entering={FadeInUp.delay(60).duration(320)} style={{ marginTop: 8, paddingHorizontal: 4 }}>
             <Text
               adjustsFontSizeToFit
               numberOfLines={1}
               minimumFontScale={0.4}
               style={{
-                fontSize: 56,
+                fontSize: 36,
                 fontFamily: "Inter_700Bold",
                 color: colors.primary,
-                letterSpacing: -2,
+                letterSpacing: -1,
                 includeFontPadding: false,
               }}
             >
               {fmtAmount(convertedAmount)}
             </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.rise }} />
-              <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, letterSpacing: -0.1 }}>
-                {toCode} karşılığı
-              </Text>
-            </View>
           </Animated.View>
 
           {/* Live rate hint */}
           {numAmount > 0 && unitRate > 0 && fromCode !== toCode && (
             <Animated.View entering={FadeIn.delay(120).duration(320)} style={{
-              marginTop: 18,
+              marginTop: 10,
               backgroundColor: colors.secondary,
-              borderRadius: 12,
-              paddingHorizontal: 14, paddingVertical: 12,
-              flexDirection: "row", alignItems: "center", gap: 10,
+              borderRadius: 10,
+              paddingHorizontal: 12, paddingVertical: 8,
+              flexDirection: "row", alignItems: "center", gap: 8,
             }}>
-              <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.background, alignItems: "center", justifyContent: "center" }}>
-                <Icon name="trending-up" size={14} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 0.5 }}>
-                  CANLI KUR
-                </Text>
-                <Text adjustsFontSizeToFit numberOfLines={1} style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 2, letterSpacing: -0.2 }}>
-                  1 {fromCode} = {fmtAmount(unitRate)} {toCode}
-                </Text>
-              </View>
+              <Icon name="trending-up" size={13} color={colors.primary} />
+              <Text adjustsFontSizeToFit numberOfLines={1} style={{ flex: 1, fontSize: 12.5, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.2 }}>
+                1 {fromCode} = {fmtAmount(unitRate)} {toCode}
+              </Text>
             </Animated.View>
           )}
         </View>
 
         {/* Popular pairs */}
-        <View style={{ marginTop: 32, paddingHorizontal: 20 }}>
+        <View style={{ marginTop: 18, paddingHorizontal: 20 }}>
           <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12, gap: 8 }}>
             <Text style={{ fontSize: 17, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}>
               Popüler Çevirimler

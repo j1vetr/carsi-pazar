@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF"
     },
@@ -41,7 +41,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/notification-icon.png",
+          "icon": "./assets/images/icon.png",
           "color": "#083C8F",
           "defaultChannel": "price-alerts",
           "sounds": []
@@ -68,7 +68,7 @@
       ]
     ],
     "notification": {
-      "icon": "./assets/images/notification-icon.png",
+      "icon": "./assets/images/icon.png",
       "color": "#083C8F",
       "androidMode": "default",
       "androidCollapsedTitle": "Çarşı Piyasa"

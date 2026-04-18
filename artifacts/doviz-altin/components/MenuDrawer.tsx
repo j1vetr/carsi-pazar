@@ -33,7 +33,7 @@ import { useColors } from "@/hooks/useColors";
 import { useDrawer } from "@/contexts/DrawerContext";
 import { useApp } from "@/contexts/AppContext";
 
-const LOGO = require("../assets/images/news-placeholder.png");
+const LOGO = require("../assets/images/logo-dark.png");
 const SCREEN_W = Dimensions.get("window").width;
 const DRAWER_W = Math.min(Math.round(SCREEN_W * 0.84), 340);
 
@@ -90,12 +90,6 @@ function buildSections(activeAlertCount: number): SectionDef[] {
       items: [
         { key: "settings", label: "Bildirimler & Tercihler", icon: "grid-outline", color: "#10B981", route: "/settings" },
         { key: "theme", label: "Tema", icon: "flame-outline", color: "#EC4899", route: "/settings/theme" },
-      ],
-    },
-    {
-      title: "HAKKINDA",
-      items: [
-        { key: "about", label: "Hakkında", icon: "alert-circle", color: "#64748B", route: "/about" },
       ],
     },
   ];
@@ -237,29 +231,8 @@ export function MenuDrawer() {
               paddingHorizontal: 22,
             }}
           >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-              <View
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 14,
-                  backgroundColor: "rgba(255,255,255,0.12)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderWidth: 1,
-                  borderColor: "rgba(255,255,255,0.2)",
-                }}
-              >
-                <Image source={LOGO} style={{ width: 32, height: 32 }} resizeMode="contain" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: "#fff", fontSize: 18, fontFamily: "Inter_700Bold", letterSpacing: -0.4 }}>
-                  Çarşı Piyasa
-                </Text>
-                <Text style={{ color: "rgba(255,255,255,0.72)", fontSize: 12, fontFamily: "Inter_500Medium", marginTop: 2, letterSpacing: -0.1 }}>
-                  Anlık Piyasa Takibi
-                </Text>
-              </View>
+            <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 4 }}>
+              <Image source={LOGO} style={{ width: 180, height: 60 }} resizeMode="contain" />
             </View>
 
             {/* Subtle drag handle hint */}
@@ -447,7 +420,7 @@ export function MenuDrawer() {
                   opacity: 0.7,
                 }}
               >
-                Anlık piyasa takibinde Türkiye'nin tercihi
+                Anlık Döviz & Altın Takibinde Türkiye'nin Tercihi
               </Text>
             </View>
           </ScrollView>

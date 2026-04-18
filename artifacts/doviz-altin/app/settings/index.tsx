@@ -107,7 +107,6 @@ export default function SettingsScreen() {
           color="#EC4899"
           label="Tema"
           sublabel="Açık · Koyu · OLED siyah"
-          badge="YAKINDA"
           onPress={() => router.push("/settings/theme" as never)}
         />
 
@@ -120,7 +119,11 @@ export default function SettingsScreen() {
               <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.2 }}>
                 Ana Ekran Widget'ı
               </Text>
-              <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 2, lineHeight: 16 }}>
+              <Text
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                style={{ fontSize: 11.5, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 2, lineHeight: 15 }}
+              >
                 Ana ekrana uzun bas → Widget'lar → Çarşı Piyasa
               </Text>
             </View>
