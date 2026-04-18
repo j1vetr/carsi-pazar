@@ -11,12 +11,14 @@ export interface PriceWidgetData {
   rows: WidgetRow[];
   updatedAt: string;
   error?: string;
+  loading?: boolean;
 }
 
 type Hex = `#${string}`;
 
 interface ThemePalette {
   bg: Hex;
+  cell: Hex;
   border: Hex;
   fg: Hex;
   muted: Hex;
@@ -27,6 +29,7 @@ interface ThemePalette {
 
 const LIGHT: ThemePalette = {
   bg: "#FFFFFF",
+  cell: "#F4F7FB",
   border: "#E2E8F0",
   fg: "#0F172A",
   muted: "#64748B",
@@ -37,6 +40,7 @@ const LIGHT: ThemePalette = {
 
 const DARK: ThemePalette = {
   bg: "#0B1220",
+  cell: "#152844",
   border: "#1F2A44",
   fg: "#F1F5F9",
   muted: "#94A3B8",
@@ -54,7 +58,8 @@ function fmtPercent(v: number): string {
   return `${v > 0 ? "▲" : "▼"} ${abs}%`;
 }
 
-function Row({ row, theme }: { row: WidgetRow; theme: ThemePalette }) {
+// ─── Single cell — one asset in a 2x2 grid ────────────────────────────────
+function Cell({ row, theme }: { row: WidgetRow; theme: ThemePalette }) {
   const up = row.changePercent > 0;
   const down = row.changePercent < 0;
   const changeColor = up ? theme.up : down ? theme.down : theme.muted;
@@ -62,46 +67,82 @@ function Row({ row, theme }: { row: WidgetRow; theme: ThemePalette }) {
   return (
     <FlexWidget
       style={{
-        flexDirection: "row",
-        width: "match_parent",
-        height: 30,
-        alignItems: "center",
-        justifyContent: "space-between",
+        flex: 1,
+        flexDirection: "column",
+        backgroundColor: theme.cell,
+        borderRadius: 10,
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+        marginHorizontal: 2,
+        justifyContent: "center",
       }}
     >
-      <TextWidget
-        text={row.label}
+      <FlexWidget
         style={{
-          fontSize: 12,
-          fontWeight: "700",
-          color: theme.fg,
-          width: 48,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
-      />
+      >
+        <TextWidget
+          text={row.label}
+          style={{
+            fontSize: 10,
+            fontWeight: "700",
+            color: theme.muted,
+          }}
+        />
+        <TextWidget
+          text={fmtPercent(row.changePercent)}
+          style={{
+            fontSize: 9,
+            fontWeight: "700",
+            color: changeColor,
+          }}
+        />
+      </FlexWidget>
       <TextWidget
         text={row.value}
         style={{
-          fontSize: 13,
+          fontSize: 15,
           fontWeight: "700",
           color: theme.fg,
-          textAlign: "right",
-        }}
-      />
-      <TextWidget
-        text={fmtPercent(row.changePercent)}
-        style={{
-          fontSize: 10,
-          fontWeight: "600",
-          color: changeColor,
-          width: 56,
-          textAlign: "right",
+          marginTop: 2,
         }}
       />
     </FlexWidget>
   );
 }
 
+// ─── Row of 2 cells ───────────────────────────────────────────────────────
+function PairRow({
+  a, b, theme,
+}: {
+  a: WidgetRow; b: WidgetRow; theme: ThemePalette;
+}) {
+  return (
+    <FlexWidget
+      style={{
+        flexDirection: "row",
+        width: "match_parent",
+        flex: 1,
+        marginVertical: 2,
+      }}
+    >
+      <Cell row={a} theme={theme} />
+      <Cell row={b} theme={theme} />
+    </FlexWidget>
+  );
+}
+
+// ─── Full widget view ─────────────────────────────────────────────────────
 function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalette }) {
+  const empty = (data.error || data.loading) && data.rows.length === 0;
+
+  // Pad rows to 4 (2x2 grid)
+  const padded: WidgetRow[] = [...data.rows];
+  while (padded.length < 4) padded.push({ label: "—", value: "—", changePercent: 0 });
+
   return (
     <FlexWidget
       clickAction="OPEN_APP"
@@ -109,11 +150,12 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
         height: "match_parent",
         width: "match_parent",
         backgroundColor: theme.bg,
-        borderRadius: 18,
-        padding: 10,
+        borderRadius: 16,
+        padding: 8,
         flexDirection: "column",
       }}
     >
+      {/* Compact header */}
       <FlexWidget
         style={{
           flexDirection: "row",
@@ -121,12 +163,13 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
           alignItems: "center",
           justifyContent: "space-between",
           marginBottom: 4,
+          paddingHorizontal: 4,
         }}
       >
         <TextWidget
           text="Çarşı Piyasa"
           style={{
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: "700",
             color: theme.accent,
           }}
@@ -140,16 +183,7 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
         />
       </FlexWidget>
 
-      <FlexWidget
-        style={{
-          width: "match_parent",
-          height: 1,
-          backgroundColor: theme.border,
-          marginBottom: 4,
-        }}
-      />
-
-      {data.error || data.rows.length === 0 ? (
+      {empty ? (
         <FlexWidget
           style={{
             flex: 1,
@@ -164,7 +198,10 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
           />
         </FlexWidget>
       ) : (
-        data.rows.map((r, i) => <Row key={i} row={r} theme={theme} />)
+        <>
+          <PairRow a={padded[0]} b={padded[1]} theme={theme} />
+          <PairRow a={padded[2]} b={padded[3]} theme={theme} />
+        </>
       )}
     </FlexWidget>
   );

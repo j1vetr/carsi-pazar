@@ -60,6 +60,13 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
+  // Safety: hide lottie splash after 3.5s even if onAnimationFinish never fires
+  // (e.g., when launched via widget click with cached process state).
+  useEffect(() => {
+    const t = setTimeout(() => setLottieDone(true), 3500);
+    return () => clearTimeout(t);
+  }, []);
+
   useEffect(() => {
     void scheduleReviewPrompt();
   }, []);

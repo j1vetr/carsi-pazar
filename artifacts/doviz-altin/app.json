@@ -55,12 +55,12 @@
               "name": "PriceWidget",
               "label": "Çarşı Piyasa Fiyatları",
               "description": "Anlık döviz ve altın fiyatlarını ana ekranınızda görün.",
-              "minWidth": "140dp",
-              "minHeight": "140dp",
-              "targetCellWidth": 2,
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
               "targetCellHeight": 2,
               "previewImage": "./assets/images/icon.png",
-              "resizeMode": "none",
+              "resizeMode": "horizontal",
               "updatePeriodMillis": 1800000
             }
           ]
