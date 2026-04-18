@@ -3,7 +3,6 @@ import { FlexWidget, TextWidget } from "react-native-android-widget";
 
 export interface WidgetRow {
   label: string;
-  flag: string;
   value: string;
   changePercent: number;
 }
@@ -18,7 +17,6 @@ type Hex = `#${string}`;
 
 interface ThemePalette {
   bg: Hex;
-  surface: Hex;
   border: Hex;
   fg: Hex;
   muted: Hex;
@@ -29,7 +27,6 @@ interface ThemePalette {
 
 const LIGHT: ThemePalette = {
   bg: "#FFFFFF",
-  surface: "#F8FAFC",
   border: "#E2E8F0",
   fg: "#0F172A",
   muted: "#64748B",
@@ -40,7 +37,6 @@ const LIGHT: ThemePalette = {
 
 const DARK: ThemePalette = {
   bg: "#0B1220",
-  surface: "#111B2E",
   border: "#1F2A44",
   fg: "#F1F5F9",
   muted: "#94A3B8",
@@ -68,53 +64,36 @@ function Row({ row, theme }: { row: WidgetRow; theme: ThemePalette }) {
       style={{
         flexDirection: "row",
         width: "match_parent",
-        height: 28,
+        height: 30,
         alignItems: "center",
         justifyContent: "space-between",
-        paddingHorizontal: 10,
       }}
     >
-      <FlexWidget
+      <TextWidget
+        text={row.label}
         style={{
-          flexDirection: "row",
-          alignItems: "center",
-          width: 96,
+          fontSize: 12,
+          fontWeight: "700",
+          color: theme.fg,
+          width: 48,
         }}
-      >
-        <TextWidget
-          text={row.flag}
-          style={{
-            fontSize: 14,
-            color: theme.fg,
-            marginRight: 6,
-          }}
-        />
-        <TextWidget
-          text={row.label}
-          style={{
-            fontSize: 13,
-            fontWeight: "600",
-            color: theme.fg,
-          }}
-        />
-      </FlexWidget>
-
+      />
       <TextWidget
         text={row.value}
         style={{
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: "700",
           color: theme.fg,
+          textAlign: "right",
         }}
       />
-
       <TextWidget
         text={fmtPercent(row.changePercent)}
         style={{
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: "600",
           color: changeColor,
-          width: 64,
+          width: 56,
           textAlign: "right",
         }}
       />
@@ -130,7 +109,7 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
         height: "match_parent",
         width: "match_parent",
         backgroundColor: theme.bg,
-        borderRadius: 16,
+        borderRadius: 18,
         padding: 10,
         flexDirection: "column",
       }}
@@ -141,14 +120,13 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
           width: "match_parent",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingHorizontal: 10,
           marginBottom: 4,
         }}
       >
         <TextWidget
           text="Çarşı Piyasa"
           style={{
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: "700",
             color: theme.accent,
           }}
@@ -156,7 +134,7 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
         <TextWidget
           text={data.updatedAt}
           style={{
-            fontSize: 10,
+            fontSize: 9,
             color: theme.muted,
           }}
         />
@@ -171,7 +149,7 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
         }}
       />
 
-      {data.error ? (
+      {data.error || data.rows.length === 0 ? (
         <FlexWidget
           style={{
             flex: 1,
@@ -181,8 +159,8 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
           }}
         >
           <TextWidget
-            text={data.error}
-            style={{ fontSize: 12, color: theme.muted, textAlign: "center" }}
+            text={data.error ?? "Yükleniyor…"}
+            style={{ fontSize: 11, color: theme.muted, textAlign: "center" }}
           />
         </FlexWidget>
       ) : (

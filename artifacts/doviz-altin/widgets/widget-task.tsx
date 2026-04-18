@@ -4,11 +4,10 @@ import type { WidgetTaskHandlerProps } from "react-native-android-widget";
 import { fetchAllPrices, mapPrices, type AssetRate } from "@/lib/haremApi";
 import { PriceWidget, type PriceWidgetData, type WidgetRow } from "./PriceWidget";
 
-const SHOWN_CODES: { code: string; label: string; flag: string }[] = [
-  { code: "USD", label: "USD", flag: "🇺🇸" },
-  { code: "EUR", label: "EUR", flag: "🇪🇺" },
-  { code: "ALTIN", label: "Gram", flag: "🪙" },
-  { code: "CEYREK", label: "Çeyrek", flag: "🥇" },
+const SHOWN_CODES: { code: string; label: string }[] = [
+  { code: "USD", label: "USD" },
+  { code: "EUR", label: "EUR" },
+  { code: "ALTIN", label: "Gram" },
 ];
 
 function fmtPrice(value: number, decimals: number): string {
@@ -30,15 +29,14 @@ async function buildData(): Promise<PriceWidgetData> {
     const rates = mapPrices(raw, {});
     const byCode = new Map<string, AssetRate>(rates.map((r) => [r.meta.code, r]));
 
-    const rows: WidgetRow[] = SHOWN_CODES.map(({ code, label, flag }) => {
+    const rows: WidgetRow[] = SHOWN_CODES.map(({ code, label }) => {
       const r = byCode.get(code);
       if (!r) {
-        return { label, flag, value: "—", changePercent: 0 };
+        return { label, value: "—", changePercent: 0 };
       }
       const decimals = Math.min(r.meta.decimals ?? 2, 2);
       return {
         label,
-        flag,
         value: fmtPrice(r.buy, decimals),
         changePercent: r.changePercent,
       };
