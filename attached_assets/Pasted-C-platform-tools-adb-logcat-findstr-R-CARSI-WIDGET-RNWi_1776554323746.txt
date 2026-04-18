@@ -1,0 +1,25 @@
+C:\platform-tools>adb logcat | findstr /R "CARSI-WIDGET RNWidget HeadlessJs ReactNativeJS"
+04-19 02:18:24.640 15714 15772 I ReactNativeJS: [CARSI-WIDGET] taskHandler ENTER action=WIDGET_ADDED id=10 name=PriceWidget w=401 h=95
+04-19 02:18:24.654 15714 15772 I ReactNativeJS: [CARSI-WIDGET] renderWidget THREW stage=loading err=Widget Error: Invalid Hook Call detected in WidgetView.
+04-19 02:18:24.654 15714 15772 I ReactNativeJS: Possible causes:
+04-19 02:18:24.654 15714 15772 I ReactNativeJS: 1. You are using hooks (useState, useEffect) which are not supported.
+04-19 02:18:24.654 15714 15772 I ReactNativeJS: 2. The React Compiler (React 19) is transforming this component, but this library requires raw functions.
+04-19 02:18:24.654 15714 15772 I ReactNativeJS:    Fix: Add "use no memo"; at the very top of your widget file to disable the compiler for this file.
+04-19 02:18:24.654 15714 15772 I ReactNativeJS: [CARSI-WIDGET] fallback render ALSO THREW err=Widget Error: Invalid Hook Call detected in WidgetView.
+04-19 02:18:24.654 15714 15772 I ReactNativeJS: Possible causes:
+04-19 02:18:24.654 15714 15772 I ReactNativeJS: 1. You are using hooks (useState, useEffect) which are not supported.
+04-19 02:18:24.654 15714 15772 I ReactNativeJS: 2. The React Compiler (React 19) is transforming this component, but this library requires raw functions.
+04-19 02:18:24.654 15714 15772 I ReactNativeJS:    Fix: Add "use no memo"; at the very top of your widget file to disable the compiler for this file.
+04-19 02:18:24.655 15714 15772 I ReactNativeJS: [CARSI-WIDGET] fetching pricesÔÇĞ
+04-19 02:18:25.531 15714 15772 I ReactNativeJS: [CARSI-WIDGET] fetched rows=4 err=-
+04-19 02:18:25.531 15714 15772 I ReactNativeJS: [CARSI-WIDGET] renderWidget THREW stage=data err=Widget Error: Invalid Hook Call detected in WidgetView.
+04-19 02:18:25.531 15714 15772 I ReactNativeJS: Possible causes:
+04-19 02:18:25.531 15714 15772 I ReactNativeJS: 1. You are using hooks (useState, useEffect) which are not supported.
+04-19 02:18:25.531 15714 15772 I ReactNativeJS: 2. The React Compiler (React 19) is transforming this component, but this library requires raw functions.
+04-19 02:18:25.531 15714 15772 I ReactNativeJS:    Fix: Add "use no memo"; at the very top of your widget file to disable the compiler for this file.
+04-19 02:18:25.531 15714 15772 I ReactNativeJS: [CARSI-WIDGET] fallback render ALSO THREW err=Widget Error: Invalid Hook Call detected in WidgetView.
+04-19 02:18:25.531 15714 15772 I ReactNativeJS: Possible causes:
+04-19 02:18:25.531 15714 15772 I ReactNativeJS: 1. You are using hooks (useState, useEffect) which are not supported.
+04-19 02:18:25.531 15714 15772 I ReactNativeJS: 2. The React Compiler (React 19) is transforming this component, but this library requires raw functions.
+04-19 02:18:25.531 15714 15772 I ReactNativeJS:    Fix: Add "use no memo"; at the very top of your widget file to disable the compiler for this file.
+04-19 02:18:25.531 15714 15772 I ReactNativeJS: [CARSI-WIDGET] taskHandler EXIT action=WIDGET_ADDED
