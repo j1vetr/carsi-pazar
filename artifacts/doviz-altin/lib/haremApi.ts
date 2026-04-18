@@ -18,7 +18,8 @@ export type AssetGroup =
   | "ratio"
   | "parity"
   | "gold-parity"
-  | "spread";
+  | "spread"
+  | "bank";
 
 export interface SymbolMeta {
   symbol: string;
@@ -110,6 +111,10 @@ export const SYMBOL_REGISTRY: SymbolMeta[] = [
   { symbol: "USDNOK", code: "USDNOK", nameTR: "Dolar / Norveç Kronu", name: "USD / NOK", category: "PARITE", group: "parity", unit: "", decimals: 4, flag: "US", iconKey: "USDNOK" },
   { symbol: "USDSEK", code: "USDSEK", nameTR: "Dolar / İsveç Kronu", name: "USD / SEK", category: "PARITE", group: "parity", unit: "", decimals: 4, flag: "US", iconKey: "USDSEK" },
   { symbol: "USDRUB", code: "USDRUB", nameTR: "Dolar / Rus Rublesi", name: "USD / RUB", category: "PARITE", group: "parity", unit: "", decimals: 4, flag: "US", iconKey: "USDRUB" },
+
+  // ===== BANKA FİYATLARI (Türk bankalarının ortalama alış/satış kuru) =====
+  { symbol: "BANKAUSD", code: "BANKAUSD", nameTR: "Banka USD", name: "Bank USD", category: "DOVIZ", group: "bank", unit: "₺", decimals: 4, flag: "TR", iconKey: "BANKAUSD" },
+  { symbol: "BANKA ALTIN", code: "BANKA_ALTIN", nameTR: "Banka Gram Altın", name: "Bank Gold", category: "MADEN", group: "bank", unit: "₺/gr", decimals: 2, iconKey: "BANKA_ALTIN" },
 ];
 
 const SYMBOL_INDEX = new Map(SYMBOL_REGISTRY.map((m) => [m.symbol.toUpperCase(), m]));

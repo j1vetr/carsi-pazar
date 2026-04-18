@@ -111,7 +111,7 @@ const MarqueeTicker = React.memo(function MarqueeTicker({
 export default function MarketScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { currencies, goldRates, parities, currencyParities, favorites, toggleFavorite, refreshData, lastUpdated } = useApp();
+  const { currencies, goldRates, parities, currencyParities, banks, favorites, toggleFavorite, refreshData, lastUpdated } = useApp();
   const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
   const [miniCodes, setMiniCodes] = useState<string[]>(HOME_DEFAULT);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
@@ -159,7 +159,14 @@ export default function MarketScreen() {
       title: "Altın & Madenler",
       items: goldRates.map((g) => ({ code: g.code, label: g.nameTR, sub: g.code, type: "gold" as const })),
     }] : []),
-  ], [currencies, parities, currencyParities, goldRates]);
+    ...(banks.length ? [{
+      title: "Banka Fiyatları",
+      items: banks.map((b) => ({
+        code: b.code, label: b.nameTR, sub: b.code,
+        type: (b.code === "BANKAUSD" ? "currency" : "gold") as "currency" | "gold",
+      })),
+    }] : []),
+  ], [currencies, parities, currencyParities, goldRates, banks]);
   const [manualRefreshing, setManualRefreshing] = useState(false);
   const onManualRefresh = useCallback(async () => {
     setManualRefreshing(true);
@@ -498,6 +505,47 @@ export default function MarketScreen() {
           </>
         }
         contentContainerStyle={styles.list}
+        ListFooterComponent={
+          banks.length > 0 ? (
+            <View>
+              <View style={styles.sectionRow}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <View style={{
+                    width: 22, height: 22, borderRadius: 11,
+                    backgroundColor: colors.primary,
+                    alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Icon name="business-outline" size={12} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.sectionTitle}>Banka Fiyatları</Text>
+                </View>
+                <Text style={styles.sectionMeta}>BANKA ORT.</Text>
+              </View>
+              <View style={styles.tableHead}>
+                <Text style={styles.th}>BİRİM</Text>
+                <View style={{ flex: 1 }} />
+                <Text style={styles.th}>ALIŞ</Text>
+                <Text style={[styles.th, { marginLeft: 16 }]}>SATIŞ</Text>
+              </View>
+              {banks.map((b) => {
+                const isGold = b.code === "BANKA_ALTIN";
+                return (
+                  <PriceCard
+                    key={b.code}
+                    item={b}
+                    type={isGold ? "gold" : "currency"}
+                    isFavorite={favorites.includes(b.code)}
+                    onFavoriteToggle={() => toggleFavorite(b.code)}
+                    onPress={() => router.push({
+                      pathname: "/detail/[code]",
+                      params: { code: b.code, type: isGold ? "gold" : "currency" },
+                    })}
+                  />
+                );
+              })}
+            </View>
+          ) : null
+        }
         refreshControl={
           <RefreshControl refreshing={manualRefreshing} onRefresh={onManualRefresh} tintColor={colors.primary} />
         }

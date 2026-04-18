@@ -17,6 +17,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   SEK: "kr",
   NOK: "kr",
   TRY: "\u20BA",
+  BANKAUSD: "B$",
 };
 
 const GOLD_LABELS: Record<string, string> = {
@@ -68,6 +69,8 @@ const GOLD_LABELS: Record<string, string> = {
   GRAM20: "20g",
   GRAM50: "50g",
   GRAM100: "100",
+  BANKA_ALTIN: "B-Au",
+  BANKAUSD: "B$",
 };
 
 const PARITY_LABELS: Record<string, string> = {

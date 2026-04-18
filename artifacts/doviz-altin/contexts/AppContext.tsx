@@ -119,6 +119,7 @@ interface AppContextType {
   silvers: GoldRate[];
   ratios: GoldRate[];
   spreads: GoldRate[];
+  banks: GoldRate[];
   portfolio: PortfolioItem[];
   alerts: PriceAlert[];
   news: NewsItem[];
@@ -455,6 +456,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const silvers: GoldRate[] = [];
     const ratios: GoldRate[] = [];
     const spreadsMaden: GoldRate[] = [];
+    const banks: GoldRate[] = [];
 
     for (const r of allRates) {
       const g = r.meta.group;
@@ -487,6 +489,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ratios.push(toGoldRate(r));
       } else if (g === "spread") {
         spreadsMaden.push(toGoldRate(r));
+      } else if (g === "bank") {
+        banks.push(toGoldRate(r));
       }
     }
 
@@ -527,6 +531,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }) as GoldRate),
         ...spreadsMaden,
       ],
+      banks,
     };
   }, [allRates]);
 
@@ -546,6 +551,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ...buckets.silvers,
         ...buckets.ratios,
         ...buckets.spreads,
+        ...buckets.banks,
       ];
       return all.find((r) => r.code === code);
     },
@@ -742,6 +748,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         silvers: buckets.silvers,
         ratios: buckets.ratios,
         spreads: buckets.spreads,
+        banks: buckets.banks,
         portfolio,
         alerts,
         news,

@@ -69,7 +69,7 @@ export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
   const {
     favorites, toggleFavorite,
-    currencies, parities, currencyParities, goldRates,
+    currencies, parities, currencyParities, goldRates, banks,
   } = useApp();
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
@@ -79,9 +79,16 @@ export default function FavoritesScreen() {
   // ── Resolve & group favorites ────────────────────────────────────────
   const grouped = useMemo(() => {
     const fav = new Set(favorites);
-    const dovizList: CurrencyRate[] = currencies.filter((c) => fav.has(c.code));
+    const bankUsd = banks.find((b) => b.code === "BANKAUSD" && fav.has(b.code));
+    const dovizList: CurrencyRate[] = [
+      ...currencies.filter((c) => fav.has(c.code)),
+      ...(bankUsd ? [bankUsd as unknown as CurrencyRate] : []),
+    ];
     const pariteList: CurrencyRate[] = [...parities, ...currencyParities].filter((c) => fav.has(c.code));
-    const altinList: GoldRate[] = goldRates.filter((g) => fav.has(g.code));
+    const altinList: GoldRate[] = [
+      ...goldRates.filter((g) => fav.has(g.code)),
+      ...banks.filter((b) => b.code !== "BANKAUSD" && fav.has(b.code)),
+    ];
 
     // Dedupe parities (in case of overlap)
     const seen = new Set<string>();
@@ -92,7 +99,7 @@ export default function FavoritesScreen() {
     });
 
     return { dovizList, altinList, pariteList: uniqueParites };
-  }, [favorites, currencies, parities, currencyParities, goldRates]);
+  }, [favorites, currencies, parities, currencyParities, goldRates, banks]);
 
   const totalCount = grouped.dovizList.length + grouped.altinList.length + grouped.pariteList.length;
   const missingCount = favorites.length - totalCount;

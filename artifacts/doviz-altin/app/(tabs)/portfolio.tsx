@@ -77,7 +77,7 @@ function AddAssetModal({
   onAdd: (item: Omit<PortfolioItem, "id">) => void;
   colors: any;
 }) {
-  const { currencies, goldRates } = useApp();
+  const { currencies, goldRates, banks } = useApp();
   const [selectedCode, setSelectedCode] = useState("USD");
   const [selectedType, setSelectedType] = useState<"currency" | "gold">("currency");
   const [amount, setAmount] = useState("");
@@ -88,6 +88,7 @@ function AddAssetModal({
   const allAssets = [
     ...currencies.map((c) => ({ ...c, assetType: "currency" as const })),
     ...goldRates.map((g) => ({ ...g, assetType: "gold" as const })),
+    ...banks.map((b) => ({ ...b, assetType: (b.code === "BANKAUSD" ? "currency" : "gold") as "currency" | "gold" })),
   ];
   const selectedAsset = allAssets.find((a) => a.code === selectedCode);
   const isCurrency = selectedType === "currency";
@@ -517,7 +518,7 @@ function HoldingCard({
 export default function PortfolioScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { portfolio, addToPortfolio, removeFromPortfolio, currencies, goldRates } = useApp();
+  const { portfolio, addToPortfolio, removeFromPortfolio, currencies, goldRates, banks } = useApp();
   const [showAddModal, setShowAddModal] = useState(false);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
@@ -525,7 +526,7 @@ export default function PortfolioScreen() {
 
   // ── Group lots by code+type → holdings with weighted average ──────────
   const holdings = useMemo<Holding[]>(() => {
-    const allRates = [...currencies, ...goldRates] as any[];
+    const allRates = [...currencies, ...goldRates, ...banks] as any[];
     const map = new Map<string, Holding>();
     for (const item of portfolio) {
       const key = `${item.type}:${item.code}`;
@@ -571,7 +572,7 @@ export default function PortfolioScreen() {
     }
     result.sort((a, b) => b.currentValue - a.currentValue);
     return result;
-  }, [portfolio, currencies, goldRates]);
+  }, [portfolio, currencies, goldRates, banks]);
 
   const stats = useMemo(() => {
     let totalValue = 0, costTotal = 0, currencyValue = 0, goldValue = 0;
