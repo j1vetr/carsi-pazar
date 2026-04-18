@@ -4,7 +4,7 @@ const HOME_KEY = "home.minicards.v1";
 const GOLD_KEY = "gold.minicards.v1";
 
 export const HOME_DEFAULT: string[] = ["USD", "EUR", "ONS"];
-export const GOLD_DEFAULT: string[] = ["ONS", "CEYREK", "GUMUS"];
+export const GOLD_DEFAULT: string[] = ["ONS", "CEYREK", "YARIM"];
 
 async function loadCodes(key: string, fallback: string[]): Promise<string[]> {
   try {
