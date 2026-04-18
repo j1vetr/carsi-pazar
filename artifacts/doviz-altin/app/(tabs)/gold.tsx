@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
@@ -21,12 +22,18 @@ function GoldHero({
   gram,
   ceyrek,
   colors,
+  lastUpdated,
 }: {
   ons: GoldRate | undefined;
   gram: GoldRate | undefined;
   ceyrek: GoldRate | undefined;
   colors: any;
+  lastUpdated: Date | null;
 }) {
+  const formatTime = (date: Date | null) => {
+    if (!date) return "BAĞLANIYOR";
+    return date.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  };
   const fmt = (n: number, frac = 2) =>
     n.toLocaleString("tr-TR", { minimumFractionDigits: frac, maximumFractionDigits: frac });
   const gramBuy = gram?.buy ?? 0;
@@ -43,23 +50,37 @@ function GoldHero({
       style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 18 }}
     >
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent }} />
-          <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: "#FFFFFF", letterSpacing: 1.4 }}>
+        <View>
+          <Image
+            source={require("@/assets/images/logo-dark.png")}
+            style={{ width: 140, height: 38 }}
+            contentFit="contain"
+          />
+          <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.7)", letterSpacing: 1.4, marginTop: 2 }}>
             ALTIN PİYASASI
           </Text>
         </View>
-        <Pressable
-          onPress={() => router.push("/alerts")}
-          style={{
-            width: 34, height: 34, borderRadius: 17,
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View style={{
+            paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999,
             backgroundColor: "rgba(255,255,255,0.1)",
-            alignItems: "center", justifyContent: "center",
-          }}
-          hitSlop={6}
-        >
-          <Icon name="notifications-outline" size={17} color="#FFFFFF" />
-        </Pressable>
+          }}>
+            <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.9)", letterSpacing: 1 }}>
+              {formatTime(lastUpdated)}
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => router.push("/alerts")}
+            style={{
+              width: 34, height: 34, borderRadius: 17,
+              backgroundColor: "rgba(255,255,255,0.1)",
+              alignItems: "center", justifyContent: "center",
+            }}
+            hitSlop={6}
+          >
+            <Icon name="notifications-outline" size={17} color="#FFFFFF" />
+          </Pressable>
+        </View>
       </View>
 
       <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.55)", letterSpacing: 1.5, marginBottom: 4 }}>
@@ -148,7 +169,7 @@ export default function GoldScreen() {
   const {
     goldGram, goldCoinsYeni, goldCoinsEski, goldBars, goldBracelets,
     metals, silvers, goldParities, ratios, favorites, toggleFavorite,
-    refreshData,
+    refreshData, lastUpdated,
   } = useApp();
   const [emission, setEmission] = useState<"yeni" | "eski">("yeni");
   const [manualRefreshing, setManualRefreshing] = useState(false);
@@ -225,6 +246,7 @@ export default function GoldScreen() {
               gram={goldGram.find((g) => g.code === "ALTIN")}
               ceyrek={goldCoinsYeni.find((g) => g.code === "CEYREK")}
               colors={colors}
+              lastUpdated={lastUpdated}
             />
           </View>
         }
