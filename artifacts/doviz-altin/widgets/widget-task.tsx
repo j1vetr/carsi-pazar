@@ -71,15 +71,22 @@ async function buildData(): Promise<PriceWidgetData> {
   }
 }
 
+const TAG = "[CARSI-WIDGET]";
+
 function safeRender(
   props: WidgetTaskHandlerProps,
   data: PriceWidgetData,
   size: WidgetSize,
+  stage: string,
 ): void {
   try {
     props.renderWidget(PriceWidget({ data, size }));
+    console.log(
+      `${TAG} renderWidget OK stage=${stage} rows=${data.rows.length} loading=${!!data.loading} err=${data.error ?? "-"}`,
+    );
   } catch (e) {
-    // Last-ditch fallback: render plain error so the widget never stays blank.
+    const msg = e instanceof Error ? e.message : String(e);
+    console.log(`${TAG} renderWidget THREW stage=${stage} err=${msg}`);
     try {
       props.renderWidget(
         PriceWidget({
@@ -87,13 +94,19 @@ function safeRender(
           size,
         }),
       );
-    } catch {
-      // Nothing more we can do; the OS will keep the previous bitmap.
+      console.log(`${TAG} fallback render OK`);
+    } catch (e2) {
+      const msg2 = e2 instanceof Error ? e2.message : String(e2);
+      console.log(`${TAG} fallback render ALSO THREW err=${msg2}`);
     }
   }
 }
 
 export async function widgetTaskHandler(props: WidgetTaskHandlerProps): Promise<void> {
+  console.log(
+    `${TAG} taskHandler ENTER action=${props.widgetAction} id=${props.widgetInfo?.widgetId} name=${props.widgetInfo?.widgetName} w=${props.widgetInfo?.width} h=${props.widgetInfo?.height}`,
+  );
+
   // The native side reports widget dimensions via widgetInfo. On first add
   // these may be 0 if the launcher hasn't populated AppWidget options yet —
   // PriceWidget falls back to safe defaults in that case.
@@ -109,15 +122,23 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps): Promise<
     case "WIDGET_CLICK": {
       // First, paint a loading state immediately so the user always
       // sees something (no blank widget), even on a slow network.
-      safeRender(props, loadingData(), size);
+      safeRender(props, loadingData(), size, "loading");
 
       // Then fetch and re-render with real data.
+      console.log(`${TAG} fetching prices…`);
       const data = await buildData();
-      safeRender(props, data, size);
+      console.log(
+        `${TAG} fetched rows=${data.rows.length} err=${data.error ?? "-"}`,
+      );
+      safeRender(props, data, size, "data");
       break;
     }
     case "WIDGET_DELETED":
+      console.log(`${TAG} widget deleted, no-op`);
+      break;
     default:
+      console.log(`${TAG} unknown action ${props.widgetAction}`);
       break;
   }
+  console.log(`${TAG} taskHandler EXIT action=${props.widgetAction}`);
 }
