@@ -28,6 +28,10 @@ function NativeTabLayout() {
         <NativeTabIcon sf={{ default: "arrow.2.squarepath", selected: "arrow.2.squarepath" }} />
         <Label>Çevirici</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="favorites">
+        <NativeTabIcon sf={{ default: "star", selected: "star.fill" }} />
+        <Label>Favoriler</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="more">
         <NativeTabIcon sf={{ default: "ellipsis.circle", selected: "ellipsis.circle.fill" }} />
         <Label>Daha Fazla</Label>
@@ -123,6 +127,18 @@ function ClassicTabLayout() {
               <SymbolView name="arrow.2.squarepath" tintColor={color} size={size} />
             ) : (
               <Icon name="swap-horizontal" size={size} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: "Favoriler",
+          tabBarIcon: ({ color, size }) =>
+            isIOS ? (
+              <SymbolView name="star.fill" tintColor={color} size={size} />
+            ) : (
+              <Icon name="star" size={size} color={color} />
             ),
         }}
       />
