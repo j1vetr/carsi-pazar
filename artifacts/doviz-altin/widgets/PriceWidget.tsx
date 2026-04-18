@@ -19,7 +19,6 @@ type Hex = `#${string}`;
 interface ThemePalette {
   bg: Hex;
   cell: Hex;
-  border: Hex;
   fg: Hex;
   muted: Hex;
   accent: Hex;
@@ -30,7 +29,6 @@ interface ThemePalette {
 const LIGHT: ThemePalette = {
   bg: "#FFFFFF",
   cell: "#F4F7FB",
-  border: "#E2E8F0",
   fg: "#0F172A",
   muted: "#64748B",
   accent: "#083C8F",
@@ -41,7 +39,6 @@ const LIGHT: ThemePalette = {
 const DARK: ThemePalette = {
   bg: "#0B1220",
   cell: "#152844",
-  border: "#1F2A44",
   fg: "#F1F5F9",
   muted: "#94A3B8",
   accent: "#60A5FA",
@@ -50,15 +47,14 @@ const DARK: ThemePalette = {
 };
 
 function fmtPercent(v: number): string {
-  if (!Number.isFinite(v) || v === 0) return "0,00%";
+  if (!Number.isFinite(v) || v === 0) return "0,0%";
   const abs = Math.abs(v).toLocaleString("tr-TR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
   });
-  return `${v > 0 ? "▲" : "▼"} ${abs}%`;
+  return `${v > 0 ? "▲" : "▼"}${abs}%`;
 }
 
-// ─── Single cell — one asset in a 2x2 grid ────────────────────────────────
 function Cell({ row, theme }: { row: WidgetRow; theme: ThemePalette }) {
   const up = row.changePercent > 0;
   const down = row.changePercent < 0;
@@ -70,9 +66,9 @@ function Cell({ row, theme }: { row: WidgetRow; theme: ThemePalette }) {
         flex: 1,
         flexDirection: "column",
         backgroundColor: theme.cell,
-        borderRadius: 10,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
+        borderRadius: 8,
+        paddingHorizontal: 6,
+        paddingVertical: 4,
         marginHorizontal: 2,
         justifyContent: "center",
       }}
@@ -86,60 +82,29 @@ function Cell({ row, theme }: { row: WidgetRow; theme: ThemePalette }) {
       >
         <TextWidget
           text={row.label}
-          style={{
-            fontSize: 10,
-            fontWeight: "700",
-            color: theme.muted,
-          }}
+          style={{ fontSize: 9, fontWeight: "700", color: theme.muted }}
         />
         <TextWidget
           text={fmtPercent(row.changePercent)}
-          style={{
-            fontSize: 9,
-            fontWeight: "700",
-            color: changeColor,
-          }}
+          style={{ fontSize: 8, fontWeight: "700", color: changeColor }}
         />
       </FlexWidget>
       <TextWidget
         text={row.value}
         style={{
-          fontSize: 15,
+          fontSize: 13,
           fontWeight: "700",
           color: theme.fg,
-          marginTop: 2,
+          marginTop: 1,
         }}
       />
     </FlexWidget>
   );
 }
 
-// ─── Row of 2 cells ───────────────────────────────────────────────────────
-function PairRow({
-  a, b, theme,
-}: {
-  a: WidgetRow; b: WidgetRow; theme: ThemePalette;
-}) {
-  return (
-    <FlexWidget
-      style={{
-        flexDirection: "row",
-        width: "match_parent",
-        flex: 1,
-        marginVertical: 2,
-      }}
-    >
-      <Cell row={a} theme={theme} />
-      <Cell row={b} theme={theme} />
-    </FlexWidget>
-  );
-}
-
-// ─── Full widget view ─────────────────────────────────────────────────────
 function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalette }) {
   const empty = (data.error || data.loading) && data.rows.length === 0;
 
-  // Pad rows to 4 (2x2 grid)
   const padded: WidgetRow[] = [...data.rows];
   while (padded.length < 4) padded.push({ label: "—", value: "—", changePercent: 0 });
 
@@ -150,39 +115,12 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
         height: "match_parent",
         width: "match_parent",
         backgroundColor: theme.bg,
-        borderRadius: 16,
-        padding: 8,
-        flexDirection: "column",
+        borderRadius: 14,
+        padding: 4,
+        flexDirection: "row",
+        alignItems: "center",
       }}
     >
-      {/* Compact header */}
-      <FlexWidget
-        style={{
-          flexDirection: "row",
-          width: "match_parent",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 4,
-          paddingHorizontal: 4,
-        }}
-      >
-        <TextWidget
-          text="Çarşı Piyasa"
-          style={{
-            fontSize: 10,
-            fontWeight: "700",
-            color: theme.accent,
-          }}
-        />
-        <TextWidget
-          text={data.updatedAt}
-          style={{
-            fontSize: 9,
-            color: theme.muted,
-          }}
-        />
-      </FlexWidget>
-
       {empty ? (
         <FlexWidget
           style={{
@@ -199,8 +137,10 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
         </FlexWidget>
       ) : (
         <>
-          <PairRow a={padded[0]} b={padded[1]} theme={theme} />
-          <PairRow a={padded[2]} b={padded[3]} theme={theme} />
+          <Cell row={padded[0]} theme={theme} />
+          <Cell row={padded[1]} theme={theme} />
+          <Cell row={padded[2]} theme={theme} />
+          <Cell row={padded[3]} theme={theme} />
         </>
       )}
     </FlexWidget>
