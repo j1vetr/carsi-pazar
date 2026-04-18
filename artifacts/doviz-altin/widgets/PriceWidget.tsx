@@ -132,6 +132,28 @@ function WidgetView({
   const w = size.width > 0 ? size.width : FALLBACK_WIDTH;
   const h = size.height > 0 ? size.height : FALLBACK_HEIGHT;
 
+  if (empty) {
+    return (
+      <FlexWidget
+        clickAction="OPEN_APP"
+        style={{
+          height: h,
+          width: w,
+          backgroundColor: theme.bg,
+          borderRadius: 14,
+          padding: 4,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <TextWidget
+          text={data.error ?? "Yükleniyor…"}
+          style={{ fontSize: 11, color: theme.muted, textAlign: "center" }}
+        />
+      </FlexWidget>
+    );
+  }
+
   return (
     <FlexWidget
       clickAction="OPEN_APP"
@@ -145,28 +167,10 @@ function WidgetView({
         alignItems: "center",
       }}
     >
-      {empty ? (
-        <FlexWidget
-          style={{
-            flex: 1,
-            height: h,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <TextWidget
-            text={data.error ?? "Yükleniyor…"}
-            style={{ fontSize: 11, color: theme.muted, textAlign: "center" }}
-          />
-        </FlexWidget>
-      ) : (
-        <>
-          <Cell row={padded[0]} theme={theme} />
-          <Cell row={padded[1]} theme={theme} />
-          <Cell row={padded[2]} theme={theme} />
-          <Cell row={padded[3]} theme={theme} />
-        </>
-      )}
+      <Cell row={padded[0]} theme={theme} />
+      <Cell row={padded[1]} theme={theme} />
+      <Cell row={padded[2]} theme={theme} />
+      <Cell row={padded[3]} theme={theme} />
     </FlexWidget>
   );
 }
