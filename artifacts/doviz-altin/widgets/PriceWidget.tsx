@@ -14,6 +14,11 @@ export interface PriceWidgetData {
   loading?: boolean;
 }
 
+export interface WidgetSize {
+  width: number;
+  height: number;
+}
+
 type Hex = `#${string}`;
 
 interface ThemePalette {
@@ -45,6 +50,9 @@ const DARK: ThemePalette = {
   up: "#22C55E",
   down: "#F87171",
 };
+
+const FALLBACK_WIDTH = 320;
+const FALLBACK_HEIGHT = 80;
 
 function fmtPercent(v: number): string {
   if (!Number.isFinite(v) || v === 0) return "0,0%";
@@ -102,18 +110,32 @@ function Cell({ row, theme }: { row: WidgetRow; theme: ThemePalette }) {
   );
 }
 
-function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalette }) {
+function WidgetView({
+  data,
+  theme,
+  size,
+}: {
+  data: PriceWidgetData;
+  theme: ThemePalette;
+  size: WidgetSize;
+}) {
   const empty = (data.error || data.loading) && data.rows.length === 0;
 
   const padded: WidgetRow[] = [...data.rows];
   while (padded.length < 4) padded.push({ label: "—", value: "—", changePercent: 0 });
 
+  // CRITICAL: Use explicit pixel sizes instead of "match_parent" because
+  // some launchers don't populate OPTION_APPWIDGET_MAX_HEIGHT on first add,
+  // causing the bitmap to be rendered at 0×0 (transparent widget).
+  const w = size.width > 0 ? size.width : FALLBACK_WIDTH;
+  const h = size.height > 0 ? size.height : FALLBACK_HEIGHT;
+
   return (
     <FlexWidget
       clickAction="OPEN_APP"
       style={{
-        height: "match_parent",
-        width: "match_parent",
+        height: h,
+        width: w,
         backgroundColor: theme.bg,
         borderRadius: 14,
         padding: 4,
@@ -125,7 +147,7 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
         <FlexWidget
           style={{
             flex: 1,
-            width: "match_parent",
+            height: h,
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -147,9 +169,23 @@ function WidgetView({ data, theme }: { data: PriceWidgetData; theme: ThemePalett
   );
 }
 
-export function PriceWidget({ data }: { data: PriceWidgetData }) {
+/**
+ * Returns a themed widget representation. We intentionally render the SAME
+ * tree for light and dark slots (using the dark palette as a default) — most
+ * Android launchers display the bitmap on a translucent surface where dark
+ * works well. Returning a single tree (not {light, dark}) avoids double
+ * bitmap rasterisation that can race when widget dimensions are not yet
+ * populated by the host.
+ */
+export function PriceWidget({
+  data,
+  size,
+}: {
+  data: PriceWidgetData;
+  size: WidgetSize;
+}) {
   return {
-    light: <WidgetView data={data} theme={LIGHT} />,
-    dark: <WidgetView data={data} theme={DARK} />,
+    light: <WidgetView data={data} theme={LIGHT} size={size} />,
+    dark: <WidgetView data={data} theme={DARK} size={size} />,
   };
 }
