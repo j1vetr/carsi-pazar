@@ -24,29 +24,37 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 ## doviz-altin (Canlı Döviz & Altın)
 
-**Data source:** HaremAPI.tr (66 sembol, 5 kategori: DOVIZ / MADEN / PARITE / GRAM ALTIN / SARRAFIYE)
-- `EXPO_PUBLIC_HAREMAPI_KEY` shared env var olarak ayarlı
-- `lib/haremApi.ts` — `SYMBOL_REGISTRY` ile tüm sembollerin TR isim/grup/birim/decimal/flag eşlemesi; `mapPrices()` API yanıtını AssetRate listesine çevirir; `bid===0 && ask===0` olan stale semboller (USDRUB, FARKEUR vs.) filtrelenir
+**Data source:** HaremAPI.tr (68 sembol, 5 kategori: DOVIZ / MADEN / PARITE / GRAM ALTIN / SARRAFIYE + BANKA bucket)
+- `EXPO_PUBLIC_HAREMAPI_KEY` shared env var olarak ayarlı (api-server tarafında `HAREMAPI_KEY` fallback'iyle de okunur)
+- `lib/haremApi.ts` — `SYMBOL_REGISTRY` ile 68 sembolün TR isim / grup / birim / decimal / flag / iconKey eşlemesi; `mapPrices()` API yanıtını AssetRate listesine çevirir; `bid===0 && ask===0` olan stale semboller filtrelenir. `BANKAUSD` ve `BANKA ALTIN` için ayrı `bank` group'u eklendi.
 - `lib/haremSocket.ts` — socket.io ile canlı `prices:snapshot` / `prices:update` / `data:stale` / `data:live` event'leri (sadece native; web platformunda CORS nedeniyle kapalı, polling fallback'a düşer)
-- Web önizleme: `Platform.OS === "web"` durumunda haremApi.ts ve haremSocket.ts api-server proxy'sini kullanır (`https://${EXPO_PUBLIC_DOMAIN}/api/harem/prices`)
-- `contexts/AppContext.tsx` — 14 bucket (currencies, currencyParities, parities, goldGram, goldCoinsYeni, goldCoinsEski, goldBars, goldBracelets, goldParities, metals, silvers, ratios, spreads); rolling 24h baseline AsyncStorage'a saatlik persist edilir
+- Web önizleme: `Platform.OS === "web"` durumunda haremApi.ts ve haremSocket.ts api-server proxy'sini kullanır (`https://${EXPO_PUBLIC_DOMAIN}/api/harem/prices`, 3sn in-memory cache)
+- `contexts/AppContext.tsx` — bucket'lar: currencies, currencyParities, parities, goldGram, goldCoinsYeni, goldCoinsEski, goldBars, goldBracelets, goldParities, metals, silvers, ratios, spreads, **banks**; `findRateByCode()` tüm bucket'larda arama yapar (favoriler, portföy, alarm, mini kart picker tek yerden); rolling 24h baseline AsyncStorage'a saatlik persist edilir
 - UI ekranları:
-  - `(tabs)/index.tsx` — hero + marquee + döviz listesi
+  - `(tabs)/index.tsx` — hero + marquee + döviz listesi + **"Banka Fiyatları" footer section** (BANKAUSD + BANKA ALTIN)
   - `(tabs)/gold.tsx` — SectionList: Gram Altın & Ons / Sarrafiye (Yeni/Eski toggle pill) / Külçe / Bilezik / Platin & Paladyum / Gümüş / Altın Pariteleri / Au-Ag Oranı
-  - `(tabs)/more.tsx` — 2 sekme: Haberler (kategori filtreli, featured + listeden, RSS bildirim toggle, hızlı eylem kartları) / Pariteler (Uluslararası + Çapraz)
+  - `(tabs)/menu.tsx` — Drawer-style menü; üst kısımda ortalı `logo-dark.png` (ikon/metin yok, "Hakkında" linki kaldırıldı), alt footer: "Anlık Döviz & Altın Takibinde Türkiye'nin Tercihi"
+  - `app/parities.tsx` — detaylı parite ekranı (Uluslararası + Çapraz)
+  - `app/news.tsx` — RSS haberler (kategori filtreli, featured + liste, bildirim toggle)
+  - `app/tools/converter.tsx` — kompakt çevirici (hero 36pt, swap 38pt, tek ekrana sığar)
+  - `app/settings/*` — tema kartı (YAKINDA badge yok), widget açıklaması iki satıra fit edilmiş
+- `components/AssetIcon.tsx` — yeni semboller için fallback (B$ / B-Au labels banka için)
 
 **Android Widget (4×2):**
-- `widgets/PriceWidget.tsx` — `react-native-android-widget` ile yazılmış FlexWidget tabanlı UI; `{ light, dark }` döndürür, sistem temasına göre Android otomatik seçer
-- `widgets/widget-task.tsx` — headless task; `WIDGET_ADDED/UPDATE/RESIZED/CLICK` event'lerinde `fetchAllPrices()` ile USD/EUR/Gram Altın/Çeyrek fiyatlarını çeker
-- `widgets/index.ts` — `registerWidgetTaskHandler` çağrısı; `app/_layout.tsx`'tan import edilerek hem app hem headless context'te kayıt olur
+- `widgets/PriceWidget.tsx` — `react-native-android-widget` ile yazılmış FlexWidget tabanlı UI; `{ light, dark }` `WidgetRepresentation` döndürür (kütüphane `light` ve opsiyonel `dark` JSX kabul eder), sistem temasına göre Android otomatik seçer
+- `widgets/widget-task.tsx` — headless task; `WIDGET_ADDED/UPDATE/RESIZED/CLICK` event'lerinde önce loading state çizilir, sonra `fetchAllPrices()` ile USD/EUR/Gram Altın/Çeyrek fiyatları render edilir
+- `widgets/index.ts` — `registerWidgetTaskHandler` çağrısı; **`index.js` içinde `expo-router/entry`'den ÖNCE** import edilerek headless JS context'te task'ın garantili olarak kayıt olması sağlanır
 - `app.json` plugin: `updatePeriodMillis: 1800000` (30 dk, Android minimumu); resizable; widget'a tıklayınca uygulama açılır
-- `more.tsx` Haberler sekmesinde Android-only "Ana Ekran Widget'ı" bilgi kartı
+- `app.json` splash + bildirim ikonları renkli `icon.png`'ye taşındı (yeni APK gerekiyor)
+- **DEVAM EDEN:** APK'da widget hâlâ tamamen şeffaf — root cause araştırması sürüyor
+
+**newArchEnabled:** `true` (Reanimated 4 gerektiriyor, sabit)
 
 **Backend haberler:**
 - `functions/src/news.ts` — 6 Türkçe RSS kaynağı (Bloomberg HT, AA, TRT, Dünya, CNN Türk, BBC Türkçe), dedup + kategorize (Döviz/Altın/Merkez Bankası/Emtia/Parite/Ekonomi)
 - HTTP endpoint'leri: `pollNews` (30dk schedule), `getNews`, `setPrefs`, `getPrefs`
 
-**Cleanup notu:** finansveri.com tamamen kaldırıldı; eski `FINANSVERI_API_KEY` secret'ı Secrets panelinden manuel silinmelidir.
+**Cleanup notu:** finansveri.com tamamen kaldırıldı; eski `FINANSVERI_API_KEY` secret'ı silindi.
 
 ## Key Commands
 
