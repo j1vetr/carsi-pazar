@@ -3,10 +3,14 @@
 import React from "react";
 import { FlexWidget, TextWidget } from "react-native-android-widget";
 
+export type AssetKind = "currency" | "gold";
+
 export interface WidgetRow {
   label: string;
-  value: string;
+  buy: string;
+  sell: string;
   changePercent: number;
+  kind: AssetKind;
 }
 
 export interface PriceWidgetData {
@@ -25,36 +29,60 @@ type Hex = `#${string}`;
 
 interface ThemePalette {
   bg: Hex;
-  cell: Hex;
+  header: Hex;
+  divider: Hex;
+  rowAlt: Hex;
   fg: Hex;
   muted: Hex;
-  accent: Hex;
+  brand: Hex;
+  currencyAccent: Hex;
+  goldAccent: Hex;
   up: Hex;
+  upBg: Hex;
   down: Hex;
+  downBg: Hex;
+  flat: Hex;
+  flatBg: Hex;
 }
-
-const LIGHT: ThemePalette = {
-  bg: "#FFFFFF",
-  cell: "#F4F7FB",
-  fg: "#0F172A",
-  muted: "#64748B",
-  accent: "#083C8F",
-  up: "#16A34A",
-  down: "#DC2626",
-};
 
 const DARK: ThemePalette = {
   bg: "#0B1220",
-  cell: "#152844",
+  header: "#0F1B30",
+  divider: "#1E2A44",
+  rowAlt: "#0E1828",
   fg: "#F1F5F9",
   muted: "#94A3B8",
-  accent: "#60A5FA",
+  brand: "#60A5FA",
+  currencyAccent: "#3B82F6",
+  goldAccent: "#F59E0B",
   up: "#22C55E",
+  upBg: "#22C55E26",
   down: "#F87171",
+  downBg: "#F8717126",
+  flat: "#94A3B8",
+  flatBg: "#94A3B826",
+};
+
+const LIGHT: ThemePalette = {
+  bg: "#FFFFFF",
+  header: "#F4F7FB",
+  divider: "#E5EAF1",
+  rowAlt: "#F9FAFC",
+  fg: "#0F172A",
+  muted: "#64748B",
+  brand: "#083C8F",
+  currencyAccent: "#1E40AF",
+  goldAccent: "#B45309",
+  up: "#16A34A",
+  upBg: "#16A34A1F",
+  down: "#DC2626",
+  downBg: "#DC26261F",
+  flat: "#64748B",
+  flatBg: "#64748B1F",
 };
 
 const FALLBACK_WIDTH = 320;
-const FALLBACK_HEIGHT = 80;
+const FALLBACK_HEIGHT = 130;
 
 function fmtPercent(v: number): string {
   if (!Number.isFinite(v) || v === 0) return "0,0%";
@@ -62,50 +90,162 @@ function fmtPercent(v: number): string {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   });
-  return `${v > 0 ? "▲" : "▼"}${abs}%`;
+  return `${v > 0 ? "▲" : "▼"} ${abs}%`;
 }
 
-function Cell({ row, theme }: { row: WidgetRow; theme: ThemePalette }) {
+function Row({
+  row,
+  theme,
+  zebra,
+  isLast,
+  height,
+}: {
+  row: WidgetRow;
+  theme: ThemePalette;
+  zebra: boolean;
+  isLast: boolean;
+  height: number;
+}) {
   const up = row.changePercent > 0;
   const down = row.changePercent < 0;
-  const changeColor = up ? theme.up : down ? theme.down : theme.muted;
+  const changeColor = up ? theme.up : down ? theme.down : theme.flat;
+  const changeBg = up ? theme.upBg : down ? theme.downBg : theme.flatBg;
+  const accentColor =
+    row.kind === "gold" ? theme.goldAccent : theme.currencyAccent;
 
   return (
     <FlexWidget
       style={{
-        flex: 1,
-        flexDirection: "column",
-        backgroundColor: theme.cell,
-        borderRadius: 8,
-        paddingHorizontal: 6,
-        paddingVertical: 4,
-        marginHorizontal: 2,
-        justifyContent: "center",
+        width: "match_parent",
+        height,
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: zebra ? theme.rowAlt : theme.bg,
+        borderBottomColor: isLast ? "#00000000" : theme.divider,
+        borderBottomWidth: isLast ? 0 : 1,
       }}
     >
+      {/* Left accent bar */}
       <FlexWidget
         style={{
+          width: 3,
+          height: height - 6,
+          backgroundColor: accentColor,
+          marginLeft: 6,
+          marginRight: 8,
+          borderRadius: 2,
+        }}
+      />
+
+      {/* Symbol label */}
+      <FlexWidget style={{ width: 56 }}>
+        <TextWidget
+          text={row.label}
+          style={{
+            fontSize: 11,
+            fontWeight: "700",
+            color: theme.fg,
+          }}
+        />
+      </FlexWidget>
+
+      {/* Buy / Sell prices, monospace-ish via tabular alignment */}
+      <FlexWidget
+        style={{
+          flex: 1,
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
+          marginRight: 8,
         }}
       >
         <TextWidget
-          text={row.label}
-          style={{ fontSize: 9, fontWeight: "700", color: theme.muted }}
+          text={row.buy}
+          style={{
+            fontSize: 12,
+            fontWeight: "500",
+            color: theme.muted,
+            fontFamily: "monospace",
+          }}
         />
         <TextWidget
-          text={fmtPercent(row.changePercent)}
-          style={{ fontSize: 8, fontWeight: "700", color: changeColor }}
+          text="  "
+          style={{ fontSize: 12, color: theme.muted }}
+        />
+        <TextWidget
+          text={row.sell}
+          style={{
+            fontSize: 13,
+            fontWeight: "700",
+            color: theme.fg,
+            fontFamily: "monospace",
+          }}
         />
       </FlexWidget>
-      <TextWidget
-        text={row.value}
+
+      {/* Change % badge */}
+      <FlexWidget
         style={{
-          fontSize: 13,
+          width: 64,
+          backgroundColor: changeBg,
+          borderRadius: 6,
+          paddingHorizontal: 6,
+          paddingVertical: 2,
+          marginRight: 8,
+          alignItems: "center",
+        }}
+      >
+        <TextWidget
+          text={fmtPercent(row.changePercent)}
+          style={{
+            fontSize: 10,
+            fontWeight: "700",
+            color: changeColor,
+          }}
+        />
+      </FlexWidget>
+    </FlexWidget>
+  );
+}
+
+function Header({
+  theme,
+  width,
+  updatedAt,
+}: {
+  theme: ThemePalette;
+  width: number;
+  updatedAt: string;
+}) {
+  return (
+    <FlexWidget
+      style={{
+        width,
+        height: 20,
+        backgroundColor: theme.header,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 10,
+        borderBottomColor: theme.divider,
+        borderBottomWidth: 1,
+      }}
+    >
+      <TextWidget
+        text="ÇARŞI PİYASA"
+        style={{
+          fontSize: 9,
           fontWeight: "700",
-          color: theme.fg,
-          marginTop: 1,
+          color: theme.brand,
+        }}
+      />
+      <TextWidget
+        text={updatedAt}
+        style={{
+          fontSize: 9,
+          fontWeight: "500",
+          color: theme.muted,
+          fontFamily: "monospace",
         }}
       />
     </FlexWidget>
@@ -121,16 +261,10 @@ function WidgetView({
   theme: ThemePalette;
   size: WidgetSize;
 }) {
-  const empty = (data.error || data.loading) && data.rows.length === 0;
-
-  const padded: WidgetRow[] = [...data.rows];
-  while (padded.length < 4) padded.push({ label: "—", value: "—", changePercent: 0 });
-
-  // CRITICAL: Use explicit pixel sizes instead of "match_parent" because
-  // some launchers don't populate OPTION_APPWIDGET_MAX_HEIGHT on first add,
-  // causing the bitmap to be rendered at 0×0 (transparent widget).
   const w = size.width > 0 ? size.width : FALLBACK_WIDTH;
   const h = size.height > 0 ? size.height : FALLBACK_HEIGHT;
+
+  const empty = (data.error || data.loading) && data.rows.length === 0;
 
   if (empty) {
     return (
@@ -140,19 +274,46 @@ function WidgetView({
           height: h,
           width: w,
           backgroundColor: theme.bg,
-          borderRadius: 14,
-          padding: 4,
+          borderRadius: 16,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
         <TextWidget
+          text="ÇARŞI PİYASA"
+          style={{
+            fontSize: 10,
+            fontWeight: "700",
+            color: theme.brand,
+            marginBottom: 6,
+          }}
+        />
+        <TextWidget
           text={data.error ?? "Yükleniyor…"}
-          style={{ fontSize: 11, color: theme.muted, textAlign: "center" }}
+          style={{
+            fontSize: 12,
+            color: theme.muted,
+            textAlign: "center",
+          }}
         />
       </FlexWidget>
     );
   }
+
+  const padded: WidgetRow[] = [...data.rows];
+  while (padded.length < 4) {
+    padded.push({
+      label: "—",
+      buy: "—",
+      sell: "—",
+      changePercent: 0,
+      kind: "currency",
+    });
+  }
+
+  // Distribute remaining height equally across 4 rows after the 20dp header.
+  const rowsArea = Math.max(h - 20, 60);
+  const rowHeight = Math.floor(rowsArea / 4);
 
   return (
     <FlexWidget
@@ -161,28 +322,43 @@ function WidgetView({
         height: h,
         width: w,
         backgroundColor: theme.bg,
-        borderRadius: 14,
-        padding: 4,
-        flexDirection: "row",
-        alignItems: "center",
+        borderRadius: 16,
+        flexDirection: "column",
       }}
     >
-      <Cell row={padded[0]} theme={theme} />
-      <Cell row={padded[1]} theme={theme} />
-      <Cell row={padded[2]} theme={theme} />
-      <Cell row={padded[3]} theme={theme} />
+      <Header theme={theme} width={w} updatedAt={data.updatedAt} />
+      <Row
+        row={padded[0]}
+        theme={theme}
+        zebra={false}
+        isLast={false}
+        height={rowHeight}
+      />
+      <Row
+        row={padded[1]}
+        theme={theme}
+        zebra
+        isLast={false}
+        height={rowHeight}
+      />
+      <Row
+        row={padded[2]}
+        theme={theme}
+        zebra={false}
+        isLast={false}
+        height={rowHeight}
+      />
+      <Row
+        row={padded[3]}
+        theme={theme}
+        zebra
+        isLast
+        height={rowHeight}
+      />
     </FlexWidget>
   );
 }
 
-/**
- * Returns a themed widget representation. We intentionally render the SAME
- * tree for light and dark slots (using the dark palette as a default) — most
- * Android launchers display the bitmap on a translucent surface where dark
- * works well. Returning a single tree (not {light, dark}) avoids double
- * bitmap rasterisation that can race when widget dimensions are not yet
- * populated by the host.
- */
 export function PriceWidget({
   data,
   size,
