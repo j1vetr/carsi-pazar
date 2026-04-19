@@ -9,22 +9,75 @@ export interface RssSource {
 }
 
 export const RSS_SOURCES: RssSource[] = [
+  // Yüksek sinyalli kaynaklar (altın/döviz odaklı yayın yapıyor)
   { name: "Bloomberg HT", url: "https://www.bloomberght.com/rss/ekonomi" },
-  { name: "Anadolu Ajansı", url: "https://www.aa.com.tr/tr/rss/default?cat=ekonomi" },
-  { name: "TRT Haber", url: "https://www.trthaber.com/ekonomi_articles.rss" },
   { name: "Dünya Gazetesi", url: "https://www.dunya.com/rss?dunya=ekonomi" },
-  { name: "CNN Türk", url: "https://www.cnnturk.com/feed/rss/ekonomi/news" },
-  { name: "BBC Türkçe", url: "https://feeds.bbci.co.uk/turkce/ekonomi/rss.xml" },
   { name: "NTV Ekonomi", url: "https://www.ntv.com.tr/ekonomi.rss" },
   { name: "Habertürk Ekonomi", url: "https://www.haberturk.com/rss/kategori/ekonomi.xml" },
-  { name: "Hürriyet Ekonomi", url: "https://www.hurriyet.com.tr/rss/ekonomi" },
-  { name: "Sabah Ekonomi", url: "https://www.sabah.com.tr/rss/ekonomi.xml" },
   { name: "Ekonomim", url: "https://www.ekonomim.com/rss" },
   { name: "ParaAnaliz", url: "https://www.paraanaliz.com/feed/" },
-  { name: "Investing.com TR", url: "https://tr.investing.com/rss/news_1.rss" },
+  // Investing.com kategori-spesifik beslemeler (zaten döviz/emtia ön etiketli)
   { name: "Investing.com Emtia", url: "https://tr.investing.com/rss/news_11.rss", defaultCategory: "Emtia" },
   { name: "Investing.com Döviz", url: "https://tr.investing.com/rss/news_301.rss", defaultCategory: "Döviz" },
 ];
+
+// Pozitif anahtar kelime listesi — başlık veya özette en az biri geçmeli.
+// Türkçe ek/çekim için \b yerine kelime kökü bazlı sınır kullanıyoruz.
+const POSITIVE_KEYWORDS = [
+  // Altın ve metaller
+  "altın", "altin", "ons", "çeyrek", "ceyrek", "yarım altın", "yarim altin", "tam altın", "tam altin",
+  "cumhuriyet altın", "cumhuriyet altin", "ata altın", "ata altin", "reşat altın", "resat altin",
+  "gremese", "bilezik", "gram altın", "gram altin", "külçe altın", "kulce altin", "sarrafiye",
+  "kapalıçarşı", "kapalicarsi", "gümüş", "gumus", "platin", "paladyum",
+  // Döviz / parite
+  "dolar", "usd", "euro", " eur ", "eur/", "eur ", "sterlin", "gbp", "frank", "chf", "yen", "jpy",
+  "riyal", "sar", "rubl", "rub", "yuan", "kur ", "döviz", "doviz", "parite", "çapraz kur",
+  "capraz kur", "dxy", "swap",
+  // Merkez bankası / faiz
+  "fed", "powell", "tcmb", "merkez bankası", "merkez bankasi", "ecb", "lagarde", "boj", "boe",
+  "faiz karar", "faiz indirim", "faiz artır", "faiz artir", "ppk", "fomc", "para politika",
+  "enflasyon", "tüfe", "tufe", "üfe", "ufe", "swap puan",
+];
+
+// Negatif anahtar kelime listesi — bu kelimeleri içeren ve aynı zamanda altın/döviz
+// kelimesi GEÇMEYEN haberler atılır. (Eşleşen kelime varsa zaten düşer; bu blok
+// borsa/şirket gürültüsünü temizler.)
+const NEGATIVE_HARD = [
+  "bist", "borsa istanbul", " hisse ", " hisseler", "ipo", "halka arz", "kâr payı", "kar payi",
+  "temettü", "temettu", "perakende sat", "otomotiv sat", "konut sat", "kira artış",
+  "asgari ücret", "asgari ucret", "emekli maaş", "emekli maas", "futbol", "spor", "transfer",
+  "magazin", "diziler", "sinema", "iphone", "samsung", "android", "yapay zeka",
+];
+
+function lower(s: string): string {
+  return s
+    .toLocaleLowerCase("tr-TR")
+    .replace(/[İI]/g, "i")
+    .replace(/[Ğğ]/g, "g")
+    .replace(/[Üü]/g, "u")
+    .replace(/[Şş]/g, "s")
+    .replace(/[Öö]/g, "o")
+    .replace(/[Çç]/g, "c");
+}
+
+export function isRelevantToFinance(title: string, summary: string): boolean {
+  const text = ` ${title} ${summary} `;
+  const lc = lower(text);
+  // Eski ASCII'siz kontrolü için iki versiyona da bakıyoruz
+  const orig = text.toLocaleLowerCase("tr-TR");
+  const matchesPositive = POSITIVE_KEYWORDS.some((kw) => orig.includes(kw) || lc.includes(lower(kw)));
+  if (!matchesPositive) return false;
+  const matchesNegativeHard = NEGATIVE_HARD.some((kw) => orig.includes(kw) || lc.includes(lower(kw)));
+  if (matchesNegativeHard) {
+    // Negatif kelime + altın/döviz beraber geçiyorsa yine de kabul; ama negatif
+    // baskınsa (mesela "BIST 100 günü değişimle kapattı" → kapanış yok; ama
+    // "Borsa İstanbul'da dolar yükseldi" → kabul) → pozitif eşleşme yeterli.
+    // Yine de "bist" başlığın ilk 30 karakterinde geçiyorsa borsa odaklı say ve at.
+    const firstPart = orig.slice(0, 60);
+    if (firstPart.includes("bist") || firstPart.includes("borsa istanbul")) return false;
+  }
+  return true;
+}
 
 export interface ParsedItem {
   title: string;
@@ -94,20 +147,20 @@ function parsePubDate(s: string | null): number {
 
 function categorize(title: string, summary: string, def?: NewsCategory): NewsCategory {
   const text = `${title} ${summary}`.toLowerCase();
-  if (/\b(gram\s*alt[ıi]n|ons\s*alt[ıi]n|alt[ıi]n|çeyrek|cumhuriyet alt[ıi]n[ıi]|gümüş|platin|paladyum)\b/.test(text)) {
+  if (/(gram\s*alt[ıi]n|ons\s*alt[ıi]n|alt[ıi]n|çeyrek|cumhuriyet alt[ıi]n[ıi]|gümüş|platin|paladyum|sarrafiye|kapal[ıi]çarş[ıi]|bilezik)/.test(text)) {
     return "Altın";
   }
-  if (/\b(fed\b|powell|tcmb|merkez bankası|ecb|boj|faiz karar[ıi]|para politika)/.test(text)) {
+  if (/(fed\b|powell|tcmb|merkez bankası|ecb|lagarde|boj|boe|faiz karar[ıi]|faiz indir|faiz art[ıi]r|ppk|fomc|para politika)/.test(text)) {
     return "Merkez Bankası";
   }
-  if (/\b(parite|eur\/?usd|usd\/?try|eur\/?try|gbp\/?usd|usd\/?jpy|carpraz|çapraz)/.test(text)) {
+  if (/(parite|eur\/?usd|usd\/?try|eur\/?try|gbp\/?usd|usd\/?jpy|capraz|çapraz|dxy)/.test(text)) {
     return "Parite";
   }
-  if (/\b(petrol|brent|doğalgaz|do[gğ]al gaz|emtia|bak[ıi]r|nikel)/.test(text)) {
-    return "Emtia";
-  }
-  if (/\b(dolar|euro|sterlin|yen|tl|kur|döviz|d[oö]viz)/.test(text)) {
+  if (/(dolar\b|euro\b|sterlin|yen\b|kur\b|döviz|d[oö]viz|usd\b|eur\b|gbp\b|chf\b|jpy\b)/.test(text)) {
     return "Döviz";
+  }
+  if (/(petrol|brent|doğalgaz|do[gğ]al gaz|emtia|bak[ıi]r|nikel)/.test(text)) {
+    return "Emtia";
   }
   return def ?? "Ekonomi";
 }
@@ -152,7 +205,11 @@ export async function fetchAndParseRss(source: RssSource): Promise<ParsedItem[]>
       const pubDate = parsePubDate(takeTag(block, "pubDate") ?? takeTag(block, "dc:date") ?? takeTag(block, "published"));
       const image = findFirstImage(block);
       if (!image) continue;
+      // Sert konu filtresi: altın/döviz/merkez bankası dışı haberleri at
+      if (!isRelevantToFinance(title, summary)) continue;
       const category = categorize(title, summary, source.defaultCategory);
+      // "Ekonomi" katch-all kategorisi artık kabul edilmiyor — tema alakasızsa düş
+      if (category === "Ekonomi") continue;
       const key = normalizeKey(title);
       items.push({
         title, url: link, summary, publishedAt: pubDate,

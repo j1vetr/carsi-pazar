@@ -5,7 +5,7 @@ import { onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
 import { logger } from "firebase-functions";
 import { HAREMAPI_KEY, fetchHaremPrices, priceOf, type HaremPrice } from "./harem";
-import { RSS_SOURCES, fetchAndParseRss, dedupeByTitle, type ParsedItem } from "./news";
+import { RSS_SOURCES, fetchAndParseRss, dedupeByTitle, isRelevantToFinance, type ParsedItem } from "./news";
 
 initializeApp();
 const db = getFirestore();
@@ -340,9 +340,14 @@ export const getNews = onRequest(COMMON, async (req, res) => {
       });
       newsCache = { ts: now, data: items };
     }
+    // Eski Firestore kayıtları henüz filtre eklenmeden yazılmış olabilir;
+    // okuma sırasında da konu filtresinden geçir + "Ekonomi" kategorisini at.
+    const relevantItems = items.filter(
+      (it) => it.category !== "Ekonomi" && isRelevantToFinance(it.title, it.summary)
+    );
     const filtered = category && category !== "all"
-      ? items.filter((it) => it.category === category)
-      : items;
+      ? relevantItems.filter((it) => it.category === category)
+      : relevantItems;
     res.json({ items: filtered.slice(0, limit) });
   } catch (err) {
     logger.error("getNews failed", err);
