@@ -9,32 +9,39 @@ import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import { ScreenHeader } from "@/components/ScreenHeader";
 
-function NewsPrefCard({ colors, enabled, onToggle }: { colors: any; enabled: boolean; onToggle: (v: boolean) => void }) {
+function PrefCard({
+  colors, icon, iconColor, title, subtitle, enabled, onToggle,
+}: {
+  colors: any; icon: IconName; iconColor: string;
+  title: string; subtitle: string;
+  enabled: boolean; onToggle: (v: boolean) => void;
+}) {
   return (
     <View style={{
       backgroundColor: colors.card, borderRadius: 16, padding: 16,
       borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
       flexDirection: "row", alignItems: "center", gap: 14,
+      marginBottom: 10,
     }}>
       <LinearGradient
-        colors={enabled ? ["#0B3D91", "#1E40AF"] : [colors.secondary, colors.secondary]}
+        colors={enabled ? [iconColor, iconColor] : [colors.secondary, colors.secondary]}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
         style={{ width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" }}
       >
-        <Icon name="notifications" size={22} color={enabled ? "#fff" : colors.mutedForeground} />
+        <Icon name={icon} size={22} color={enabled ? "#fff" : colors.mutedForeground} />
       </LinearGradient>
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.2 }}>
-          Haber Bildirimleri
+          {title}
         </Text>
         <Text style={{ fontSize: 12, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 2 }}>
-          {enabled ? "Yeni finans haberleri geldiğinde bildirim alacaksın." : "Bildirimleri açarak son dakika gelişmelerini kaçırma."}
+          {subtitle}
         </Text>
       </View>
       <Switch
         value={enabled}
         onValueChange={(v) => { Haptics.selectionAsync().catch(() => {}); onToggle(v); }}
-        trackColor={{ false: colors.secondary, true: "#0B3D91" }}
+        trackColor={{ false: colors.secondary, true: iconColor }}
         thumbColor="#fff"
         ios_backgroundColor={colors.secondary}
       />
@@ -80,7 +87,7 @@ function LinkRow({ icon, label, sublabel, color, onPress, badge }: {
 export default function SettingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { prefs, setNewsEnabled } = useApp();
+  const { prefs, setNewsEnabled, setBriefingEnabled, setMovesEnabled, setWeeklyEnabled } = useApp();
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 40 : (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom) + 24;
 
@@ -95,7 +102,42 @@ export default function SettingsScreen() {
         <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 1.2, paddingHorizontal: 4, paddingBottom: 10 }}>
           BİLDİRİMLER
         </Text>
-        <NewsPrefCard colors={colors} enabled={prefs.newsEnabled} onToggle={setNewsEnabled} />
+        <PrefCard
+          colors={colors}
+          icon="sunny-outline"
+          iconColor="#0B3D91"
+          title="Açılış / Kapanış Brifingi"
+          subtitle="Sabah 09:00 ve akşam 18:30 favori sembol özetin"
+          enabled={prefs.briefingEnabled}
+          onToggle={setBriefingEnabled}
+        />
+        <PrefCard
+          colors={colors}
+          icon="trending-up"
+          iconColor="#F59E0B"
+          title="Önemli Fiyat Hareketi"
+          subtitle="Favorilerinde 30 dk'da %1+ hareket olunca bildir"
+          enabled={prefs.movesEnabled}
+          onToggle={setMovesEnabled}
+        />
+        <PrefCard
+          colors={colors}
+          icon="bar-chart-outline"
+          iconColor="#10B981"
+          title="Haftalık Portföy Özeti"
+          subtitle="Pazar 20:00 portföy performans hatırlatması"
+          enabled={prefs.weeklyEnabled}
+          onToggle={setWeeklyEnabled}
+        />
+        <PrefCard
+          colors={colors}
+          icon="newspaper-outline"
+          iconColor="#8B5CF6"
+          title="Haber Bildirimleri"
+          subtitle="Yeni döviz/altın haberleri geldikçe bildir"
+          enabled={prefs.newsEnabled}
+          onToggle={setNewsEnabled}
+        />
 
         <View style={{ height: 18 }} />
 

@@ -5,9 +5,12 @@ import {
   ArrowDownUp,
   ArrowLeftRight,
   ArrowUp,
+  AppWindow,
   Banknote,
+  BarChart3,
   Bell,
   BellOff,
+  Mail,
   Briefcase,
   Building2,
   Check,
@@ -77,6 +80,9 @@ export type IconName =
   | "settings-outline"
   | "sunny-outline"
   | "moon-outline"
+  | "mail-outline"
+  | "bar-chart-outline"
+  | "apps-outline"
   | "checkmark"
   | "x";
 
@@ -121,6 +127,9 @@ const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
   "settings-outline": Settings,
   "sunny-outline": Sun,
   "moon-outline": Moon,
+  "mail-outline": Mail,
+  "bar-chart-outline": BarChart3,
+  "apps-outline": AppWindow,
   "checkmark": Check,
   "x": X,
 };

@@ -31,6 +31,8 @@ import {
 } from "@/lib/api";
 import { setupPushAndRegister } from "@/lib/notifications";
 import * as Notifications from "expo-notifications";
+import { addInboxItem, subscribeInbox, unreadCount as inboxUnreadCount } from "@/lib/inbox";
+import { scheduleWeeklyPortfolioReminder } from "@/lib/weeklyReminder";
 
 export interface CurrencyRate {
   code: string;
@@ -128,6 +130,10 @@ interface AppContextType {
   prefs: UserPrefs;
   setNewsEnabled: (enabled: boolean) => Promise<void>;
   setNewsCategories: (cats: string[]) => Promise<void>;
+  setBriefingEnabled: (enabled: boolean) => Promise<void>;
+  setMovesEnabled: (enabled: boolean) => Promise<void>;
+  setWeeklyEnabled: (enabled: boolean) => Promise<void>;
+  inboxUnread: number;
   isLoading: boolean;
   isStale: boolean;
   lastUpdated: Date | null;
@@ -239,7 +245,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
-  const [prefs, setPrefs] = useState<UserPrefs>({ newsEnabled: false, newsCategories: [] });
+  const [prefs, setPrefs] = useState<UserPrefs>({
+    newsEnabled: false,
+    newsCategories: [],
+    briefingEnabled: true,
+    movesEnabled: true,
+    weeklyEnabled: true,
+    favorites: [],
+  });
+  const [inboxUnread, setInboxUnread] = useState<number>(0);
   const historicalCache = useRef<Map<string, HistoricalPoint[]>>(new Map());
   const priceHistoryRef = useRef<Record<string, { t: number; buy: number; sell: number }[]>>({});
   const lastSnapshotPersistRef = useRef<number>(0);
@@ -343,6 +357,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
     let respSub: Notifications.EventSubscription | null = null;
+    let foregroundSub: Notifications.EventSubscription | null = null;
+    let inboxSub: (() => void) | null = null;
     (async () => {
       await loadStoredData();
       isHydrated.current = true;
@@ -355,7 +371,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           deviceIdRef.current = deviceId;
           // Tercihleri yükle (paralel)
           apiGetPrefs(deviceId)
-            .then((p) => mounted && setPrefs(p))
+            .then((p) => {
+              if (!mounted) return;
+              setPrefs(p);
+              // Haftalık hatırlatıcıyı sunucu tercihine göre kur
+              void scheduleWeeklyPortfolioReminder(p.weeklyEnabled !== false);
+            })
+            .catch(() => {});
+          // İlk açılışta cihazdaki favori listesini sunucuya gönder ki
+          // brifing/önemli hareket scheduler'ları doğru sembolleri kullansın.
+          // (Boş değilse — boş ise sunucu default'una saygı duyar.)
+          AsyncStorage.getItem("favorites")
+            .then((raw) => {
+              if (!raw) return;
+              try {
+                const list = JSON.parse(raw) as string[];
+                if (Array.isArray(list) && list.length > 0) {
+                  void apiSetPrefs({ deviceId, favorites: list });
+                }
+              } catch {}
+            })
             .catch(() => {});
           return apiListAlerts(deviceId);
         })
@@ -375,15 +410,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           | { type?: string; route?: string }
           | undefined;
         try {
-          if (data?.type === "news") {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            const { router } = require("expo-router");
-            router.push("/(tabs)/more");
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const { router } = require("expo-router");
+          if (data?.route) {
+            router.push(data.route);
+            return;
           }
+          if (data?.type === "news") router.push("/(tabs)/more");
+          else if (data?.type === "briefing") router.push("/(tabs)/index");
+          else if (data?.type === "move") router.push("/(tabs)/index");
+          else if (data?.type === "weekly_portfolio") router.push("/(tabs)/portfolio");
+          else router.push("/inbox");
         } catch (err) {
           console.warn("[push] routing error", err);
         }
       });
+
+      // Foreground'da gelen bildirimleri inbox'a yaz (widget_refresh hariç).
+      foregroundSub = Notifications.addNotificationReceivedListener((notif) => {
+        const c = notif.request.content;
+        const data = (c.data ?? {}) as { type?: string };
+        if (data.type === "widget_refresh") return;
+        void addInboxItem({
+          id: notif.request.identifier ?? `${data.type ?? "push"}-${Date.now()}`,
+          title: c.title ?? "",
+          body: c.body ?? "",
+          type: data.type ?? "push",
+          data,
+          ts: Date.now(),
+        });
+      });
+
+      // Inbox değişimlerini takip et (badge sayısı)
+      inboxSub = subscribeInbox(() => {
+        inboxUnreadCount().then((n) => mounted && setInboxUnread(n));
+      });
+      void inboxUnreadCount().then((n) => mounted && setInboxUnread(n));
 
       // Polling 5sn — backend zaten 8sn cache'li
       pollIntervalRef.current = setInterval(() => refreshData(), 5000);
@@ -393,6 +455,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       if (newsIntervalRef.current) clearInterval(newsIntervalRef.current);
       if (respSub) respSub.remove();
+      if (foregroundSub) foregroundSub.remove();
+      if (inboxSub) inboxSub();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -627,6 +691,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         : [...favorites, code];
       setFavorites(updated);
       await AsyncStorage.setItem("favorites", JSON.stringify(updated));
+      // Brifing + önemli hareket scheduler'ları için sunucuya senkronize et
+      const deviceId = deviceIdRef.current;
+      if (deviceId) {
+        try { await apiSetPrefs({ deviceId, favorites: updated }); }
+        catch (err) { console.warn("[favs] sync hatası:", err); }
+      }
     },
     [favorites]
   );
@@ -731,6 +801,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const setBriefingEnabled = useCallback(async (enabled: boolean) => {
+    setPrefs((p) => ({ ...p, briefingEnabled: enabled }));
+    const deviceId = deviceIdRef.current;
+    if (deviceId) {
+      try { await apiSetPrefs({ deviceId, briefingEnabled: enabled }); }
+      catch (err) { console.warn("[prefs] kaydedilemedi:", err); }
+    }
+  }, []);
+
+  const setMovesEnabled = useCallback(async (enabled: boolean) => {
+    setPrefs((p) => ({ ...p, movesEnabled: enabled }));
+    const deviceId = deviceIdRef.current;
+    if (deviceId) {
+      try { await apiSetPrefs({ deviceId, movesEnabled: enabled }); }
+      catch (err) { console.warn("[prefs] kaydedilemedi:", err); }
+    }
+  }, []);
+
+  const setWeeklyEnabled = useCallback(async (enabled: boolean) => {
+    setPrefs((p) => ({ ...p, weeklyEnabled: enabled }));
+    // Local notification → cihazda schedule/cancel et
+    void scheduleWeeklyPortfolioReminder(enabled);
+    const deviceId = deviceIdRef.current;
+    if (deviceId) {
+      try { await apiSetPrefs({ deviceId, weeklyEnabled: enabled }); }
+      catch (err) { console.warn("[prefs] kaydedilemedi:", err); }
+    }
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -757,6 +856,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         prefs,
         setNewsEnabled,
         setNewsCategories,
+        setBriefingEnabled,
+        setMovesEnabled,
+        setWeeklyEnabled,
+        inboxUnread,
         isLoading,
         isStale,
         lastUpdated,

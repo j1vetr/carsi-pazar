@@ -36,6 +36,7 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="detail/[code]" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="alerts" options={{ headerShown: false, animation: "slide_from_bottom" }} />
+      <Stack.Screen name="inbox" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="news" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="parities" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="about" options={{ headerShown: false, animation: "slide_from_right" }} />

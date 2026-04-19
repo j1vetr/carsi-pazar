@@ -55,8 +55,8 @@ interface SectionDef {
   items: ItemDef[];
 }
 
-function buildSections(activeAlertCount: number): SectionDef[] {
-  return [
+function buildSections(activeAlertCount: number, inboxUnread: number): SectionDef[] {
+  const sections: SectionDef[] = [
     {
       title: "ARAÇLAR",
       items: [
@@ -76,6 +76,14 @@ function buildSections(activeAlertCount: number): SectionDef[] {
       title: "BİLDİRİMLER",
       items: [
         {
+          key: "inbox",
+          label: "Gelen Kutusu",
+          icon: "mail-outline",
+          color: "#0B3D91",
+          route: "/inbox",
+          badge: inboxUnread > 0 ? String(inboxUnread > 99 ? "99+" : inboxUnread) : undefined,
+        },
+        {
           key: "alerts",
           label: "Alarmlar",
           icon: "notifications-outline",
@@ -89,17 +97,21 @@ function buildSections(activeAlertCount: number): SectionDef[] {
       title: "AYARLAR",
       items: [
         { key: "settings", label: "Bildirimler & Tercihler", icon: "grid-outline", color: "#10B981", route: "/settings" },
+        ...(Platform.OS === "android"
+          ? [{ key: "widget", label: "Widget Ayarları", icon: "apps-outline" as IconName, color: "#6366F1", route: "/settings/widget" }]
+          : []),
         { key: "theme", label: "Tema", icon: "flame-outline", color: "#EC4899", route: "/settings/theme" },
       ],
     },
   ];
+  return sections;
 }
 
 export function MenuDrawer() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { isOpen, close } = useDrawer();
-  const { alerts } = useApp();
+  const { alerts, inboxUnread } = useApp();
   const pathname = usePathname();
 
   // 0 = closed (off-screen left), 1 = fully open
@@ -183,7 +195,7 @@ export function MenuDrawer() {
   };
 
   const activeAlertCount = alerts.filter((a) => a.active && !a.triggered).length;
-  const sections = buildSections(activeAlertCount);
+  const sections = buildSections(activeAlertCount, inboxUnread);
 
   return (
     <View
