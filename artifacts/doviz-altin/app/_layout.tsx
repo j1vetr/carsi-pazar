@@ -10,7 +10,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import LottieView from "lottie-react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { AppState, type AppStateStatus, Platform, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -21,6 +21,7 @@ import { AppProvider } from "@/contexts/AppContext";
 import { DrawerProvider } from "@/contexts/DrawerContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { scheduleReviewPrompt } from "@/lib/reviewPrompt";
+import { refreshPriceWidget } from "@/widgets/refresh";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -69,6 +70,18 @@ export default function RootLayout() {
 
   useEffect(() => {
     void scheduleReviewPrompt();
+  }, []);
+
+  // Refresh the home-screen price widget whenever the app opens or returns
+  // to the foreground. This keeps the widget in sync with whatever the user
+  // saw last in the app, on top of Android's 30-min auto-update.
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    void refreshPriceWidget();
+    const sub = AppState.addEventListener("change", (state: AppStateStatus) => {
+      if (state === "active") void refreshPriceWidget();
+    });
+    return () => sub.remove();
   }, []);
 
   if (!fontsLoaded && !fontError) return null;
