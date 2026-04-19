@@ -1,6 +1,7 @@
 "use no memo";
 
 import React from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { WidgetTaskHandlerProps } from "react-native-android-widget";
 
 import { fetchAllPrices, mapPrices, type AssetRate } from "@/lib/haremApi";
@@ -10,6 +11,29 @@ import {
   type WidgetRow,
   type WidgetSize,
 } from "./PriceWidget";
+
+const CACHE_KEY = "@carsi/widget-cache-v1";
+
+async function readCache(): Promise<PriceWidgetData | null> {
+  try {
+    const raw = await AsyncStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PriceWidgetData;
+    if (!Array.isArray(parsed.rows) || parsed.rows.length === 0) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+async function writeCache(data: PriceWidgetData): Promise<void> {
+  try {
+    if (!data.rows || data.rows.length === 0) return;
+    await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data));
+  } catch {
+    /* no-op */
+  }
+}
 
 const SHOWN_CODES: { code: string; label: string }[] = [
   { code: "USD", label: "USD" },
@@ -122,16 +146,27 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps): Promise<
     case "WIDGET_UPDATE":
     case "WIDGET_RESIZED":
     case "WIDGET_CLICK": {
-      // First, paint a loading state immediately so the user always
-      // sees something (no blank widget), even on a slow network.
-      safeRender(props, loadingData(), size, "loading");
+      // First, try to paint cached data instantly so the user never sees
+      // a blank/loading widget if we have a recent snapshot. Cold-starting
+      // the JS bundle + a remote fetch on first add can take 20–30 seconds,
+      // which is unacceptable UX for a glanceable widget.
+      const cached = await readCache();
+      if (cached) {
+        safeRender(props, cached, size, "cache");
+      } else {
+        safeRender(props, loadingData(), size, "loading");
+      }
 
-      // Then fetch and re-render with real data.
+      // Then fetch and re-render with real data, persisting the result
+      // so the next widget event (resize/update/etc.) can render instantly.
       console.log(`${TAG} fetching prices…`);
       const data = await buildData();
       console.log(
         `${TAG} fetched rows=${data.rows.length} err=${data.error ?? "-"}`,
       );
+      if (data.rows.length > 0 && !data.error) {
+        await writeCache(data);
+      }
       safeRender(props, data, size, "data");
       break;
     }
