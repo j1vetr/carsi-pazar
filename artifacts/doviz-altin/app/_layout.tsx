@@ -15,12 +15,15 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import * as Notifications from "expo-notifications";
+
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { MenuDrawer } from "@/components/MenuDrawer";
 import { AppProvider } from "@/contexts/AppContext";
 import { DrawerProvider } from "@/contexts/DrawerContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { scheduleReviewPrompt } from "@/lib/reviewPrompt";
+import { registerWidgetBackgroundTask } from "@/lib/widgetBackgroundTask";
 import { refreshPriceWidget } from "@/widgets/refresh";
 
 SplashScreen.preventAutoHideAsync();
@@ -79,10 +82,20 @@ export default function RootLayout() {
   useEffect(() => {
     if (Platform.OS !== "android") return;
     void refreshPriceWidget();
+    void registerWidgetBackgroundTask();
     const sub = AppState.addEventListener("change", (state: AppStateStatus) => {
       if (state === "active") void refreshPriceWidget();
     });
-    return () => sub.remove();
+    // Foreground'da gelen sessiz widget tick'lerini de yakala (background task
+    // sadece app killed/background'da garantili tetiklenir).
+    const recv = Notifications.addNotificationReceivedListener((notif) => {
+      const data = notif.request?.content?.data as { type?: string } | undefined;
+      if (data?.type === "widget_refresh") void refreshPriceWidget({ force: true });
+    });
+    return () => {
+      sub.remove();
+      recv.remove();
+    };
   }, []);
 
   if (!fontsLoaded && !fontError) return null;

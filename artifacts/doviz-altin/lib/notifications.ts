@@ -6,12 +6,24 @@ import { apiRegisterToken } from "./api";
 import { getDeviceId } from "./deviceId";
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
+  handleNotification: async (notification) => {
+    // Sessiz widget tick mesajları kullanıcıya gözükmesin
+    const data = notification.request?.content?.data as { type?: string } | undefined;
+    if (data?.type === "widget_refresh") {
+      return {
+        shouldShowBanner: false,
+        shouldShowList: false,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      };
+    }
+    return {
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    };
+  },
 });
 
 export async function ensureAndroidChannel(): Promise<void> {

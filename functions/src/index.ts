@@ -400,6 +400,60 @@ export const deleteAlert = onRequest(COMMON, async (req, res) => {
   res.json({ ok: true });
 });
 
+// ──────────────────────────────────────────────────────────────────────────────
+// WIDGET TICK — 30dk'da bir tüm cihazlara sessiz (data-only) push gönder.
+// Mobil tarafta arka plan task'ı yakalayıp home-screen widget'ını yeniler.
+// Bu, Android'in güvenilmez `updatePeriodMillis` mekanizmasını bypass eder
+// (FCM high-priority data mesajları Doze mode'u kısa süreliğine atlatır).
+// ──────────────────────────────────────────────────────────────────────────────
+
+export const pollWidgetTick = onSchedule(
+  { region: REGION, schedule: "every 30 minutes", memory: "256MiB", timeoutSeconds: 60 },
+  async () => {
+    const tokenSnap = await db.collection("tokens").get();
+    if (tokenSnap.empty) {
+      logger.info("[widget-tick] no tokens");
+      return;
+    }
+    const tokens: string[] = [];
+    for (const d of tokenSnap.docs) {
+      const data = d.data() as { expoPushToken?: string };
+      if (data?.expoPushToken) tokens.push(data.expoPushToken);
+    }
+    if (tokens.length === 0) {
+      logger.info("[widget-tick] no expo tokens");
+      return;
+    }
+
+    // Data-only mesaj: title/body yok → notification tray'e düşmez,
+    // priority:high → FCM cihazı kısa süreliğine uyandırır.
+    const ts = Date.now();
+    const messages = tokens.map((to) => ({
+      to,
+      data: { type: "widget_refresh", ts },
+      priority: "high" as const,
+      _contentAvailable: true,
+    }));
+
+    let okCount = 0;
+    for (let i = 0; i < messages.length; i += 100) {
+      const chunk = messages.slice(i, i + 100);
+      try {
+        const r = await fetch("https://exp.host/--/api/v2/push/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(chunk),
+        });
+        if (r.ok) okCount += chunk.length;
+        logger.info(`[widget-tick] chunk status=${r.status} count=${chunk.length}`);
+      } catch (err) {
+        logger.warn("[widget-tick] chunk failed", err);
+      }
+    }
+    logger.info(`[widget-tick] sent=${okCount}/${tokens.length}`);
+  }
+);
+
 async function checkAlerts(items: HaremPrice[]): Promise<void> {
   const bySymbol = new Map<string, HaremPrice>();
   for (const p of items) {
