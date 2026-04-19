@@ -92,7 +92,7 @@ const LIGHT: ThemePalette = {
 const FALLBACK_LIST_W = 320;
 const FALLBACK_LIST_H = 130;
 const FALLBACK_STRIP_W = 320;
-const FALLBACK_STRIP_H = 80;
+const FALLBACK_STRIP_H = 110;
 
 function fmtPercent(v: number): string {
   if (!Number.isFinite(v) || v === 0) return "0,0%";
@@ -386,6 +386,7 @@ function StripCell({
   const up = row.changePercent > 0;
   const down = row.changePercent < 0;
   const changeColor = up ? theme.up : down ? theme.down : theme.flat;
+  const changeBg = up ? theme.upBg : down ? theme.downBg : theme.flatBg;
   const accentColor =
     row.kind === "gold" ? theme.goldAccent : theme.currencyAccent;
   const value = priceForField(row, priceField === "both" ? "sell" : priceField);
@@ -396,49 +397,64 @@ function StripCell({
         width,
         height,
         flexDirection: "column",
-        justifyContent: "center",
-        paddingHorizontal: 8,
         borderRightColor: isLast ? "#00000000" : theme.divider,
         borderRightWidth: isLast ? 0 : 1,
       }}
     >
       <FlexWidget
         style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <FlexWidget style={{ flexDirection: "row", alignItems: "center" }}>
-          <FlexWidget
-            style={{
-              width: 3,
-              height: 10,
-              backgroundColor: accentColor,
-              marginRight: 5,
-              borderRadius: 2,
-            }}
-          />
-          <TextWidget
-            text={row.label}
-            style={{ fontSize: 10, fontWeight: "700", color: theme.muted }}
-          />
-        </FlexWidget>
-        <TextWidget
-          text={fmtPercent(row.changePercent)}
-          style={{ fontSize: 9, fontWeight: "700", color: changeColor }}
-        />
-      </FlexWidget>
-      <TextWidget
-        text={value}
-        style={{
-          fontSize: 16,
-          fontWeight: "700",
-          color: theme.fg,
-          marginTop: 3,
-          fontFamily: "monospace",
+          width: "match_parent",
+          height: 3,
+          backgroundColor: accentColor,
         }}
       />
+      <FlexWidget
+        style={{
+          flex: 1,
+          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 4,
+          paddingVertical: 6,
+        }}
+      >
+        <TextWidget
+          text={row.label}
+          maxLines={1}
+          style={{
+            fontSize: 10,
+            fontWeight: "700",
+            color: theme.muted,
+            textAlign: "center",
+          }}
+        />
+        <TextWidget
+          text={value}
+          maxLines={1}
+          style={{
+            fontSize: 15,
+            fontWeight: "700",
+            color: theme.fg,
+            fontFamily: "monospace",
+            textAlign: "center",
+          }}
+        />
+        <FlexWidget
+          style={{
+            backgroundColor: changeBg,
+            borderRadius: 5,
+            paddingHorizontal: 6,
+            paddingVertical: 1,
+            alignItems: "center",
+          }}
+        >
+          <TextWidget
+            text={fmtPercent(row.changePercent)}
+            maxLines={1}
+            style={{ fontSize: 9, fontWeight: "700", color: changeColor }}
+          />
+        </FlexWidget>
+      </FlexWidget>
     </FlexWidget>
   );
 }
@@ -472,6 +488,9 @@ function StripView({
   }
 
   const cellWidth = Math.floor(w / 4);
+  const headerH = 18;
+  const cellH = Math.max(h - headerH, 60);
+  const fieldHint = priceField === "buy" ? "ALIŞ" : "SATIŞ";
 
   return (
     <FlexWidget
@@ -481,42 +500,56 @@ function StripView({
         width: w,
         backgroundColor: theme.bg,
         borderRadius: 14,
-        flexDirection: "row",
-        alignItems: "center",
+        flexDirection: "column",
       }}
     >
-      <StripCell
-        row={padded[0]}
+      <HeaderBar
         theme={theme}
-        width={cellWidth}
-        height={h}
-        isLast={false}
-        priceField={priceField}
+        width={w}
+        updatedAt={data.updatedAt}
+        fieldHint={fieldHint}
       />
-      <StripCell
-        row={padded[1]}
-        theme={theme}
-        width={cellWidth}
-        height={h}
-        isLast={false}
-        priceField={priceField}
-      />
-      <StripCell
-        row={padded[2]}
-        theme={theme}
-        width={cellWidth}
-        height={h}
-        isLast={false}
-        priceField={priceField}
-      />
-      <StripCell
-        row={padded[3]}
-        theme={theme}
-        width={cellWidth}
-        height={h}
-        isLast
-        priceField={priceField}
-      />
+      <FlexWidget
+        style={{
+          width: w,
+          height: cellH,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <StripCell
+          row={padded[0]}
+          theme={theme}
+          width={cellWidth}
+          height={cellH}
+          isLast={false}
+          priceField={priceField}
+        />
+        <StripCell
+          row={padded[1]}
+          theme={theme}
+          width={cellWidth}
+          height={cellH}
+          isLast={false}
+          priceField={priceField}
+        />
+        <StripCell
+          row={padded[2]}
+          theme={theme}
+          width={cellWidth}
+          height={cellH}
+          isLast={false}
+          priceField={priceField}
+        />
+        <StripCell
+          row={padded[3]}
+          theme={theme}
+          width={cellWidth}
+          height={cellH}
+          isLast
+          priceField={priceField}
+        />
+      </FlexWidget>
     </FlexWidget>
   );
 }
