@@ -38,6 +38,7 @@ function RootLayoutNav() {
       <Stack.Screen name="about" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="settings/index" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="settings/theme" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="settings/widget" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="tools/converter" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="tools/gold-calc" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="tools/compare" options={{ headerShown: false, animation: "slide_from_right" }} />

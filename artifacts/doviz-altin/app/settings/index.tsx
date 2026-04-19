@@ -111,23 +111,13 @@ export default function SettingsScreen() {
         />
 
         {Platform.OS === "android" ? (
-          <View style={{ marginTop: 6, padding: 14, borderRadius: 14, backgroundColor: colors.card, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <View style={{ width: 40, height: 40, borderRadius: 11, backgroundColor: "#6366F11A", alignItems: "center", justifyContent: "center" }}>
-              <Icon name="grid-outline" size={20} color="#6366F1" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.2 }}>
-                Ana Ekran Widget'ı
-              </Text>
-              <Text
-                numberOfLines={2}
-                adjustsFontSizeToFit
-                style={{ fontSize: 11.5, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 2, lineHeight: 15 }}
-              >
-                Ana ekrana uzun bas → Widget'lar → Çarşı Piyasa
-              </Text>
-            </View>
-          </View>
+          <LinkRow
+            icon="grid-outline"
+            color="#6366F1"
+            label="Widget Ayarları"
+            sublabel="Şablon, semboller, fiyat alanı ve tema"
+            onPress={() => router.push("/settings/widget" as never)}
+          />
         ) : null}
       </ScrollView>
     </View>

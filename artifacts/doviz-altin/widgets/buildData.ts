@@ -2,21 +2,29 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { fetchAllPrices, mapPrices, type AssetRate } from "@/lib/haremApi";
+import {
+  fetchAllPrices,
+  mapPrices,
+  SYMBOL_REGISTRY,
+  type AssetRate,
+} from "@/lib/haremApi";
 import type { AssetKind, PriceWidgetData, WidgetRow } from "./PriceWidget";
 
-export const WIDGET_CACHE_KEY = "@carsi/widget-cache-v2";
+export const WIDGET_CACHE_KEY = "@carsi/widget-cache-v3";
 
-export const SHOWN_CODES: { code: string; label: string; kind: AssetKind }[] = [
-  { code: "USD", label: "USD", kind: "currency" },
-  { code: "EUR", label: "EUR", kind: "currency" },
-  { code: "ALTIN", label: "GRAM", kind: "gold" },
-  { code: "CEYREK", label: "ÇYREK", kind: "gold" },
-];
+function kindForCode(code: string): AssetKind {
+  const meta = SYMBOL_REGISTRY.find((m) => m.code === code);
+  if (!meta) return "currency";
+  return meta.category === "MADEN" ? "gold" : "currency";
+}
+
+function labelForCode(code: string): string {
+  const meta = SYMBOL_REGISTRY.find((m) => m.code === code);
+  return meta?.code ?? code;
+}
 
 function fmtPrice(value: number): string {
   if (!Number.isFinite(value) || value === 0) return "—";
-  // Use 0 decimals for prices >= 1000 (gold), 2 decimals otherwise (FX).
   const decimals = value >= 1000 ? 0 : 2;
   return value.toLocaleString("tr-TR", {
     minimumFractionDigits: decimals,
@@ -46,14 +54,16 @@ export function errorData(message: string): PriceWidgetData {
   };
 }
 
-export async function buildData(): Promise<PriceWidgetData> {
+export async function buildData(codes: string[]): Promise<PriceWidgetData> {
   try {
     const raw = await fetchAllPrices();
     const rates = mapPrices(raw, {});
     const byCode = new Map<string, AssetRate>(rates.map((r) => [r.meta.code, r]));
 
-    const rows: WidgetRow[] = SHOWN_CODES.map(({ code, label, kind }) => {
+    const rows: WidgetRow[] = codes.slice(0, 4).map((code) => {
       const r = byCode.get(code);
+      const kind = kindForCode(code);
+      const label = labelForCode(code);
       if (!r) {
         return { label, buy: "—", sell: "—", changePercent: 0, kind };
       }

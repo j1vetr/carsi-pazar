@@ -3,6 +3,8 @@
 import React from "react";
 import { FlexWidget, TextWidget } from "react-native-android-widget";
 
+import type { PriceField, WidgetTemplate, WidgetTheme } from "./config";
+
 export type AssetKind = "currency" | "gold";
 
 export interface WidgetRow {
@@ -23,6 +25,12 @@ export interface PriceWidgetData {
 export interface WidgetSize {
   width: number;
   height: number;
+}
+
+export interface RenderOptions {
+  template: WidgetTemplate;
+  priceField: PriceField;
+  theme: WidgetTheme;
 }
 
 type Hex = `#${string}`;
@@ -81,8 +89,10 @@ const LIGHT: ThemePalette = {
   flatBg: "#64748B1F",
 };
 
-const FALLBACK_WIDTH = 320;
-const FALLBACK_HEIGHT = 130;
+const FALLBACK_LIST_W = 320;
+const FALLBACK_LIST_H = 130;
+const FALLBACK_STRIP_W = 320;
+const FALLBACK_STRIP_H = 80;
 
 function fmtPercent(v: number): string {
   if (!Number.isFinite(v) || v === 0) return "0,0%";
@@ -93,18 +103,27 @@ function fmtPercent(v: number): string {
   return `${v > 0 ? "▲" : "▼"} ${abs}%`;
 }
 
-function Row({
+function priceForField(row: WidgetRow, field: PriceField): string {
+  if (field === "buy") return row.buy;
+  return row.sell;
+}
+
+/* ─────────────────────────  LIST LAYOUT  ───────────────────────── */
+
+function ListRow({
   row,
   theme,
   zebra,
   isLast,
   height,
+  priceField,
 }: {
   row: WidgetRow;
   theme: ThemePalette;
   zebra: boolean;
   isLast: boolean;
   height: number;
+  priceField: PriceField;
 }) {
   const up = row.changePercent > 0;
   const down = row.changePercent < 0;
@@ -125,7 +144,6 @@ function Row({
         borderBottomWidth: isLast ? 0 : 1,
       }}
     >
-      {/* Left accent bar */}
       <FlexWidget
         style={{
           width: 3,
@@ -136,20 +154,12 @@ function Row({
           borderRadius: 2,
         }}
       />
-
-      {/* Symbol label */}
       <FlexWidget style={{ width: 56 }}>
         <TextWidget
           text={row.label}
-          style={{
-            fontSize: 11,
-            fontWeight: "700",
-            color: theme.fg,
-          }}
+          style={{ fontSize: 11, fontWeight: "700", color: theme.fg }}
         />
       </FlexWidget>
-
-      {/* Buy / Sell prices, monospace-ish via tabular alignment */}
       <FlexWidget
         style={{
           flex: 1,
@@ -159,31 +169,43 @@ function Row({
           marginRight: 8,
         }}
       >
-        <TextWidget
-          text={row.buy}
-          style={{
-            fontSize: 12,
-            fontWeight: "500",
-            color: theme.muted,
-            fontFamily: "monospace",
-          }}
-        />
-        <TextWidget
-          text="  "
-          style={{ fontSize: 12, color: theme.muted }}
-        />
-        <TextWidget
-          text={row.sell}
-          style={{
-            fontSize: 13,
-            fontWeight: "700",
-            color: theme.fg,
-            fontFamily: "monospace",
-          }}
-        />
+        {priceField === "both" ? (
+          <FlexWidget style={{ flexDirection: "row", alignItems: "center" }}>
+            <TextWidget
+              text={row.buy}
+              style={{
+                fontSize: 12,
+                fontWeight: "500",
+                color: theme.muted,
+                fontFamily: "monospace",
+              }}
+            />
+            <TextWidget
+              text="  "
+              style={{ fontSize: 12, color: theme.muted }}
+            />
+            <TextWidget
+              text={row.sell}
+              style={{
+                fontSize: 13,
+                fontWeight: "700",
+                color: theme.fg,
+                fontFamily: "monospace",
+              }}
+            />
+          </FlexWidget>
+        ) : (
+          <TextWidget
+            text={priceForField(row, priceField)}
+            style={{
+              fontSize: 14,
+              fontWeight: "700",
+              color: theme.fg,
+              fontFamily: "monospace",
+            }}
+          />
+        )}
       </FlexWidget>
-
-      {/* Change % badge */}
       <FlexWidget
         style={{
           width: 64,
@@ -197,25 +219,23 @@ function Row({
       >
         <TextWidget
           text={fmtPercent(row.changePercent)}
-          style={{
-            fontSize: 10,
-            fontWeight: "700",
-            color: changeColor,
-          }}
+          style={{ fontSize: 10, fontWeight: "700", color: changeColor }}
         />
       </FlexWidget>
     </FlexWidget>
   );
 }
 
-function Header({
+function HeaderBar({
   theme,
   width,
   updatedAt,
+  fieldHint,
 }: {
   theme: ThemePalette;
   width: number;
   updatedAt: string;
+  fieldHint?: string;
 }) {
   return (
     <FlexWidget
@@ -231,14 +251,18 @@ function Header({
         borderBottomWidth: 1,
       }}
     >
-      <TextWidget
-        text="ÇARŞI PİYASA"
-        style={{
-          fontSize: 9,
-          fontWeight: "700",
-          color: theme.brand,
-        }}
-      />
+      <FlexWidget style={{ flexDirection: "row", alignItems: "center" }}>
+        <TextWidget
+          text="ÇARŞI PİYASA"
+          style={{ fontSize: 9, fontWeight: "700", color: theme.brand }}
+        />
+        {fieldHint ? (
+          <TextWidget
+            text={`  · ${fieldHint}`}
+            style={{ fontSize: 9, fontWeight: "500", color: theme.muted }}
+          />
+        ) : null}
+      </FlexWidget>
       <TextWidget
         text={updatedAt}
         style={{
@@ -252,53 +276,22 @@ function Header({
   );
 }
 
-function WidgetView({
+function ListView({
   data,
   theme,
   size,
+  priceField,
 }: {
   data: PriceWidgetData;
   theme: ThemePalette;
   size: WidgetSize;
+  priceField: PriceField;
 }) {
-  const w = size.width > 0 ? size.width : FALLBACK_WIDTH;
-  const h = size.height > 0 ? size.height : FALLBACK_HEIGHT;
+  const w = size.width > 0 ? size.width : FALLBACK_LIST_W;
+  const h = size.height > 0 ? size.height : FALLBACK_LIST_H;
 
   const empty = (data.error || data.loading) && data.rows.length === 0;
-
-  if (empty) {
-    return (
-      <FlexWidget
-        clickAction="OPEN_APP"
-        style={{
-          height: h,
-          width: w,
-          backgroundColor: theme.bg,
-          borderRadius: 16,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <TextWidget
-          text="ÇARŞI PİYASA"
-          style={{
-            fontSize: 10,
-            fontWeight: "700",
-            color: theme.brand,
-            marginBottom: 6,
-          }}
-        />
-        <TextWidget
-          text={data.error ?? "Yükleniyor…"}
-          style={{
-            fontSize: 12,
-            color: theme.muted,
-            textAlign: "center",
-          }}
-        />
-      </FlexWidget>
-    );
-  }
+  if (empty) return <EmptyView theme={theme} w={w} h={h} data={data} />;
 
   const padded: WidgetRow[] = [...data.rows];
   while (padded.length < 4) {
@@ -311,9 +304,14 @@ function WidgetView({
     });
   }
 
-  // Distribute remaining height equally across 4 rows after the 20dp header.
   const rowsArea = Math.max(h - 20, 60);
   const rowHeight = Math.floor(rowsArea / 4);
+  const fieldHint =
+    priceField === "buy"
+      ? "ALIŞ"
+      : priceField === "sell"
+        ? "SATIŞ"
+        : "ALIŞ / SATIŞ";
 
   return (
     <FlexWidget
@@ -326,48 +324,283 @@ function WidgetView({
         flexDirection: "column",
       }}
     >
-      <Header theme={theme} width={w} updatedAt={data.updatedAt} />
-      <Row
+      <HeaderBar
+        theme={theme}
+        width={w}
+        updatedAt={data.updatedAt}
+        fieldHint={fieldHint}
+      />
+      <ListRow
         row={padded[0]}
         theme={theme}
         zebra={false}
         isLast={false}
         height={rowHeight}
+        priceField={priceField}
       />
-      <Row
+      <ListRow
         row={padded[1]}
         theme={theme}
         zebra
         isLast={false}
         height={rowHeight}
+        priceField={priceField}
       />
-      <Row
+      <ListRow
         row={padded[2]}
         theme={theme}
         zebra={false}
         isLast={false}
         height={rowHeight}
+        priceField={priceField}
       />
-      <Row
+      <ListRow
         row={padded[3]}
         theme={theme}
         zebra
         isLast
         height={rowHeight}
+        priceField={priceField}
       />
     </FlexWidget>
   );
 }
 
+/* ─────────────────────────  STRIP LAYOUT  ───────────────────────── */
+
+function StripCell({
+  row,
+  theme,
+  width,
+  height,
+  isLast,
+  priceField,
+}: {
+  row: WidgetRow;
+  theme: ThemePalette;
+  width: number;
+  height: number;
+  isLast: boolean;
+  priceField: PriceField;
+}) {
+  const up = row.changePercent > 0;
+  const down = row.changePercent < 0;
+  const changeColor = up ? theme.up : down ? theme.down : theme.flat;
+  const accentColor =
+    row.kind === "gold" ? theme.goldAccent : theme.currencyAccent;
+  const value = priceForField(row, priceField === "both" ? "sell" : priceField);
+
+  return (
+    <FlexWidget
+      style={{
+        width,
+        height,
+        flexDirection: "column",
+        justifyContent: "center",
+        paddingHorizontal: 8,
+        borderRightColor: isLast ? "#00000000" : theme.divider,
+        borderRightWidth: isLast ? 0 : 1,
+      }}
+    >
+      <FlexWidget
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <FlexWidget style={{ flexDirection: "row", alignItems: "center" }}>
+          <FlexWidget
+            style={{
+              width: 3,
+              height: 10,
+              backgroundColor: accentColor,
+              marginRight: 5,
+              borderRadius: 2,
+            }}
+          />
+          <TextWidget
+            text={row.label}
+            style={{ fontSize: 10, fontWeight: "700", color: theme.muted }}
+          />
+        </FlexWidget>
+        <TextWidget
+          text={fmtPercent(row.changePercent)}
+          style={{ fontSize: 9, fontWeight: "700", color: changeColor }}
+        />
+      </FlexWidget>
+      <TextWidget
+        text={value}
+        style={{
+          fontSize: 16,
+          fontWeight: "700",
+          color: theme.fg,
+          marginTop: 3,
+          fontFamily: "monospace",
+        }}
+      />
+    </FlexWidget>
+  );
+}
+
+function StripView({
+  data,
+  theme,
+  size,
+  priceField,
+}: {
+  data: PriceWidgetData;
+  theme: ThemePalette;
+  size: WidgetSize;
+  priceField: PriceField;
+}) {
+  const w = size.width > 0 ? size.width : FALLBACK_STRIP_W;
+  const h = size.height > 0 ? size.height : FALLBACK_STRIP_H;
+
+  const empty = (data.error || data.loading) && data.rows.length === 0;
+  if (empty) return <EmptyView theme={theme} w={w} h={h} data={data} />;
+
+  const padded: WidgetRow[] = [...data.rows];
+  while (padded.length < 4) {
+    padded.push({
+      label: "—",
+      buy: "—",
+      sell: "—",
+      changePercent: 0,
+      kind: "currency",
+    });
+  }
+
+  const cellWidth = Math.floor(w / 4);
+
+  return (
+    <FlexWidget
+      clickAction="OPEN_APP"
+      style={{
+        height: h,
+        width: w,
+        backgroundColor: theme.bg,
+        borderRadius: 14,
+        flexDirection: "row",
+        alignItems: "center",
+      }}
+    >
+      <StripCell
+        row={padded[0]}
+        theme={theme}
+        width={cellWidth}
+        height={h}
+        isLast={false}
+        priceField={priceField}
+      />
+      <StripCell
+        row={padded[1]}
+        theme={theme}
+        width={cellWidth}
+        height={h}
+        isLast={false}
+        priceField={priceField}
+      />
+      <StripCell
+        row={padded[2]}
+        theme={theme}
+        width={cellWidth}
+        height={h}
+        isLast={false}
+        priceField={priceField}
+      />
+      <StripCell
+        row={padded[3]}
+        theme={theme}
+        width={cellWidth}
+        height={h}
+        isLast
+        priceField={priceField}
+      />
+    </FlexWidget>
+  );
+}
+
+/* ─────────────────────────  EMPTY  ───────────────────────── */
+
+function EmptyView({
+  theme,
+  w,
+  h,
+  data,
+}: {
+  theme: ThemePalette;
+  w: number;
+  h: number;
+  data: PriceWidgetData;
+}) {
+  return (
+    <FlexWidget
+      clickAction="OPEN_APP"
+      style={{
+        height: h,
+        width: w,
+        backgroundColor: theme.bg,
+        borderRadius: 16,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <TextWidget
+        text="ÇARŞI PİYASA"
+        style={{
+          fontSize: 10,
+          fontWeight: "700",
+          color: theme.brand,
+          marginBottom: 6,
+        }}
+      />
+      <TextWidget
+        text={data.error ?? "Yükleniyor…"}
+        style={{ fontSize: 12, color: theme.muted, textAlign: "center" }}
+      />
+    </FlexWidget>
+  );
+}
+
+/* ─────────────────────────  ENTRY  ───────────────────────── */
+
+function pickPalette(theme: WidgetTheme): {
+  light: ThemePalette;
+  dark: ThemePalette;
+} {
+  if (theme === "dark") return { light: DARK, dark: DARK };
+  if (theme === "light") return { light: LIGHT, dark: LIGHT };
+  return { light: LIGHT, dark: DARK };
+}
+
 export function PriceWidget({
   data,
   size,
+  options,
 }: {
   data: PriceWidgetData;
   size: WidgetSize;
+  options: RenderOptions;
 }) {
+  const palettes = pickPalette(options.theme);
+  const Render = options.template === "strip" ? StripView : ListView;
   return {
-    light: <WidgetView data={data} theme={LIGHT} size={size} />,
-    dark: <WidgetView data={data} theme={DARK} size={size} />,
+    light: (
+      <Render
+        data={data}
+        theme={palettes.light}
+        size={size}
+        priceField={options.priceField}
+      />
+    ),
+    dark: (
+      <Render
+        data={data}
+        theme={palettes.dark}
+        size={size}
+        priceField={options.priceField}
+      />
+    ),
   };
 }

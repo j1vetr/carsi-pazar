@@ -6,6 +6,7 @@ import type { WidgetTaskHandlerProps } from "react-native-android-widget";
 import {
   PriceWidget,
   type PriceWidgetData,
+  type RenderOptions,
   type WidgetSize,
 } from "./PriceWidget";
 import {
@@ -15,19 +16,33 @@ import {
   readWidgetCache,
   writeWidgetCache,
 } from "./buildData";
+import {
+  DEFAULT_WIDGET_CONFIG,
+  readWidgetConfig,
+  type WidgetConfig,
+} from "./config";
 
 const TAG = "[CARSI-WIDGET]";
+
+function optionsFromConfig(cfg: WidgetConfig): RenderOptions {
+  return {
+    template: cfg.template,
+    priceField: cfg.priceField,
+    theme: cfg.theme,
+  };
+}
 
 function safeRender(
   props: WidgetTaskHandlerProps,
   data: PriceWidgetData,
   size: WidgetSize,
+  options: RenderOptions,
   stage: string,
 ): void {
   try {
-    props.renderWidget(PriceWidget({ data, size }));
+    props.renderWidget(PriceWidget({ data, size, options }));
     console.log(
-      `${TAG} renderWidget OK stage=${stage} rows=${data.rows.length} loading=${!!data.loading} err=${data.error ?? "-"}`,
+      `${TAG} renderWidget OK stage=${stage} tpl=${options.template} rows=${data.rows.length} loading=${!!data.loading} err=${data.error ?? "-"}`,
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -37,6 +52,7 @@ function safeRender(
         PriceWidget({
           data: errorData("Widget hatası"),
           size,
+          options,
         }),
       );
       console.log(`${TAG} fallback render OK`);
@@ -52,41 +68,40 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps): Promise<
     `${TAG} taskHandler ENTER action=${props.widgetAction} id=${props.widgetInfo?.widgetId} name=${props.widgetInfo?.widgetName} w=${props.widgetInfo?.width} h=${props.widgetInfo?.height}`,
   );
 
-  // The native side reports widget dimensions via widgetInfo. On first add
-  // these may be 0 if the launcher hasn't populated AppWidget options yet —
-  // PriceWidget falls back to safe defaults in that case.
   const size: WidgetSize = {
     width: props.widgetInfo?.width ?? 0,
     height: props.widgetInfo?.height ?? 0,
   };
+
+  let config: WidgetConfig;
+  try {
+    config = await readWidgetConfig();
+  } catch {
+    config = DEFAULT_WIDGET_CONFIG;
+  }
+  const options = optionsFromConfig(config);
 
   switch (props.widgetAction) {
     case "WIDGET_ADDED":
     case "WIDGET_UPDATE":
     case "WIDGET_RESIZED":
     case "WIDGET_CLICK": {
-      // First, try to paint cached data instantly so the user never sees
-      // a blank/loading widget if we have a recent snapshot. Cold-starting
-      // the JS bundle + a remote fetch on first add can take 20–30 seconds,
-      // which is unacceptable UX for a glanceable widget.
       const cached = await readWidgetCache();
       if (cached) {
-        safeRender(props, cached, size, "cache");
+        safeRender(props, cached, size, options, "cache");
       } else {
-        safeRender(props, loadingData(), size, "loading");
+        safeRender(props, loadingData(), size, options, "loading");
       }
 
-      // Then fetch and re-render with real data, persisting the result
-      // so the next widget event (resize/update/etc.) can render instantly.
-      console.log(`${TAG} fetching prices…`);
-      const data = await buildData();
+      console.log(`${TAG} fetching prices… codes=${config.codes.join(",")}`);
+      const data = await buildData(config.codes);
       console.log(
         `${TAG} fetched rows=${data.rows.length} err=${data.error ?? "-"}`,
       );
       if (data.rows.length > 0 && !data.error) {
         await writeWidgetCache(data);
       }
-      safeRender(props, data, size, "data");
+      safeRender(props, data, size, options, "data");
       break;
     }
     case "WIDGET_DELETED":
