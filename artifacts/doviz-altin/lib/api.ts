@@ -93,7 +93,14 @@ export async function apiGetNews(category?: string, limit = 50): Promise<ServerN
   return j.items ?? [];
 }
 
-export type UserPrefs = { newsEnabled: boolean; newsCategories: string[] };
+export type UserPrefs = {
+  newsEnabled: boolean;
+  newsCategories: string[];
+  briefingEnabled: boolean;
+  movesEnabled: boolean;
+  weeklyEnabled: boolean;
+  favorites: string[];
+};
 
 export async function apiGetPrefs(deviceId: string): Promise<UserPrefs> {
   const r = await fetch(`${FN.getPrefs}?deviceId=${encodeURIComponent(deviceId)}`);
@@ -105,6 +112,10 @@ export async function apiSetPrefs(input: {
   deviceId: string;
   newsEnabled?: boolean;
   newsCategories?: string[];
+  briefingEnabled?: boolean;
+  movesEnabled?: boolean;
+  weeklyEnabled?: boolean;
+  favorites?: string[];
 }): Promise<void> {
   await postJson<{ ok: boolean }>(FN.setPrefs, input);
 }

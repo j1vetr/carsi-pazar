@@ -46,6 +46,33 @@ export async function ensureAndroidChannel(): Promise<void> {
     sound: "default",
     showBadge: false,
   });
+  await Notifications.setNotificationChannelAsync("briefing", {
+    name: "Açılış / Kapanış Brifingi",
+    description: "Sabah 09:00 ve akşam 18:30 piyasa özeti",
+    importance: Notifications.AndroidImportance.DEFAULT,
+    vibrationPattern: [0, 150],
+    lightColor: "#0B3D91",
+    sound: "default",
+    showBadge: false,
+  });
+  await Notifications.setNotificationChannelAsync("moves", {
+    name: "Önemli Fiyat Hareketleri",
+    description: "Favori sembollerinde 30dk'da %1+ hareketler",
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 200, 150, 200],
+    lightColor: "#F59E0B",
+    sound: "default",
+    showBadge: false,
+  });
+  await Notifications.setNotificationChannelAsync("weekly", {
+    name: "Haftalık Portföy",
+    description: "Pazar 20:00 portföy performans özeti",
+    importance: Notifications.AndroidImportance.DEFAULT,
+    vibrationPattern: [0, 150],
+    lightColor: "#10B981",
+    sound: "default",
+    showBadge: false,
+  });
 }
 
 export async function registerForPushAsync(): Promise<string | null> {

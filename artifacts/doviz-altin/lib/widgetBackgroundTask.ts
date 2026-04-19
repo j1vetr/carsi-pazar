@@ -3,6 +3,7 @@ import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 
 import { refreshPriceWidget } from "@/widgets/refresh";
+import { addInboxItem } from "./inbox";
 
 export const WIDGET_BACKGROUND_TASK = "carsi-widget-background-refresh";
 
@@ -44,11 +45,34 @@ if (!TaskManager.isTaskDefined(WIDGET_BACKGROUND_TASK)) {
     }
     try {
       const remote = extractData(data);
-      if (remote?.type !== "widget_refresh") return;
-      await refreshPriceWidget({ force: true });
-      console.log("[widget-bg] refreshed via push");
+      if (remote?.type === "widget_refresh") {
+        await refreshPriceWidget({ force: true });
+        console.log("[widget-bg] widget refreshed via push");
+        return;
+      }
+      // Diğer push tipleri (briefing, move, news, alarm) → inbox'a yaz
+      // Background'da gelen mesajlar foreground listener tetiklemediği için
+      // inbox kaydını burada yapıyoruz.
+      const notif = (data as Record<string, unknown> | undefined)?.notification as
+        | Record<string, unknown>
+        | undefined;
+      const req = notif?.request as Record<string, unknown> | undefined;
+      const content = req?.content as Record<string, unknown> | undefined;
+      const title = (content?.title as string | undefined) ?? "";
+      const body = (content?.body as string | undefined) ?? "";
+      const type = (remote?.type as string | undefined) ?? "unknown";
+      if (title || body) {
+        await addInboxItem({
+          id: `${type}-${Date.now()}`,
+          title,
+          body,
+          type,
+          data: remote ?? undefined,
+          ts: Date.now(),
+        });
+      }
     } catch (e) {
-      console.warn("[widget-bg] refresh failed", e);
+      console.warn("[widget-bg] handler failed", e);
     }
   });
 }

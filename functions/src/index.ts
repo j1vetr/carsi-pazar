@@ -360,13 +360,20 @@ export const setPrefs = onRequest(COMMON, async (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>;
   const deviceId = getString(body.deviceId);
   if (!deviceId) return bad(res, 400, "deviceId required");
-  const newsEnabled = typeof body.newsEnabled === "boolean" ? body.newsEnabled : null;
-  const newsCategories = Array.isArray(body.newsCategories)
-    ? (body.newsCategories.filter((c): c is string => typeof c === "string"))
-    : null;
   const update: Record<string, unknown> = { updatedAt: FieldValue.serverTimestamp() };
-  if (newsEnabled !== null) update.newsEnabled = newsEnabled;
-  if (newsCategories) update.newsCategories = newsCategories;
+  if (typeof body.newsEnabled === "boolean") update.newsEnabled = body.newsEnabled;
+  if (Array.isArray(body.newsCategories)) {
+    update.newsCategories = body.newsCategories.filter((c): c is string => typeof c === "string");
+  }
+  if (typeof body.briefingEnabled === "boolean") update.briefingEnabled = body.briefingEnabled;
+  if (typeof body.movesEnabled === "boolean") update.movesEnabled = body.movesEnabled;
+  if (typeof body.weeklyEnabled === "boolean") update.weeklyEnabled = body.weeklyEnabled;
+  if (Array.isArray(body.favorites)) {
+    update.favorites = body.favorites
+      .filter((c): c is string => typeof c === "string")
+      .map((s) => s.toUpperCase())
+      .slice(0, 30);
+  }
   await db.doc(`prefs/${deviceId}`).set(update, { merge: true });
   res.json({ ok: true });
 });
@@ -379,6 +386,10 @@ export const getPrefs = onRequest(COMMON, async (req, res) => {
   res.json({
     newsEnabled: typeof d.newsEnabled === "boolean" ? d.newsEnabled : false,
     newsCategories: Array.isArray(d.newsCategories) ? d.newsCategories : [],
+    briefingEnabled: typeof d.briefingEnabled === "boolean" ? d.briefingEnabled : true,
+    movesEnabled: typeof d.movesEnabled === "boolean" ? d.movesEnabled : true,
+    weeklyEnabled: typeof d.weeklyEnabled === "boolean" ? d.weeklyEnabled : true,
+    favorites: Array.isArray(d.favorites) ? d.favorites : [],
   });
 });
 
@@ -399,6 +410,319 @@ export const deleteAlert = onRequest(COMMON, async (req, res) => {
   await db.doc(`alerts/${id}`).delete();
   res.json({ ok: true });
 });
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PUSH HELPERS + SEMBOL EŞLEMESİ — açılış/kapanış brifingi ve önemli hareket
+// ──────────────────────────────────────────────────────────────────────────────
+
+const SYMBOL_LABELS: Record<string, string> = {
+  USDTRY: "Dolar",
+  EURTRY: "Euro",
+  GBPTRY: "Sterlin",
+  CHFTRY: "Frank",
+  JPYTRY: "Yen",
+  SARTRY: "Riyal",
+  RUBTRY: "Ruble",
+  ALTIN: "Ons Altın",
+  HAS: "Has Altın",
+  GRAMALTIN: "Gram Altın",
+  CEYREK_YENI: "Çeyrek Altın",
+  CEYREK_ESKI: "Çeyrek (Eski)",
+  YARIM_YENI: "Yarım Altın",
+  TAM_YENI: "Tam Altın",
+  CUMHUR_YENI: "Cumhuriyet",
+  ATA_YENI: "Ata Altın",
+  RESAT_YENI: "Reşat Altın",
+  GUMUS: "Gümüş",
+  PLATIN: "Platin",
+  PALADYUM: "Paladyum",
+  EURUSD: "EUR/USD",
+  GBPUSD: "GBP/USD",
+  USDJPY: "USD/JPY",
+};
+
+function labelFor(symbol: string): string {
+  const u = symbol.toUpperCase();
+  return SYMBOL_LABELS[u] ?? u;
+}
+
+function fmtMoney(n: number): string {
+  if (!Number.isFinite(n)) return "—";
+  const abs = Math.abs(n);
+  const opts: Intl.NumberFormatOptions =
+    abs >= 100
+      ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+      : { minimumFractionDigits: 2, maximumFractionDigits: 4 };
+  return n.toLocaleString("tr-TR", opts);
+}
+
+function fmtPct(n: number): string {
+  if (!Number.isFinite(n)) return "—";
+  const sign = n > 0 ? "▲" : n < 0 ? "▼" : "•";
+  return `${sign} ${Math.abs(n).toFixed(2)}%`;
+}
+
+type ExpoMessage = {
+  to: string;
+  title?: string;
+  body?: string;
+  sound?: "default";
+  priority?: "default" | "normal" | "high";
+  channelId?: string;
+  data?: Record<string, unknown>;
+  _contentAvailable?: boolean;
+};
+
+async function sendExpoPush(messages: ExpoMessage[]): Promise<number> {
+  if (messages.length === 0) return 0;
+  let ok = 0;
+  for (let i = 0; i < messages.length; i += 100) {
+    const chunk = messages.slice(i, i + 100);
+    try {
+      const r = await fetch("https://exp.host/--/api/v2/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(chunk),
+      });
+      if (r.ok) ok += chunk.length;
+    } catch (e) {
+      logger.warn("[push] chunk failed", e);
+    }
+  }
+  return ok;
+}
+
+async function getTokenForDevice(deviceId: string): Promise<string | null> {
+  const td = await db.doc(`tokens/${deviceId}`).get();
+  const d = td.data() as { expoPushToken?: string } | undefined;
+  return d?.expoPushToken ?? null;
+}
+
+function priceMapFromItems(items: HaremPrice[]): Map<string, HaremPrice> {
+  const m = new Map<string, HaremPrice>();
+  for (const p of items) {
+    const s = (p.symbol ?? p.code ?? "").toString().toUpperCase();
+    if (s) m.set(s, p);
+  }
+  return m;
+}
+
+async function buildBriefingBody(
+  favorites: string[],
+  itemsMap: Map<string, HaremPrice>,
+  prev24h: Prev24hMap
+): Promise<string | null> {
+  // Kullanıcı favorisi yoksa makul default
+  const list =
+    favorites && favorites.length > 0
+      ? favorites
+      : ["USDTRY", "EURTRY", "GRAMALTIN", "CEYREK_YENI"];
+  const lines: string[] = [];
+  for (const sym of list) {
+    const p = itemsMap.get(sym.toUpperCase());
+    if (!p) continue;
+    const cur = priceOf(p);
+    if (cur === null) continue;
+    const prev = prev24h[sym.toUpperCase()]?.bid;
+    const pct =
+      typeof prev === "number" && prev > 0 ? ((cur - prev) / prev) * 100 : 0;
+    lines.push(`${labelFor(sym)} ${fmtMoney(cur)} ${fmtPct(pct)}`);
+    if (lines.length >= 4) break;
+  }
+  if (lines.length === 0) return null;
+  return lines.join(" · ");
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// GÜNLÜK AÇILIŞ / KAPANIŞ BRİFİNGİ
+// ──────────────────────────────────────────────────────────────────────────────
+
+async function runBriefing(kind: "open" | "close"): Promise<void> {
+  const prefsSnap = await db
+    .collection("prefs")
+    .where("briefingEnabled", "==", true)
+    .get();
+  if (prefsSnap.empty) {
+    logger.info(`[briefing-${kind}] no devices`);
+    return;
+  }
+  const latest = await db.doc("prices/latest").get();
+  const data = latest.data() as { ts?: number; items?: HaremPrice[] } | undefined;
+  if (!data?.items?.length) {
+    logger.warn(`[briefing-${kind}] no prices`);
+    return;
+  }
+  const itemsMap = priceMapFromItems(data.items);
+  const prev24h = await fetchPrev24h().catch(() => ({} as Prev24hMap));
+
+  const messages: ExpoMessage[] = [];
+  for (const doc of prefsSnap.docs) {
+    const p = doc.data() as { favorites?: string[] };
+    const token = await getTokenForDevice(doc.id);
+    if (!token) continue;
+    const body = await buildBriefingBody(p.favorites ?? [], itemsMap, prev24h);
+    if (!body) continue;
+    const title =
+      kind === "open"
+        ? "🌅 Günaydın · Piyasa Açılışı"
+        : "🌇 Kapanış Özeti";
+    messages.push({
+      to: token,
+      title,
+      body,
+      sound: "default",
+      priority: "normal",
+      channelId: "briefing",
+      data: { type: "briefing", kind, ts: Date.now() },
+    });
+  }
+  const sent = await sendExpoPush(messages);
+  logger.info(`[briefing-${kind}] sent=${sent}/${messages.length}`);
+}
+
+export const dailyOpenBriefing = onSchedule(
+  {
+    region: REGION,
+    schedule: "0 9 * * *",
+    timeZone: "Europe/Istanbul",
+    memory: "256MiB",
+    timeoutSeconds: 90,
+  },
+  async () => runBriefing("open")
+);
+
+export const dailyCloseBriefing = onSchedule(
+  {
+    region: REGION,
+    schedule: "30 18 * * *",
+    timeZone: "Europe/Istanbul",
+    memory: "256MiB",
+    timeoutSeconds: 90,
+  },
+  async () => runBriefing("close")
+);
+
+// ──────────────────────────────────────────────────────────────────────────────
+// ÖNEMLİ HAREKET — favori sembollerde 30dk'da ±%1 hareket olunca push
+// Cihaz başına gün limiti: 3
+// ──────────────────────────────────────────────────────────────────────────────
+
+const MOVE_THRESHOLD_PCT = 1.0;
+const MOVE_WINDOW_MIN = 30;
+const MOVE_DAILY_LIMIT = 3;
+
+function todayKey(): string {
+  const d = new Date();
+  // Europe/Istanbul'a kaba çeviri (UTC+3, DST yok)
+  const tr = new Date(d.getTime() + 3 * 3600_000);
+  return tr.toISOString().slice(0, 10);
+}
+
+async function fetchSnapshotMinutesAgo(
+  minutesAgo: number
+): Promise<Map<string, number>> {
+  const minute = Math.floor(Date.now() / 60000) - minutesAgo;
+  const snap = await db.doc(`history/${minute}`).get();
+  const out = new Map<string, number>();
+  if (!snap.exists) return out;
+  const d = snap.data() as { items?: CompactSnap[] } | undefined;
+  for (const it of d?.items ?? []) {
+    if (it?.s && typeof it.b === "number") out.set(it.s, it.b);
+  }
+  return out;
+}
+
+export const checkSignificantMoves = onSchedule(
+  {
+    region: REGION,
+    schedule: "every 10 minutes",
+    memory: "256MiB",
+    timeoutSeconds: 90,
+  },
+  async () => {
+    const prefsSnap = await db
+      .collection("prefs")
+      .where("movesEnabled", "==", true)
+      .get();
+    if (prefsSnap.empty) {
+      logger.info("[moves] no devices");
+      return;
+    }
+    const latest = await db.doc("prices/latest").get();
+    const data = latest.data() as { items?: HaremPrice[] } | undefined;
+    if (!data?.items?.length) {
+      logger.warn("[moves] no latest prices");
+      return;
+    }
+    const cur = priceMapFromItems(data.items);
+    const prev = await fetchSnapshotMinutesAgo(MOVE_WINDOW_MIN);
+    if (prev.size === 0) {
+      logger.info("[moves] no 30m snapshot");
+      return;
+    }
+
+    const today = todayKey();
+    const messages: ExpoMessage[] = [];
+    const updates: { ref: FirebaseFirestore.DocumentReference; sent: number }[] = [];
+
+    for (const doc of prefsSnap.docs) {
+      const p = doc.data() as {
+        favorites?: string[];
+        movesSentToday?: number;
+        movesDate?: string;
+      };
+      const favs = (p.favorites ?? []).map((s) => s.toUpperCase());
+      if (favs.length === 0) continue;
+      const sentToday = p.movesDate === today ? (p.movesSentToday ?? 0) : 0;
+      if (sentToday >= MOVE_DAILY_LIMIT) continue;
+      const token = await getTokenForDevice(doc.id);
+      if (!token) continue;
+
+      // En büyük hareketi bul (mutlak yüzde)
+      let best: { sym: string; pct: number; price: number } | null = null;
+      for (const sym of favs) {
+        const c = cur.get(sym);
+        const pPrev = prev.get(sym);
+        if (!c || typeof pPrev !== "number" || pPrev <= 0) continue;
+        const cp = priceOf(c);
+        if (cp === null) continue;
+        const pct = ((cp - pPrev) / pPrev) * 100;
+        if (Math.abs(pct) < MOVE_THRESHOLD_PCT) continue;
+        if (!best || Math.abs(pct) > Math.abs(best.pct)) {
+          best = { sym, pct, price: cp };
+        }
+      }
+      if (!best) continue;
+
+      const arrow = best.pct > 0 ? "📈" : "📉";
+      const dir = best.pct > 0 ? "yükseldi" : "düştü";
+      messages.push({
+        to: token,
+        title: `${arrow} ${labelFor(best.sym)} ${dir}`,
+        body: `Son 30 dakikada ${fmtPct(best.pct)} → ${fmtMoney(best.price)} ₺`,
+        sound: "default",
+        priority: "high",
+        channelId: "moves",
+        data: { type: "move", code: best.sym, pct: best.pct, price: best.price },
+      });
+      updates.push({ ref: doc.ref, sent: sentToday + 1 });
+    }
+
+    const sent = await sendExpoPush(messages);
+    if (updates.length > 0) {
+      const batch = db.batch();
+      for (const u of updates) {
+        batch.set(
+          u.ref,
+          { movesSentToday: u.sent, movesDate: today },
+          { merge: true }
+        );
+      }
+      await batch.commit();
+    }
+    logger.info(`[moves] sent=${sent}/${messages.length}`);
+  }
+);
 
 // ──────────────────────────────────────────────────────────────────────────────
 // WIDGET TICK — 30dk'da bir tüm cihazlara sessiz (data-only) push gönder.
