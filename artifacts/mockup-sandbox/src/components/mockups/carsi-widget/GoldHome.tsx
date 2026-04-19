@@ -1,269 +1,362 @@
 import React from "react";
 import {
-  ChangePill,
-  FlagBadge,
-  LivePulse,
+  C,
+  ChangeText,
+  DISPLAY,
+  Hairline,
+  Logo,
   MONO,
-  PALETTE,
+  NumLg,
   PhoneShell,
-  SF_DISPLAY,
-  SPARK,
-  Section,
-  Sparkline,
-} from "./_premium";
+  SANS,
+  SERIF,
+} from "./_editorial";
 
-const CATEGORIES = [
-  { id: "gram", icon: "◉", label: "Gram", count: 6 },
-  { id: "ceyrek", icon: "◔", label: "Çeyrek", count: 2 },
-  { id: "yarim", icon: "◐", label: "Yarım", count: 2 },
-  { id: "tam", icon: "●", label: "Tam", count: 2 },
-  { id: "cumhur", icon: "★", label: "Cumhuriyet", count: 2 },
-  { id: "ata", icon: "✦", label: "Ata", count: 4 },
-  { id: "resat", icon: "❖", label: "Reşat", count: 2 },
-  { id: "ayar", icon: "◈", label: "Ayar", count: 4 },
-];
-
-interface GoldRow {
+interface Row {
   code: string;
   name: string;
-  emission?: "ESKİ" | "YENİ";
-  buy: string;
+  emission?: "Eski" | "Yeni";
   sell: string;
   change: number;
-  spark: number[];
-  unit: string;
+  unit?: string;
 }
 
-const ROWS: GoldRow[] = [
-  { code: "ÇEYREK", name: "Çeyrek Altın", emission: "YENİ", buy: "7.124,00", sell: "7.245,00", change: 0.71, spark: SPARK.up, unit: "adet" },
-  { code: "ÇEYREK", name: "Çeyrek Altın", emission: "ESKİ", buy: "7.080,00", sell: "7.190,00", change: 0.66, spark: SPARK.up, unit: "adet" },
-  { code: "YARIM", name: "Yarım Altın", emission: "YENİ", buy: "14.150,00", sell: "14.380,00", change: 0.74, spark: SPARK.up, unit: "adet" },
-  { code: "TAM", name: "Tam Altın", emission: "YENİ", buy: "28.300,00", sell: "28.760,00", change: 0.78, spark: SPARK.up, unit: "adet" },
-  { code: "ATA", name: "Ata Altın", emission: "YENİ", buy: "29.140,00", sell: "29.610,00", change: 0.81, spark: SPARK.up, unit: "adet" },
-  { code: "AYAR22", name: "22 Ayar Bilezik", buy: "4.012,00", sell: "4.024,00", change: 0.65, spark: SPARK.flat, unit: "₺/gr" },
+const ROWS: Row[] = [
+  { code: "Çeyrek", name: "Çeyrek Altın", emission: "Yeni", sell: "7.245,00", change: 0.71, unit: "adet" },
+  { code: "Çeyrek", name: "Çeyrek Altın", emission: "Eski", sell: "7.190,00", change: 0.66, unit: "adet" },
+  { code: "Yarım", name: "Yarım Altın", emission: "Yeni", sell: "14.380,00", change: 0.74, unit: "adet" },
+  { code: "Tam", name: "Tam Altın", emission: "Yeni", sell: "28.760,00", change: 0.78, unit: "adet" },
+  { code: "Cumhuriyet", name: "Cumhuriyet Altını", emission: "Yeni", sell: "29.040,00", change: 0.79, unit: "adet" },
+  { code: "Ata", name: "Ata Altın", emission: "Yeni", sell: "29.610,00", change: 0.81, unit: "adet" },
+  { code: "Reşat", name: "Reşat Altını", emission: "Yeni", sell: "31.220,00", change: 0.83, unit: "adet" },
+  { code: "22 Ayar", name: "Bilezik (22A)", sell: "4.024,00", change: 0.65, unit: "₺/gr" },
 ];
 
-function GoldHero() {
-  return (
-    <div
-      style={{
-        margin: "0 18px",
-        borderRadius: 24,
-        background: "linear-gradient(140deg, #2A1A05 0%, #1A1208 50%, #0E0903 100%)",
-        border: `1px solid rgba(245,158,11,0.20)`,
-        padding: 18,
-        position: "relative",
-        overflow: "hidden",
-        boxShadow: "0 18px 40px rgba(245,158,11,0.18), inset 0 1px 0 rgba(252,211,77,0.10)",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: -80,
-          right: -40,
-          width: 240,
-          height: 240,
-          borderRadius: 999,
-          background: "radial-gradient(circle, rgba(245,158,11,0.30) 0%, transparent 65%)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: -60,
-          left: -40,
-          width: 180,
-          height: 180,
-          borderRadius: 999,
-          background: "radial-gradient(circle, rgba(252,211,77,0.16) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
+const FILTERS = ["Hepsi", "Çeyrek", "Yarım", "Tam", "Cumhuriyet", "Ata", "Reşat", "Ayar"];
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, position: "relative" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <FlagBadge flag="🪙" size={38} gold />
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D", letterSpacing: -0.2 }}>
-              GRAM ALTIN <span style={{ color: "#A78B5C", fontWeight: 600 }}>· Has</span>
-            </div>
-            <div style={{ fontSize: 10.5, color: "#A78B5C", fontWeight: 600, marginTop: 2 }}>
-              Ons referansı · 2.612,40 $
-            </div>
-          </div>
-        </div>
-        <ChangePill v={0.82} big />
-      </div>
-
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", position: "relative" }}>
-        <div>
-          <div
-            style={{
-              fontSize: 38,
-              fontWeight: 800,
-              color: "#FEF3C7",
-              letterSpacing: -1.5,
-              lineHeight: 1,
-              fontFamily: SF_DISPLAY,
-              fontVariantNumeric: "tabular-nums",
-              textShadow: "0 0 24px rgba(245,158,11,0.35)",
-            }}
-          >
-            ₺4.384<span style={{ color: "#D6C28C" }}>,</span>20
-          </div>
-          <div style={{ fontSize: 11, color: "#A78B5C", fontWeight: 700, marginTop: 4, letterSpacing: 0.4 }}>
-            ALIŞ <span style={{ color: "#FCD34D", fontFamily: MONO }}>4.382,50</span>
-            <span style={{ margin: "0 8px", color: "#5C4A24" }}>·</span>
-            SATIŞ <span style={{ color: "#FEF3C7", fontFamily: MONO, fontWeight: 800 }}>4.384,20</span>
-          </div>
-        </div>
-        <Sparkline data={SPARK.up} width={92} height={48} color="#F59E0B" />
-      </div>
-    </div>
-  );
-}
-
-function CategoryStrip() {
-  return (
-    <div
-      style={{
-        display: "flex",
-        gap: 8,
-        padding: "0 18px",
-        overflowX: "auto",
-      }}
-    >
-      {CATEGORIES.map((c, i) => {
-        const active = i === 1;
-        return (
-          <div
-            key={c.id}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 6,
-              padding: "10px 12px",
-              borderRadius: 16,
-              background: active
-                ? "linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(180,83,9,0.10) 100%)"
-                : PALETTE.surface,
-              border: `1px solid ${active ? "rgba(245,158,11,0.35)" : PALETTE.border}`,
-              minWidth: 64,
-              flexShrink: 0,
-            }}
-          >
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 999,
-                background: active
-                  ? "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)"
-                  : PALETTE.surfaceHi,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: active ? "#3D2900" : PALETTE.muted,
-                fontSize: 14,
-                fontWeight: 800,
-                boxShadow: active ? "0 4px 10px rgba(245,158,11,0.3)" : "none",
-              }}
-            >
-              {c.icon}
-            </div>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 800,
-                color: active ? "#FCD34D" : PALETTE.fgMid,
-                letterSpacing: -0.1,
-              }}
-            >
-              {c.label}
-            </div>
-            <div
-              style={{
-                fontSize: 9,
-                fontWeight: 700,
-                color: active ? "#A78B5C" : PALETTE.muted,
-                fontFamily: MONO,
-              }}
-            >
-              {c.count}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function GoldRowItem({ row, divider }: { row: GoldRow; divider: boolean }) {
-  const sparkColor = row.change > 0 ? PALETTE.up : row.change < 0 ? PALETTE.down : PALETTE.muted;
+function TopBar() {
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 12,
-        padding: "12px 18px",
-        borderBottom: divider ? `1px solid ${PALETTE.border}` : "none",
+        justifyContent: "space-between",
+        padding: "10px 22px 0",
       }}
     >
-      <FlagBadge flag="🪙" size={36} gold />
+      <Logo height={18} light={false} />
+      <div style={{ textAlign: "right" }}>
+        <div style={{ fontSize: 10.5, color: "#A78B5C", fontWeight: 600, letterSpacing: 0.6 }}>
+          19 NİS · CUMA
+        </div>
+        <div style={{ fontSize: 10.5, color: C.mutedDim, fontFamily: MONO, marginTop: 2 }}>
+          14.32.08
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Spotlight() {
+  return (
+    <div style={{ padding: "26px 22px 22px", position: "relative" }}>
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: -40,
+          right: -60,
+          width: 240,
+          height: 240,
+          borderRadius: 999,
+          background:
+            "radial-gradient(circle, rgba(245,215,138,0.18) 0%, rgba(212,162,76,0.06) 35%, transparent 70%)",
+          pointerEvents: "none",
+          filter: "blur(2px)",
+        }}
+      />
+      <div
+        style={{
+          fontFamily: SERIF,
+          fontStyle: "italic",
+          fontSize: 14,
+          color: "#A78B5C",
+          letterSpacing: -0.1,
+          marginBottom: 6,
+          position: "relative",
+        }}
+      >
+        Kapalıçarşı, has altın
+      </div>
+      <div
+        style={{
+          fontFamily: DISPLAY,
+          fontSize: 38,
+          fontWeight: 500,
+          color: C.goldHi,
+          letterSpacing: -1.6,
+          lineHeight: 1,
+          position: "relative",
+          marginBottom: 4,
+        }}
+      >
+        Gram Altın
+      </div>
+      <div
+        style={{
+          fontFamily: SERIF,
+          fontStyle: "italic",
+          fontSize: 13,
+          color: "#A78B5C",
+          letterSpacing: -0.1,
+          marginBottom: 18,
+        }}
+      >
+        ons referansı 2.612,40 USD
+      </div>
+
+      <NumLg prefix="₺" whole="4.384" frac="20" size={64} color={C.goldHi} />
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+          marginTop: 18,
+        }}
+      >
+        <ChangeText v={0.82} size={15} color={C.gold} />
+        <span style={{ color: C.mutedDim, fontSize: 13 }}>·</span>
+        <span
+          style={{
+            fontFamily: SERIF,
+            fontStyle: "italic",
+            fontSize: 13,
+            color: "#A78B5C",
+            letterSpacing: -0.1,
+          }}
+        >
+          son 24 saat
+        </span>
+      </div>
+
+      <div
+        style={{
+          marginTop: 22,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: 0,
+          borderTop: `1px solid rgba(212,162,76,0.16)`,
+          paddingTop: 14,
+        }}
+      >
+        <Stat label="Alış" value="4.382,50" />
+        <Stat label="Satış" value="4.384,20" emphasized />
+        <Stat label="Birim" value="₺ / gr" subtle italic />
+      </div>
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  emphasized,
+  subtle,
+  italic,
+}: {
+  label: string;
+  value: string;
+  emphasized?: boolean;
+  subtle?: boolean;
+  italic?: boolean;
+}) {
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: 9.5,
+          color: "#A78B5C",
+          fontWeight: 700,
+          letterSpacing: 1.2,
+          marginBottom: 4,
+        }}
+      >
+        {label.toUpperCase()}
+      </div>
+      <div
+        style={{
+          fontFamily: italic ? SERIF : MONO,
+          fontStyle: italic ? "italic" : "normal",
+          fontSize: 14,
+          color: emphasized ? C.goldHi : subtle ? "#A78B5C" : C.inkSoft,
+          fontWeight: emphasized ? 700 : 500,
+          fontVariantNumeric: "tabular-nums",
+          letterSpacing: -0.3,
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function FilterRow() {
+  return (
+    <div
+      style={{
+        padding: "14px 22px 18px",
+        borderTop: `1px solid ${C.hairline}`,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          gap: 14,
+          overflowX: "auto",
+          alignItems: "baseline",
+        }}
+      >
+        {FILTERS.map((f, i) => {
+          const active = i === 0;
+          return (
+            <span
+              key={f}
+              style={{
+                fontFamily: DISPLAY,
+                fontSize: active ? 17 : 15,
+                fontWeight: active ? 600 : 400,
+                color: active ? C.goldHi : C.muted,
+                letterSpacing: -0.4,
+                whiteSpace: "nowrap",
+                paddingBottom: 4,
+                borderBottom: active ? `1px solid ${C.gold}` : "1px solid transparent",
+                fontStyle: active ? "normal" : "italic",
+              }}
+            >
+              {f}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ListRow({ row, last }: { row: Row; last: boolean }) {
+  const up = row.change > 0;
+  const down = row.change < 0;
+  const c = up ? C.up : down ? C.down : C.muted;
+  return (
+    <div
+      style={{
+        padding: "14px 22px",
+        display: "flex",
+        alignItems: "center",
+        borderBottom: last ? "none" : `1px solid ${C.hairline}`,
+      }}
+    >
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 14.5, fontWeight: 800, color: PALETTE.fg, letterSpacing: -0.2 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <span
+            style={{
+              fontFamily: DISPLAY,
+              fontSize: 18,
+              fontWeight: 500,
+              color: C.ink,
+              letterSpacing: -0.4,
+              lineHeight: 1,
+            }}
+          >
             {row.code}
           </span>
           {row.emission ? (
             <span
               style={{
-                fontSize: 8.5,
-                fontWeight: 800,
-                color: row.emission === "YENİ" ? "#FCD34D" : "#A78B5C",
-                background: row.emission === "YENİ" ? "rgba(245,158,11,0.14)" : "rgba(167,139,92,0.14)",
-                padding: "1px 6px",
-                borderRadius: 4,
-                letterSpacing: 0.5,
+                fontFamily: SERIF,
+                fontStyle: "italic",
+                fontSize: 11,
+                color: row.emission === "Yeni" ? C.gold : "#A78B5C",
+                letterSpacing: -0.1,
               }}
             >
-              {row.emission}
+              · {row.emission.toLowerCase()}
             </span>
           ) : null}
         </div>
         <div
           style={{
+            fontFamily: SERIF,
+            fontStyle: "italic",
             fontSize: 11.5,
-            color: PALETTE.muted,
-            fontWeight: 600,
-            marginTop: 1,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            color: C.mutedDim,
+            marginTop: 3,
           }}
         >
           {row.name} · {row.unit}
         </div>
       </div>
-      <Sparkline data={row.spark} width={50} height={22} color={sparkColor} />
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", minWidth: 86 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
         <span
           style={{
-            fontSize: 14,
-            fontWeight: 800,
-            color: PALETTE.fg,
             fontFamily: MONO,
+            fontSize: 16,
+            fontWeight: 600,
+            color: C.ink,
             fontVariantNumeric: "tabular-nums",
-            letterSpacing: -0.3,
+            letterSpacing: -0.4,
+            lineHeight: 1.1,
           }}
         >
           {row.sell}
         </span>
-        <ChangePill v={row.change} />
+        <span
+          style={{
+            fontSize: 11.5,
+            color: c,
+            fontWeight: 600,
+            marginTop: 2,
+            fontFamily: MONO,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {up ? "↑" : down ? "↓" : "·"} {Math.abs(row.change).toFixed(2)}%
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function Footer() {
+  return (
+    <div
+      style={{
+        padding: "22px 22px 28px",
+        textAlign: "center",
+        borderTop: `1px solid ${C.hairline}`,
+      }}
+    >
+      <div
+        style={{
+          fontFamily: SERIF,
+          fontStyle: "italic",
+          fontSize: 11.5,
+          color: C.mutedDim,
+          letterSpacing: 0.1,
+        }}
+      >
+        Sarrafiye fiyatları Kapalıçarşı toptan piyasasından derlenmiştir.
+      </div>
+      <div
+        style={{
+          fontSize: 10,
+          color: C.mutedDim,
+          fontWeight: 600,
+          letterSpacing: 1.4,
+          marginTop: 8,
+        }}
+      >
+        ÇARŞI PİYASA — 2026
       </div>
     </div>
   );
@@ -271,61 +364,17 @@ function GoldRowItem({ row, divider }: { row: GoldRow; divider: boolean }) {
 
 export function GoldHome() {
   return (
-    <PhoneShell>
-      <div style={{ paddingBottom: 20 }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "6px 20px 14px",
-          }}
-        >
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#A78B5C", letterSpacing: 1.4 }}>
-              KAPALIÇARŞI · CANLI
-            </div>
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: 800,
-                color: PALETTE.fg,
-                letterSpacing: -0.6,
-                marginTop: 2,
-              }}
-            >
-              Altın
-            </div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
-            <LivePulse color="#F59E0B" label="CANLI" />
-            <span style={{ fontSize: 10.5, color: PALETTE.muted, fontFamily: MONO, fontWeight: 600 }}>
-              Son · 14:32:08
-            </span>
-          </div>
+    <PhoneShell bgGradient="linear-gradient(180deg, #14110A 0%, #0A0905 35%, #07060A 100%)">
+      <div style={{ paddingBottom: 4 }}>
+        <TopBar />
+        <Spotlight />
+        <FilterRow />
+        <div>
+          {ROWS.map((r, i) => (
+            <ListRow key={`${r.code}-${i}`} row={r} last={i === ROWS.length - 1} />
+          ))}
         </div>
-
-        <GoldHero />
-
-        <Section title="KATEGORİ">
-          <CategoryStrip />
-        </Section>
-
-        <Section title="ÇEYREK ALTIN" action="Tümü">
-          <div
-            style={{
-              margin: "0 14px",
-              background: PALETTE.surface,
-              border: `1px solid ${PALETTE.border}`,
-              borderRadius: 18,
-              overflow: "hidden",
-            }}
-          >
-            {ROWS.map((r, i) => (
-              <GoldRowItem key={`${r.code}-${i}`} row={r} divider={i !== ROWS.length - 1} />
-            ))}
-          </div>
-        </Section>
+        <Footer />
       </div>
     </PhoneShell>
   );
