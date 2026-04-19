@@ -373,6 +373,11 @@ export const setPrefs = onRequest(COMMON, async (req, res) => {
       .filter((c): c is string => typeof c === "string")
       .map((s) => s.toUpperCase())
       .slice(0, 30);
+    // Cihazdan gelen timestamp varsa kullan, yoksa şimdiki zaman
+    update.favoritesUpdatedAt =
+      typeof body.favoritesUpdatedAt === "number"
+        ? body.favoritesUpdatedAt
+        : Date.now();
   }
   await db.doc(`prefs/${deviceId}`).set(update, { merge: true });
   res.json({ ok: true });
@@ -390,6 +395,84 @@ export const getPrefs = onRequest(COMMON, async (req, res) => {
     movesEnabled: typeof d.movesEnabled === "boolean" ? d.movesEnabled : true,
     weeklyEnabled: typeof d.weeklyEnabled === "boolean" ? d.weeklyEnabled : true,
     favorites: Array.isArray(d.favorites) ? d.favorites : [],
+    favoritesUpdatedAt:
+      typeof d.favoritesUpdatedAt === "number" ? d.favoritesUpdatedAt : 0,
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PORTFÖY SYNC — cihaz başına Firestore'da tutulur, last-write-wins
+// ──────────────────────────────────────────────────────────────────────────────
+
+type PortfolioItemPayload = {
+  id: string;
+  type: "currency" | "gold";
+  code: string;
+  name: string;
+  nameTR: string;
+  amount: number;
+  purchasePrice: number;
+  purchaseDate: string;
+};
+
+function sanitizePortfolioItems(raw: unknown): PortfolioItemPayload[] {
+  if (!Array.isArray(raw)) return [];
+  const out: PortfolioItemPayload[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const id = typeof o.id === "string" ? o.id : null;
+    const code = typeof o.code === "string" ? o.code : null;
+    const type = o.type === "gold" ? "gold" : "currency";
+    const amount = typeof o.amount === "number" && Number.isFinite(o.amount) ? o.amount : null;
+    const purchasePrice =
+      typeof o.purchasePrice === "number" && Number.isFinite(o.purchasePrice)
+        ? o.purchasePrice
+        : null;
+    if (!id || !code || amount === null || purchasePrice === null) continue;
+    out.push({
+      id,
+      type,
+      code,
+      name: typeof o.name === "string" ? o.name : code,
+      nameTR: typeof o.nameTR === "string" ? o.nameTR : code,
+      amount,
+      purchasePrice,
+      purchaseDate: typeof o.purchaseDate === "string" ? o.purchaseDate : "",
+    });
+    if (out.length >= 200) break;
+  }
+  return out;
+}
+
+export const setPortfolio = onRequest(COMMON, async (req, res) => {
+  if (req.method !== "POST") return bad(res, 405, "POST only");
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const deviceId = getString(body.deviceId);
+  if (!deviceId) return bad(res, 400, "deviceId required");
+  const items = sanitizePortfolioItems(body.items);
+  const clientUpdatedAt =
+    typeof body.clientUpdatedAt === "number" ? body.clientUpdatedAt : Date.now();
+  await db.doc(`portfolios/${deviceId}`).set(
+    {
+      items,
+      clientUpdatedAt,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  res.json({ ok: true, count: items.length });
+});
+
+export const getPortfolio = onRequest(COMMON, async (req, res) => {
+  const deviceId = getString(req.query.deviceId as string | undefined);
+  if (!deviceId) return bad(res, 400, "deviceId required");
+  const snap = await db.doc(`portfolios/${deviceId}`).get();
+  const d = snap.data() ?? {};
+  res.json({
+    items: Array.isArray(d.items) ? d.items : [],
+    clientUpdatedAt:
+      typeof d.clientUpdatedAt === "number" ? d.clientUpdatedAt : 0,
   });
 });
 

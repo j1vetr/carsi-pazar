@@ -11,6 +11,8 @@ export const FN = {
   getNews: `${FUNCTIONS_BASE}/getNews`,
   setPrefs: `${FUNCTIONS_BASE}/setPrefs`,
   getPrefs: `${FUNCTIONS_BASE}/getPrefs`,
+  setPortfolio: `${FUNCTIONS_BASE}/setPortfolio`,
+  getPortfolio: `${FUNCTIONS_BASE}/getPortfolio`,
 };
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
@@ -100,6 +102,7 @@ export type UserPrefs = {
   movesEnabled: boolean;
   weeklyEnabled: boolean;
   favorites: string[];
+  favoritesUpdatedAt: number;
 };
 
 export async function apiGetPrefs(deviceId: string): Promise<UserPrefs> {
@@ -116,6 +119,43 @@ export async function apiSetPrefs(input: {
   movesEnabled?: boolean;
   weeklyEnabled?: boolean;
   favorites?: string[];
+  favoritesUpdatedAt?: number;
 }): Promise<void> {
   await postJson<{ ok: boolean }>(FN.setPrefs, input);
+}
+
+export type ServerPortfolioItem = {
+  id: string;
+  type: "currency" | "gold";
+  code: string;
+  name: string;
+  nameTR: string;
+  amount: number;
+  purchasePrice: number;
+  purchaseDate: string;
+};
+
+export async function apiGetPortfolio(
+  deviceId: string
+): Promise<{ items: ServerPortfolioItem[]; clientUpdatedAt: number }> {
+  const r = await fetch(
+    `${FN.getPortfolio}?deviceId=${encodeURIComponent(deviceId)}`
+  );
+  if (!r.ok) throw new Error(`${r.status}`);
+  const j = (await r.json()) as {
+    items: ServerPortfolioItem[];
+    clientUpdatedAt: number;
+  };
+  return {
+    items: Array.isArray(j.items) ? j.items : [],
+    clientUpdatedAt: typeof j.clientUpdatedAt === "number" ? j.clientUpdatedAt : 0,
+  };
+}
+
+export async function apiSetPortfolio(input: {
+  deviceId: string;
+  items: ServerPortfolioItem[];
+  clientUpdatedAt: number;
+}): Promise<void> {
+  await postJson<{ ok: boolean }>(FN.setPortfolio, input);
 }
