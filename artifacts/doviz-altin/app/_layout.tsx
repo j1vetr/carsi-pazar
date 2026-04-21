@@ -24,6 +24,7 @@ import { DrawerProvider } from "@/contexts/DrawerContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { scheduleReviewPrompt } from "@/lib/reviewPrompt";
 import { restoreOngoingNotificationIfEnabled } from "@/lib/ongoingNotification";
+import { isOnboardingSeen } from "@/lib/onboardingPref";
 import { loadStartupTab, routeForStartupTab } from "@/lib/startupPref";
 import { registerWidgetBackgroundTask } from "@/lib/widgetBackgroundTask";
 import { refreshPriceWidget } from "@/widgets/refresh";
@@ -50,6 +51,7 @@ function RootLayoutNav() {
       <Stack.Screen name="tools/compare" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="legal/disclaimer" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="legal/privacy" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="onboarding" options={{ headerShown: false, animation: "fade", gestureEnabled: false }} />
     </Stack>
   );
 }
@@ -81,17 +83,27 @@ export default function RootLayout() {
     void scheduleReviewPrompt();
   }, []);
 
-  // Honor user's preferred startup tab (default = Döviz/index). Runs once
-  // shortly after mount so the router is ready.
+  // First-launch onboarding takes precedence over startup-tab routing.
+  // If never seen, redirect to /onboarding; otherwise honor user's preferred
+  // startup tab (default = Döviz/index).
   useEffect(() => {
     let cancelled = false;
-    const t = setTimeout(() => {
-      void loadStartupTab().then((tab) => {
+    const t = setTimeout(async () => {
+      try {
+        const seen = await isOnboardingSeen();
+        if (cancelled) return;
+        if (!seen) {
+          try {
+            router.replace("/onboarding" as never);
+          } catch {}
+          return;
+        }
+        const tab = await loadStartupTab();
         if (cancelled || tab === "index") return;
         try {
           router.replace(routeForStartupTab(tab) as never);
         } catch {}
-      });
+      } catch {}
     }, 50);
     return () => {
       cancelled = true;

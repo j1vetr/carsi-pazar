@@ -64,6 +64,12 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `app.json` android.permissions: POST_NOTIFICATIONS, FOREGROUND_SERVICE, FOREGROUND_SERVICE_DATA_SYNC, WAKE_LOCK eklendi.
 - Native modül; Expo Go çalışmaz, dev client/EAS build gerekir.
 
+### Onboarding (ilk açılış)
+- `app/onboarding.tsx` — 4 sayfa swipeable (FlatList horizontal pagingEnabled). Sayfa 1 (light, hero), Sayfa 2 (light, widget), Sayfa 3 (dark, notif — CTA `Notifications.requestPermissionsAsync()`), Sayfa 4 (navy, portföy). Renk tokenleri `constants/colors.ts` ile birebir uyumlu. icon.png koyu zeminlerde beyaz çip içinde.
+- `lib/onboardingPref.ts` — AsyncStorage flag `onboarding-seen-v1` (`isOnboardingSeen`, `setOnboardingSeen`, `resetOnboardingSeen`).
+- `app/_layout.tsx` — startup tab redirect'inden ÖNCE `isOnboardingSeen()` kontrol edilir; false ise `/onboarding`'e replace, true ise startup tercihi uygulanır.
+- Stack.Screen `onboarding` `gestureEnabled: false`, `animation: "fade"`. Mockup referansı: `mockup-sandbox/src/components/mockups/carsi-widget/OnboardingFlow.tsx`.
+
 **newArchEnabled:** `true` (Reanimated 4 gerektiriyor, sabit)
 
 **Backend haberler:**
