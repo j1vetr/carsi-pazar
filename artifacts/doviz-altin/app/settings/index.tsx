@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -8,6 +8,12 @@ import { Icon, type IconName } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import {
+  loadStartupTab,
+  saveStartupTab,
+  STARTUP_TABS,
+  type StartupTab,
+} from "@/lib/startupPref";
 
 function PrefCard({
   colors, icon, iconColor, title, subtitle, enabled, onToggle,
@@ -91,6 +97,16 @@ export default function SettingsScreen() {
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 40 : (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom) + 24;
 
+  const [startupTab, setStartupTab] = useState<StartupTab>("index");
+  useEffect(() => {
+    void loadStartupTab().then(setStartupTab);
+  }, []);
+  const pickStartup = (tab: StartupTab) => {
+    Haptics.selectionAsync().catch(() => {});
+    setStartupTab(tab);
+    void saveStartupTab(tab);
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScreenHeader eyebrow="Tercihler" title="Ayarlar" />
@@ -140,6 +156,61 @@ export default function SettingsScreen() {
         />
 
         <View style={{ height: 18 }} />
+
+        <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 1.2, paddingHorizontal: 4, paddingBottom: 10 }}>
+          BAŞLANGIÇ SAYFASI
+        </Text>
+        <View
+          style={{
+            backgroundColor: colors.card,
+            borderRadius: 16,
+            padding: 14,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: colors.border,
+            marginBottom: 18,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 12.5,
+              fontFamily: "Inter_500Medium",
+              color: colors.mutedForeground,
+              marginBottom: 10,
+              lineHeight: 17,
+            }}
+          >
+            Uygulamayı her açtığında ilk olarak hangi ekran gelsin?
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {STARTUP_TABS.map((opt) => {
+              const active = startupTab === opt.value;
+              return (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => pickStartup(opt.value)}
+                  style={({ pressed }) => ({
+                    paddingHorizontal: 14,
+                    paddingVertical: 9,
+                    borderRadius: 11,
+                    backgroundColor: active ? "#0B3D91" : colors.secondary,
+                    opacity: pressed ? 0.85 : 1,
+                  })}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontFamily: "Inter_600SemiBold",
+                      color: active ? "#fff" : colors.foreground,
+                      letterSpacing: -0.1,
+                    }}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
         <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 1.2, paddingHorizontal: 4, paddingBottom: 10 }}>
           GÖRÜNÜM & ARAÇLAR

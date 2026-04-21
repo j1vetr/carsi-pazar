@@ -6,7 +6,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import LottieView from "lottie-react-native";
 import React, { useEffect, useRef, useState } from "react";
@@ -24,6 +24,7 @@ import { DrawerProvider } from "@/contexts/DrawerContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { scheduleReviewPrompt } from "@/lib/reviewPrompt";
 import { restoreOngoingNotificationIfEnabled } from "@/lib/ongoingNotification";
+import { loadStartupTab, routeForStartupTab } from "@/lib/startupPref";
 import { registerWidgetBackgroundTask } from "@/lib/widgetBackgroundTask";
 import { refreshPriceWidget } from "@/widgets/refresh";
 
@@ -78,6 +79,24 @@ export default function RootLayout() {
 
   useEffect(() => {
     void scheduleReviewPrompt();
+  }, []);
+
+  // Honor user's preferred startup tab (default = Döviz/index). Runs once
+  // shortly after mount so the router is ready.
+  useEffect(() => {
+    let cancelled = false;
+    const t = setTimeout(() => {
+      void loadStartupTab().then((tab) => {
+        if (cancelled || tab === "index") return;
+        try {
+          router.replace(routeForStartupTab(tab) as never);
+        } catch {}
+      });
+    }, 50);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
   }, []);
 
   // Refresh the home-screen price widget whenever the app opens or returns
