@@ -23,9 +23,9 @@ export function PulseDark() {
            }}>
         {/* LOGO */}
         <div className="flex items-center justify-center pl-7 pr-5 shrink-0">
-          <img src="/__mockup/brand/logo-light.png"
+          <img src="/__mockup/brand/logo-dark.png"
                alt="Çarşı Piyasa"
-               className="h-[44px] w-auto"
+               className="h-[34px] w-auto"
                style={{ filter: "drop-shadow(0 2px 8px rgba(96,165,250,0.25))" }} />
         </div>
 

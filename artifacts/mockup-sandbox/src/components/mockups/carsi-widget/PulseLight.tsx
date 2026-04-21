@@ -22,9 +22,9 @@ export function PulseLight() {
            }}>
         {/* LOGO */}
         <div className="flex items-center justify-center pl-7 pr-5 shrink-0">
-          <img src="/__mockup/brand/logo-dark.png"
+          <img src="/__mockup/brand/logo-light.png"
                alt="Çarşı Piyasa"
-               className="h-[44px] w-auto"
+               className="h-[34px] w-auto"
                style={{ filter: "drop-shadow(0 1px 2px rgba(15,23,42,0.08))" }} />
         </div>
 
