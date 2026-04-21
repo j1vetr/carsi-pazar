@@ -33,6 +33,8 @@ import {
   type UserPrefs,
 } from "@/lib/api";
 import { setupPushAndRegister } from "@/lib/notifications";
+import { isOnboardingSeen, ONBOARDING_DONE_EVENT } from "@/lib/onboardingPref";
+import { DeviceEventEmitter, type EmitterSubscription } from "react-native";
 import * as Notifications from "expo-notifications";
 import { addInboxItem, subscribeInbox, unreadCount as inboxUnreadCount } from "@/lib/inbox";
 import { scheduleWeeklyPortfolioReminder } from "@/lib/weeklyReminder";
@@ -272,6 +274,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const favoritesUpdatedAtRef = useRef<number>(0);
   // Portföy push için debounce timer
   const portfolioPushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Onboarding bittiğinde push akışını başlatan event listener
+  const onboardingSubRef = useRef<EmitterSubscription | null>(null);
 
   const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000;
   const HISTORY_MAX_AGE_MS = 48 * 60 * 60 * 1000;
@@ -375,7 +379,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (!mounted) return;
       await refreshData();
 
-      // Push + alarm sync (non-blocking)
+      // Push + alarm sync (non-blocking).
+      // ÖNEMLİ: Bu çağrı bildirim izin diyaloğunu tetikler. Onboarding görülene
+      // kadar erteliyoruz; aksi halde kullanıcıya 1. slide'da hemen sistem
+      // izin pop-up'ı çıkıyor (ki istediğimiz şey 3. slide'daki kontrollü
+      // istek). setOnboardingSeen() çağrılınca DeviceEventEmitter event yayar
+      // ve aşağıdaki listener push akışını başlatır.
+      const runPushAndSync = () => {
       setupPushAndRegister()
         .then(({ deviceId }) => {
           deviceIdRef.current = deviceId;
@@ -462,6 +472,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setAlerts(server.map(serverAlertToLocal));
         })
         .catch((err) => console.warn("[alerts] sync hatası:", err));
+      };
+
+      const seenOnboarding = await isOnboardingSeen();
+      if (seenOnboarding) {
+        runPushAndSync();
+      } else {
+        const sub = DeviceEventEmitter.addListener(
+          ONBOARDING_DONE_EVENT,
+          () => {
+            sub.remove();
+            if (mounted) runPushAndSync();
+          },
+        );
+        // cleanup için referansı tut
+        onboardingSubRef.current = sub;
+      }
 
       // İlk haber çekme + 10dk'da bir yenile (backend zaten 30dk'da bir RSS poll ediyor)
       void refreshNews();
@@ -521,6 +547,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (respSub) respSub.remove();
       if (foregroundSub) foregroundSub.remove();
       if (inboxSub) inboxSub();
+      if (onboardingSubRef.current) {
+        onboardingSubRef.current.remove();
+        onboardingSubRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
