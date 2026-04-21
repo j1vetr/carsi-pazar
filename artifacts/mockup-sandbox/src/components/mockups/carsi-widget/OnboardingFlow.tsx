@@ -12,8 +12,12 @@ type Slide = {
   visual: () => JSX.Element;
   ground: string;
   ink: string;
+  inkSoft: string;
+  inkMute: string;
   accent: string;
   divider: string;
+  buttonBg: string;
+  buttonInk: string;
   showSkip: boolean;
 };
 
@@ -56,15 +60,12 @@ function PageIndex({ num, total, ink }: { num: string; total: string; ink: strin
       className="flex items-baseline gap-1.5"
       style={{ fontFeatureSettings: '"tnum" on, "lnum" on' }}
     >
-      <span
-        className="text-[11px] font-bold tracking-[1.5px]"
-        style={{ color: ink, opacity: 0.95 }}
-      >
+      <span className="text-[11px] font-bold tracking-[1.5px]" style={{ color: ink }}>
         {num}
       </span>
       <span
         className="text-[11px] font-bold tracking-[1.5px]"
-        style={{ color: ink, opacity: 0.32 }}
+        style={{ color: ink, opacity: 0.34 }}
       >
         / {total}
       </span>
@@ -72,19 +73,17 @@ function PageIndex({ num, total, ink }: { num: string; total: string; ink: strin
   );
 }
 
-function BrandMark({ ink }: { ink: string }) {
-  const isDarkInk = ink === "#0B1224" || ink === "#08111F";
-  const src = isDarkInk ? ASSET("logo-dark.png") : ASSET("logo-light.png");
+function BrandHeader({ ink }: { ink: string }) {
   return (
     <div className="flex items-center gap-2">
       <img
-        src={src}
+        src={ASSET("icon.png")}
         alt=""
-        className="w-[18px] h-[18px] object-contain"
+        className="w-[20px] h-[20px] object-contain rounded-[5px]"
       />
       <span
         className="text-[10.5px] font-bold tracking-[2px]"
-        style={{ color: ink, opacity: 0.85 }}
+        style={{ color: ink, opacity: 0.78 }}
       >
         ÇARŞI PİYASA
       </span>
@@ -112,17 +111,12 @@ function Dots({ active, total, accent, ink }: { active: number; total: number; a
 }
 
 function SlideShell({ slide, activeIdx }: { slide: Slide; activeIdx: number }) {
-  const inkSoft = slide.ink + "B3";
-  const inkMute = slide.ink + "80";
   return (
-    <div
-      className="w-full h-full flex flex-col"
-      style={{ background: slide.ground }}
-    >
+    <div className="w-full h-full flex flex-col" style={{ background: slide.ground }}>
       {/* status bar */}
       <div
         className="flex items-center justify-between px-6 pt-3 text-[10.5px] font-bold tracking-wide"
-        style={{ color: inkMute }}
+        style={{ color: slide.inkMute }}
       >
         <span>09:41</span>
         <span>%84</span>
@@ -130,7 +124,7 @@ function SlideShell({ slide, activeIdx }: { slide: Slide; activeIdx: number }) {
 
       {/* header row */}
       <div className="flex items-center justify-between px-6 pt-5">
-        <BrandMark ink={slide.ink} />
+        <BrandHeader ink={slide.ink} />
         <PageIndex num={slide.num} total={slide.total} ink={slide.ink} />
       </div>
 
@@ -141,10 +135,7 @@ function SlideShell({ slide, activeIdx }: { slide: Slide; activeIdx: number }) {
 
       {/* divider */}
       <div className="px-6">
-        <div
-          className="h-px w-full"
-          style={{ background: slide.divider }}
-        />
+        <div className="h-px w-full" style={{ background: slide.divider }} />
       </div>
 
       {/* type block */}
@@ -157,10 +148,7 @@ function SlideShell({ slide, activeIdx }: { slide: Slide; activeIdx: number }) {
         </div>
         <h1
           className="font-bold leading-[1.06] tracking-[-0.7px] mb-3"
-          style={{
-            color: slide.ink,
-            fontSize: 26,
-          }}
+          style={{ color: slide.ink, fontSize: 26 }}
         >
           {slide.title.map((line, i) => (
             <span key={i} className="block">
@@ -170,17 +158,14 @@ function SlideShell({ slide, activeIdx }: { slide: Slide; activeIdx: number }) {
         </h1>
         <p
           className="text-[12.5px] font-medium leading-[1.55] mb-7"
-          style={{ color: inkSoft }}
+          style={{ color: slide.inkSoft }}
         >
           {slide.body}
         </p>
 
         <button
           className="w-full rounded-[16px] py-[15px] flex items-center justify-center gap-2 text-[13.5px] font-bold"
-          style={{
-            background: slide.ink,
-            color: slide.ground === "#F5F2EC" ? "#fff" : "#0B1224",
-          }}
+          style={{ background: slide.buttonBg, color: slide.buttonInk }}
         >
           {slide.cta}
           <ArrowRight size={15} strokeWidth={2.6} />
@@ -190,10 +175,7 @@ function SlideShell({ slide, activeIdx }: { slide: Slide; activeIdx: number }) {
           <Dots active={activeIdx} total={4} accent={slide.accent} ink={slide.ink} />
           <span
             className="text-[11px] font-semibold tracking-wide"
-            style={{
-              color: inkMute,
-              opacity: slide.showSkip ? 1 : 0,
-            }}
+            style={{ color: slide.inkMute, opacity: slide.showSkip ? 1 : 0 }}
           >
             Atla
           </span>
@@ -207,46 +189,49 @@ function SlideShell({ slide, activeIdx }: { slide: Slide; activeIdx: number }) {
 
 function HeroVisual() {
   return (
-    <div className="relative w-full" style={{ height: 240 }}>
-      {/* large brand mark */}
-      <div className="absolute inset-0 flex items-center justify-center">
+    <div className="relative w-full" style={{ height: 244 }}>
+      {/* concentric rings */}
+      <div
+        className="absolute left-1/2 top-1/2 rounded-full"
+        style={{
+          width: 220, height: 220, marginLeft: -110, marginTop: -130,
+          border: "1px solid rgba(11,61,145,0.10)",
+        }}
+      />
+      <div
+        className="absolute left-1/2 top-1/2 rounded-full"
+        style={{
+          width: 296, height: 296, marginLeft: -148, marginTop: -168,
+          border: "1px solid rgba(11,61,145,0.06)",
+        }}
+      />
+      <div
+        className="absolute left-1/2 top-1/2 rounded-full"
+        style={{
+          width: 372, height: 372, marginLeft: -186, marginTop: -206,
+          border: "1px solid rgba(11,61,145,0.03)",
+        }}
+      />
+      {/* big square icon */}
+      <div className="absolute inset-0 flex items-start justify-center pt-2">
         <img
-          src={ASSET("logo-color.png")}
+          src={ASSET("icon.png")}
           alt="Çarşı Piyasa"
-          className="w-[140px] h-[140px] object-contain"
-          style={{ filter: "drop-shadow(0 18px 38px rgba(11,61,145,0.35))" }}
+          className="w-[128px] h-[128px] object-contain rounded-[28px]"
+          style={{
+            boxShadow: "0 22px 44px rgba(11,61,145,0.28)",
+          }}
         />
       </div>
-      {/* faint ring */}
-      <div
-        className="absolute left-1/2 top-1/2 rounded-full"
-        style={{
-          width: 220,
-          height: 220,
-          marginLeft: -110,
-          marginTop: -110,
-          border: "1px solid rgba(11,18,36,0.08)",
-        }}
-      />
-      <div
-        className="absolute left-1/2 top-1/2 rounded-full"
-        style={{
-          width: 280,
-          height: 280,
-          marginLeft: -140,
-          marginTop: -140,
-          border: "1px solid rgba(11,18,36,0.05)",
-        }}
-      />
-      {/* number ticker bottom */}
+      {/* sample numbers anchored bottom */}
       <div className="absolute left-0 right-0 bottom-0 px-6">
         <div
-          className="text-[10px] font-bold tracking-[2px] mb-2"
-          style={{ color: "#0B1224", opacity: 0.45 }}
+          className="text-[9.5px] font-bold tracking-[2px] mb-2"
+          style={{ color: "#0B1F3A", opacity: 0.45 }}
         >
           ŞU AN CANLI
         </div>
-        <div className="flex items-baseline gap-4 overflow-hidden">
+        <div className="flex items-baseline gap-5">
           {[
             { c: "USD", v: "41,9120" },
             { c: "EUR", v: "47,3088" },
@@ -258,7 +243,7 @@ function HeroVisual() {
               </span>
               <span
                 className="text-[14px] font-bold"
-                style={{ color: "#0B1224", fontFeatureSettings: '"tnum" on' }}
+                style={{ color: "#0B1F3A", fontFeatureSettings: '"tnum" on' }}
               >
                 {r.v}
               </span>
@@ -272,13 +257,13 @@ function HeroVisual() {
 
 function WidgetVisual() {
   return (
-    <div className="relative w-full" style={{ height: 240 }}>
+    <div className="relative w-full" style={{ height: 244 }}>
       {/* simulated home screen */}
       <div
         className="absolute inset-x-6 bottom-0 rounded-t-[28px]"
         style={{
-          height: 222,
-          background: "linear-gradient(180deg,rgba(11,18,36,0.04) 0%,rgba(11,18,36,0.10) 100%)",
+          height: 226,
+          background: "linear-gradient(180deg,rgba(11,31,58,0.04) 0%,rgba(11,31,58,0.10) 100%)",
         }}
       />
       <div className="absolute inset-x-10 bottom-2 grid grid-cols-4 gap-2">
@@ -286,26 +271,24 @@ function WidgetVisual() {
           <div
             key={i}
             className="aspect-square rounded-[12px]"
-            style={{
-              background: `rgba(11,18,36,${0.06 + (i % 3) * 0.03})`,
-            }}
+            style={{ background: `rgba(11,31,58,${0.06 + (i % 3) * 0.03})` }}
           />
         ))}
       </div>
 
-      {/* widget card centered, lifted */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-[12px]" style={{ width: 244 }}>
+      {/* widget card centered */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-[14px]" style={{ width: 246 }}>
         <div
           className="rounded-[18px] p-3.5"
           style={{
-            background: "#0B1224",
-            boxShadow: "0 24px 38px rgba(11,18,36,0.32)",
+            background: "#0B1F3A",
+            boxShadow: "0 24px 38px rgba(11,31,58,0.32)",
           }}
         >
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-1.5">
-              <img src={ASSET("logo-light.png")} alt="" className="w-3 h-3 object-contain" />
-              <span className="text-[9px] font-bold tracking-[1.5px] text-white/60">
+              <img src={ASSET("icon.png")} alt="" className="w-3.5 h-3.5 object-contain rounded-[3px]" />
+              <span className="text-[9px] font-bold tracking-[1.5px] text-white/65">
                 ÇARŞI PİYASA
               </span>
             </div>
@@ -321,7 +304,7 @@ function WidgetVisual() {
               <div
                 key={r.code}
                 className="rounded-[10px] px-2.5 py-2"
-                style={{ background: "rgba(255,255,255,0.05)" }}
+                style={{ background: "rgba(255,255,255,0.06)" }}
               >
                 <div className="text-[8.5px] font-bold tracking-wide text-white/65">
                   {r.code}
@@ -352,8 +335,7 @@ function WidgetVisual() {
 
 function NotifVisual() {
   return (
-    <div className="relative w-full px-6" style={{ height: 240 }}>
-      {/* time */}
+    <div className="relative w-full px-6" style={{ height: 244 }}>
       <div className="text-center pt-1">
         <div className="text-[44px] font-bold text-white tracking-[-1.5px] leading-none">
           09:41
@@ -362,7 +344,6 @@ function NotifVisual() {
           Salı, 21 Nisan
         </div>
       </div>
-      {/* stacked notification cards */}
       <div className="absolute left-6 right-6 bottom-1 flex flex-col gap-1.5">
         {[
           {
@@ -386,9 +367,9 @@ function NotifVisual() {
             }}
           >
             <img
-              src={ASSET("logo-light.png")}
+              src={ASSET("icon.png")}
               alt=""
-              className="w-4 h-4 object-contain mt-0.5"
+              className="w-[18px] h-[18px] object-contain mt-0.5 rounded-[4px]"
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-1.5">
@@ -411,8 +392,7 @@ function NotifVisual() {
 
 function PortfolioVisual() {
   return (
-    <div className="relative w-full px-6" style={{ height: 240 }}>
-      {/* big number */}
+    <div className="relative w-full px-6" style={{ height: 244 }}>
       <div className="text-center pt-2">
         <div className="text-[10px] font-bold tracking-[2.5px] text-white/55">
           PORTFÖY DEĞERİ
@@ -430,7 +410,6 @@ function PortfolioVisual() {
           ▲ +%4,82  ·  +₺5.880
         </div>
       </div>
-      {/* compact rows */}
       <div className="absolute left-6 right-6 bottom-2 space-y-1.5">
         {[
           { code: "USD", qty: "1.500", val: "₺62.868", pct: "+%2,1", up: true },
@@ -469,76 +448,80 @@ function PortfolioVisual() {
 
 // =============== content ===============
 
+const LIGHT = {
+  ground: "#FFFFFF",
+  ink: "#0B1F3A",
+  inkSoft: "rgba(11,31,58,0.65)",
+  inkMute: "rgba(11,31,58,0.45)",
+  divider: "rgba(11,31,58,0.08)",
+  buttonBg: "#0B3D91",
+  buttonInk: "#FFFFFF",
+};
+
+const DARK = {
+  ground: "linear-gradient(180deg,#0A1628 0%,#08111F 100%)",
+  ink: "#E8EEF7",
+  inkSoft: "rgba(232,238,247,0.70)",
+  inkMute: "rgba(232,238,247,0.45)",
+  divider: "rgba(255,255,255,0.10)",
+  buttonBg: "#FFFFFF",
+  buttonInk: "#0B1F3A",
+};
+
+const NAVY = {
+  ground: "linear-gradient(180deg,#0B3D91 0%,#082B66 100%)",
+  ink: "#FFFFFF",
+  inkSoft: "rgba(255,255,255,0.78)",
+  inkMute: "rgba(255,255,255,0.50)",
+  divider: "rgba(255,255,255,0.16)",
+  buttonBg: "#FFFFFF",
+  buttonInk: "#0B3D91",
+};
+
 const SLIDES: Slide[] = [
   {
-    num: "01",
-    total: "04",
+    num: "01", total: "04",
     eyebrow: "TÜRKİYE İÇİN",
-    title: [
-      "Bütün döviz, gram",
-      "ve sarrafiye altın",
-      "tek ekranda.",
-    ],
+    title: ["Bütün döviz, gram", "ve sarrafiye altın", "tek ekranda."],
     body: "68 sembol, 5 kategori. Saniye saniye güncel veri, sade arayüz, gizli ücret yok.",
-    cta: "Tanıtıma başla",
+    cta: "Devam et",
     visual: HeroVisual,
-    ground: "#F5F2EC",
-    ink: "#0B1224",
     accent: "#0B3D91",
-    divider: "rgba(11,18,36,0.08)",
     showSkip: true,
+    ...LIGHT,
   },
   {
-    num: "02",
-    total: "04",
+    num: "02", total: "04",
     eyebrow: "ANA EKRAN",
-    title: [
-      "Telefonu açmadan",
-      "fiyatı görüyorsun.",
-    ],
+    title: ["Telefonu açmadan", "fiyatı görüyorsun."],
     body: "Ana ekrana eklenebilen widget ile dilediğin 4 sembolü hep gözünün önünde tut. Açık, koyu ve otomatik tema.",
-    cta: "Sıradaki",
+    cta: "Devam et",
     visual: WidgetVisual,
-    ground: "#EDEAE3",
-    ink: "#0B1224",
     accent: "#0B3D91",
-    divider: "rgba(11,18,36,0.08)",
     showSkip: true,
+    ...LIGHT,
   },
   {
-    num: "03",
-    total: "04",
+    num: "03", total: "04",
     eyebrow: "AKILLI BİLDİRİM",
-    title: [
-      "Sadece önemli",
-      "olduğunda haber verir.",
-    ],
+    title: ["Sadece önemli", "olduğunda haber verir."],
     body: "Fiyat hareketi, açılış ve kapanış brifingi, haftalık portföy özeti. Hepsi sessiz, hepsi senin kontrolünde.",
     cta: "Bildirimlere izin ver",
     visual: NotifVisual,
-    ground: "linear-gradient(180deg,#0B1224 0%,#08111F 100%)",
-    ink: "#FFFFFF",
     accent: "#F59E0B",
-    divider: "rgba(255,255,255,0.10)",
     showSkip: true,
+    ...DARK,
   },
   {
-    num: "04",
-    total: "04",
+    num: "04", total: "04",
     eyebrow: "PORTFÖY VE ALARM",
-    title: [
-      "Aldığın fiyatı",
-      "bilirsen, kazandığını",
-      "da bilirsin.",
-    ],
-    body: "Pozisyonlarını gir, ortalama maliyeti gör, hedef fiyat geldiğinde alarmla bilgilen.",
-    cta: "Uygulamaya başla",
+    title: ["Aldığın fiyatı", "bilirsen, kazandığını", "da bilirsin."],
+    body: "Pozisyonlarını gir, ortalama maliyetini gör, hedef fiyat geldiğinde alarmla bilgilen.",
+    cta: "Başla",
     visual: PortfolioVisual,
-    ground: "linear-gradient(180deg,#0B3D91 0%,#082A66 100%)",
-    ink: "#FFFFFF",
-    accent: "#F5F2EC",
-    divider: "rgba(255,255,255,0.14)",
+    accent: "#FFFFFF",
     showSkip: false,
+    ...NAVY,
   },
 ];
 
@@ -550,11 +533,7 @@ export function OnboardingFlow() {
     >
       <div className="flex flex-col gap-10">
         <div className="px-2 flex items-baseline gap-3">
-          <img
-            src={ASSET("logo-light.png")}
-            alt=""
-            className="w-5 h-5 object-contain"
-          />
+          <img src={ASSET("icon.png")} alt="" className="w-5 h-5 object-contain rounded-[5px]" />
           <span className="text-[15px] font-bold text-white tracking-[-0.3px]">
             Çarşı Piyasa · Onboarding
           </span>
@@ -569,9 +548,7 @@ export function OnboardingFlow() {
           ))}
         </div>
 
-        <div
-          className="text-[11.5px] text-white/45 px-2 max-w-[1100px] leading-relaxed font-medium"
-        >
+        <div className="text-[11.5px] text-white/45 px-2 max-w-[1100px] leading-relaxed font-medium">
           Akış kuralı: hiçbir izin sistem tarafından ilk açılışta sorulmaz. Kullanıcı 3. sayfada
           "Bildirimlere izin ver" butonuna basınca native diyalog açılır. Atlayan kullanıcı
           rahatsız edilmez, izinleri istediği zaman ayarlardan açabilir.
