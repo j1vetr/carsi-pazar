@@ -1,4 +1,5 @@
 import { ChevronDown, RefreshCw } from "lucide-react";
+import brandIcon from "../../../assets/brand/icon.png";
 
 const ROWS = [
   { code: "USD", glyph: "$",  price: "41,9120", pct: 0.34, tint: "#1D4ED8" },
@@ -36,7 +37,7 @@ export function NotifShellA() {
           {/* header */}
           <div className="flex items-center px-4 pt-3 pb-2 gap-2">
             <img
-              src={`${import.meta.env.BASE_URL}brand/logo-light.png`}
+              src={brandIcon}
               alt="Çarşı Piyasa"
               className="w-5 h-5 rounded-[6px] object-contain"
             />

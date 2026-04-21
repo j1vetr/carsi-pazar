@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
+import iconUrl from "../../../assets/brand/icon.png";
 
-const ASSET = (p: string) => `${import.meta.env.BASE_URL}brand/${p}`;
+const ASSET = (_p: string) => iconUrl;
 
 type Slide = {
   num: string;
