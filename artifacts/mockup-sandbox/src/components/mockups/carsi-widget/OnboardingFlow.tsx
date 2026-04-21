@@ -1,67 +1,109 @@
-import { Bell, ChevronRight, Grid3x3, LineChart, Sparkles, Wallet } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+
+const ASSET = (p: string) => `${import.meta.env.BASE_URL}brand/${p}`;
 
 type Slide = {
-  index: number;
-  total: number;
+  num: string;
+  total: string;
   eyebrow: string;
-  title: string;
+  title: string[];
   body: string;
   cta: string;
-  skip?: string;
   visual: () => JSX.Element;
-  bg: string;
+  ground: string;
+  ink: string;
   accent: string;
+  divider: string;
+  showSkip: boolean;
 };
 
-function PhoneFrame({ children, label, isLast }: { children: React.ReactNode; label: string; isLast?: boolean }) {
+function PhoneFrame({ children, label }: { children: React.ReactNode; label: string }) {
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-4">
       <div
         className="relative"
         style={{
-          width: 300,
-          height: 612,
-          borderRadius: 44,
-          padding: 8,
-          background: "linear-gradient(180deg,#15192A 0%,#0B0F1E 100%)",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.05) inset",
+          width: 312,
+          height: 640,
+          borderRadius: 46,
+          padding: 7,
+          background: "#000",
+          boxShadow:
+            "0 30px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04) inset",
         }}
       >
         <div
           className="w-full h-full overflow-hidden relative"
-          style={{ borderRadius: 36 }}
+          style={{ borderRadius: 40 }}
         >
           {children}
-          {/* notch */}
           <div
-            className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-6 rounded-full"
+            className="absolute top-2 left-1/2 -translate-x-1/2 w-[96px] h-[26px] rounded-full"
             style={{ background: "#000" }}
           />
         </div>
       </div>
-      <div className="text-[10.5px] font-bold tracking-[1.5px] text-white/45">
+      <div className="text-[10px] font-bold tracking-[2.5px] text-white/40">
         {label}
       </div>
-      {!isLast ? (
-        <div className="text-white/20 text-2xl absolute" style={{ marginTop: 280, marginLeft: 320 }}>
-          →
-        </div>
-      ) : null}
     </div>
   );
 }
 
-function Dots({ index, total, accent }: { index: number; total: number; accent: string }) {
+function PageIndex({ num, total, ink }: { num: string; total: string; ink: string }) {
   return (
-    <div className="flex items-center gap-1.5">
+    <div
+      className="flex items-baseline gap-1.5"
+      style={{ fontFeatureSettings: '"tnum" on, "lnum" on' }}
+    >
+      <span
+        className="text-[11px] font-bold tracking-[1.5px]"
+        style={{ color: ink, opacity: 0.95 }}
+      >
+        {num}
+      </span>
+      <span
+        className="text-[11px] font-bold tracking-[1.5px]"
+        style={{ color: ink, opacity: 0.32 }}
+      >
+        / {total}
+      </span>
+    </div>
+  );
+}
+
+function BrandMark({ ink }: { ink: string }) {
+  const isDarkInk = ink === "#0B1224" || ink === "#08111F";
+  const src = isDarkInk ? ASSET("logo-dark.png") : ASSET("logo-light.png");
+  return (
+    <div className="flex items-center gap-2">
+      <img
+        src={src}
+        alt=""
+        className="w-[18px] h-[18px] object-contain"
+      />
+      <span
+        className="text-[10.5px] font-bold tracking-[2px]"
+        style={{ color: ink, opacity: 0.85 }}
+      >
+        ÇARŞI PİYASA
+      </span>
+    </div>
+  );
+}
+
+function Dots({ active, total, accent, ink }: { active: number; total: number; accent: string; ink: string }) {
+  return (
+    <div className="flex items-center gap-[5px]">
       {Array.from({ length: total }).map((_, i) => (
         <div
           key={i}
           className="rounded-full transition-all"
           style={{
-            width: i === index ? 22 : 6,
-            height: 6,
-            background: i === index ? accent : "rgba(255,255,255,0.22)",
+            width: i === active ? 18 : 5,
+            height: 5,
+            background: i === active ? accent : ink,
+            opacity: i === active ? 1 : 0.18,
           }}
         />
       ))}
@@ -69,129 +111,160 @@ function Dots({ index, total, accent }: { index: number; total: number; accent: 
   );
 }
 
-function SlideShell({ slide, children }: { slide: Slide; children?: React.ReactNode }) {
+function SlideShell({ slide, activeIdx }: { slide: Slide; activeIdx: number }) {
+  const inkSoft = slide.ink + "B3";
+  const inkMute = slide.ink + "80";
   return (
     <div
       className="w-full h-full flex flex-col"
-      style={{ background: slide.bg }}
+      style={{ background: slide.ground }}
     >
       {/* status bar */}
-      <div className="flex items-center justify-between px-6 pt-3 text-[11px] text-white/55 font-semibold">
+      <div
+        className="flex items-center justify-between px-6 pt-3 text-[10.5px] font-bold tracking-wide"
+        style={{ color: inkMute }}
+      >
         <span>09:41</span>
-        <span className="text-white/40">{slide.skip ?? ""}</span>
+        <span>%84</span>
       </div>
 
-      {/* visual area */}
-      <div className="flex-1 flex items-center justify-center px-6 pt-4 pb-4 relative">
-        {children ?? slide.visual()}
+      {/* header row */}
+      <div className="flex items-center justify-between px-6 pt-5">
+        <BrandMark ink={slide.ink} />
+        <PageIndex num={slide.num} total={slide.total} ink={slide.ink} />
       </div>
 
-      {/* footer */}
-      <div className="px-6 pb-9 pt-3">
-        <div className="text-[10px] font-bold tracking-[2px] mb-2.5" style={{ color: slide.accent }}>
+      {/* visual */}
+      <div className="flex-1 flex items-end justify-center pt-6">
+        {slide.visual()}
+      </div>
+
+      {/* divider */}
+      <div className="px-6">
+        <div
+          className="h-px w-full"
+          style={{ background: slide.divider }}
+        />
+      </div>
+
+      {/* type block */}
+      <div className="px-6 pt-6 pb-8">
+        <div
+          className="text-[10px] font-bold tracking-[2.5px] mb-3"
+          style={{ color: slide.accent }}
+        >
           {slide.eyebrow}
         </div>
-        <div className="text-[24px] font-bold text-white leading-[1.18] tracking-[-0.6px] mb-2.5">
-          {slide.title}
-        </div>
-        <div className="text-[12.5px] font-medium text-white/65 leading-[1.55] mb-6">
+        <h1
+          className="font-bold leading-[1.06] tracking-[-0.7px] mb-3"
+          style={{
+            color: slide.ink,
+            fontSize: 26,
+          }}
+        >
+          {slide.title.map((line, i) => (
+            <span key={i} className="block">
+              {line}
+            </span>
+          ))}
+        </h1>
+        <p
+          className="text-[12.5px] font-medium leading-[1.55] mb-7"
+          style={{ color: inkSoft }}
+        >
           {slide.body}
-        </div>
+        </p>
 
         <button
-          className="w-full rounded-full py-3.5 flex items-center justify-center gap-1.5 text-[13.5px] font-bold text-white"
+          className="w-full rounded-[16px] py-[15px] flex items-center justify-center gap-2 text-[13.5px] font-bold"
           style={{
-            background: slide.accent,
-            boxShadow: `0 12px 32px ${slide.accent}55`,
+            background: slide.ink,
+            color: slide.ground === "#F5F2EC" ? "#fff" : "#0B1224",
           }}
         >
           {slide.cta}
-          <ChevronRight size={16} />
+          <ArrowRight size={15} strokeWidth={2.6} />
         </button>
 
-        <div className="mt-4 flex items-center justify-between">
-          <Dots index={slide.index} total={slide.total} accent={slide.accent} />
-          {slide.index < slide.total - 1 ? (
-            <span className="text-[11.5px] font-semibold text-white/40">Atla</span>
-          ) : (
-            <span className="text-[11.5px] font-semibold text-white/40 opacity-0">·</span>
-          )}
+        <div className="mt-5 flex items-center justify-between">
+          <Dots active={activeIdx} total={4} accent={slide.accent} ink={slide.ink} />
+          <span
+            className="text-[11px] font-semibold tracking-wide"
+            style={{
+              color: inkMute,
+              opacity: slide.showSkip ? 1 : 0,
+            }}
+          >
+            Atla
+          </span>
         </div>
       </div>
     </div>
   );
 }
 
-// ---------- visuals ----------
+// =============== visuals ===============
 
-function WelcomeVisual() {
+function HeroVisual() {
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
+    <div className="relative w-full" style={{ height: 240 }}>
+      {/* large brand mark */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <img
+          src={ASSET("logo-color.png")}
+          alt="Çarşı Piyasa"
+          className="w-[140px] h-[140px] object-contain"
+          style={{ filter: "drop-shadow(0 18px 38px rgba(11,61,145,0.35))" }}
+        />
+      </div>
+      {/* faint ring */}
       <div
-        className="absolute"
+        className="absolute left-1/2 top-1/2 rounded-full"
         style={{
-          width: 240,
-          height: 240,
-          borderRadius: "50%",
-          background: "radial-gradient(circle,#3A6EE0 0%,#0B3D91 60%,transparent 75%)",
-          filter: "blur(2px)",
-          opacity: 0.55,
+          width: 220,
+          height: 220,
+          marginLeft: -110,
+          marginTop: -110,
+          border: "1px solid rgba(11,18,36,0.08)",
         }}
       />
-      {/* logo block */}
       <div
-        className="relative z-10 flex flex-col items-center"
-      >
+        className="absolute left-1/2 top-1/2 rounded-full"
+        style={{
+          width: 280,
+          height: 280,
+          marginLeft: -140,
+          marginTop: -140,
+          border: "1px solid rgba(11,18,36,0.05)",
+        }}
+      />
+      {/* number ticker bottom */}
+      <div className="absolute left-0 right-0 bottom-0 px-6">
         <div
-          className="w-20 h-20 rounded-[24px] flex items-center justify-center mb-5"
-          style={{
-            background: "linear-gradient(135deg,#3A6EE0 0%,#0B3D91 100%)",
-            boxShadow: "0 14px 30px rgba(11,61,145,0.55)",
-          }}
+          className="text-[10px] font-bold tracking-[2px] mb-2"
+          style={{ color: "#0B1224", opacity: 0.45 }}
         >
-          <LineChart size={36} color="#fff" strokeWidth={2.4} />
+          ŞU AN CANLI
         </div>
-        <div className="text-[10.5px] font-bold tracking-[3px] text-white/55 mb-1">ÇARŞI PİYASA</div>
-        <div className="text-[18px] font-bold text-white tracking-[-0.4px]">Hoş Geldin</div>
-      </div>
-      {/* floating chips */}
-      <div className="absolute" style={{ top: 24, left: 18 }}>
-        <FloatChip code="USD" price="41,91" up tint="#3A6EE0" />
-      </div>
-      <div className="absolute" style={{ top: 60, right: 16 }}>
-        <FloatChip code="EUR" price="47,30" up={false} tint="#0F766E" />
-      </div>
-      <div className="absolute" style={{ bottom: 30, left: 30 }}>
-        <FloatChip code="GRAM" price="5.412" up tint="#B45309" />
-      </div>
-      <div className="absolute" style={{ bottom: 60, right: 22 }}>
-        <FloatChip code="ÇEYREK" price="8.960" up tint="#BE123C" />
-      </div>
-    </div>
-  );
-}
-
-function FloatChip({ code, price, up, tint }: { code: string; price: string; up: boolean; tint: string }) {
-  return (
-    <div
-      className="rounded-2xl px-3 py-2 flex flex-col"
-      style={{
-        background: "rgba(255,255,255,0.06)",
-        backdropFilter: "blur(10px)",
-        border: "1px solid rgba(255,255,255,0.08)",
-      }}
-    >
-      <div className="text-[9.5px] font-bold tracking-wide" style={{ color: tint }}>
-        {code}
-      </div>
-      <div className="text-[12px] font-bold text-white" style={{ fontFeatureSettings: '"tnum" on' }}>
-        {price}
-      </div>
-      <div
-        className="text-[9px] font-bold mt-0.5"
-        style={{ color: up ? "#4ADE80" : "#F87171" }}
-      >
-        {up ? "▲ %0,34" : "▼ %0,18"}
+        <div className="flex items-baseline gap-4 overflow-hidden">
+          {[
+            { c: "USD", v: "41,9120" },
+            { c: "EUR", v: "47,3088" },
+            { c: "GRAM", v: "5.412,80" },
+          ].map((r) => (
+            <div key={r.c} className="flex items-baseline gap-1.5">
+              <span className="text-[10px] font-bold tracking-wide" style={{ color: "#0B3D91" }}>
+                {r.c}
+              </span>
+              <span
+                className="text-[14px] font-bold"
+                style={{ color: "#0B1224", fontFeatureSettings: '"tnum" on' }}
+              >
+                {r.v}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -199,71 +272,79 @@ function FloatChip({ code, price, up, tint }: { code: string; price: string; up:
 
 function WidgetVisual() {
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      {/* phone home screen blur */}
+    <div className="relative w-full" style={{ height: 240 }}>
+      {/* simulated home screen */}
       <div
-        className="absolute inset-x-4 inset-y-2 rounded-[28px]"
+        className="absolute inset-x-6 bottom-0 rounded-t-[28px]"
         style={{
-          background: "linear-gradient(160deg,rgba(99,102,241,0.18) 0%,rgba(0,0,0,0) 60%)",
+          height: 222,
+          background: "linear-gradient(180deg,rgba(11,18,36,0.04) 0%,rgba(11,18,36,0.10) 100%)",
         }}
       />
-      {/* fake icon grid */}
-      <div className="absolute" style={{ top: 14, left: 26, right: 26 }}>
-        <div className="grid grid-cols-4 gap-3">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-square rounded-[14px]"
-              style={{
-                background: `hsl(${(i * 47) % 360},35%,${20 + (i % 3) * 6}%)`,
-                opacity: 0.55,
-              }}
-            />
-          ))}
-        </div>
+      <div className="absolute inset-x-10 bottom-2 grid grid-cols-4 gap-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="aspect-square rounded-[12px]"
+            style={{
+              background: `rgba(11,18,36,${0.06 + (i % 3) * 0.03})`,
+            }}
+          />
+        ))}
       </div>
-      {/* widget card pinned center */}
-      <div
-        className="relative z-10 rounded-[20px] p-3.5 w-[230px]"
-        style={{
-          background: "linear-gradient(160deg,#0B3D91 0%,#1E293B 100%)",
-          boxShadow: "0 18px 38px rgba(11,61,145,0.55), 0 0 0 1px rgba(255,255,255,0.08) inset",
-        }}
-      >
-        <div className="flex items-center justify-between mb-2.5">
-          <span className="text-[9.5px] font-bold tracking-[1.5px] text-white/65">ÇARŞI PİYASA</span>
-          <span className="text-[9px] font-semibold text-white/40">09:41</span>
-        </div>
-        <div className="grid grid-cols-2 gap-1.5">
-          {[
-            { code: "USD", price: "41,9120", up: true, tint: "#3A6EE0" },
-            { code: "EUR", price: "47,3088", up: false, tint: "#0F766E" },
-            { code: "GRAM", price: "5.412,80", up: true, tint: "#B45309" },
-            { code: "ÇEYREK", price: "8.960,00", up: true, tint: "#BE123C" },
-          ].map((r) => (
-            <div
-              key={r.code}
-              className="rounded-[10px] px-2 py-1.5"
-              style={{ background: "rgba(255,255,255,0.06)" }}
-            >
-              <div className="text-[8.5px] font-bold tracking-wide" style={{ color: "#fff" }}>
-                {r.code}
-              </div>
-              <div className="text-[11px] font-bold text-white" style={{ fontFeatureSettings: '"tnum" on' }}>
-                {r.price}
-              </div>
-              <div
-                className="text-[8.5px] font-bold mt-0.5"
-                style={{ color: r.up ? "#4ADE80" : "#F87171" }}
-              >
-                {r.up ? "▲ %0,34" : "▼ %0,18"}
-              </div>
+
+      {/* widget card centered, lifted */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-[12px]" style={{ width: 244 }}>
+        <div
+          className="rounded-[18px] p-3.5"
+          style={{
+            background: "#0B1224",
+            boxShadow: "0 24px 38px rgba(11,18,36,0.32)",
+          }}
+        >
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-1.5">
+              <img src={ASSET("logo-light.png")} alt="" className="w-3 h-3 object-contain" />
+              <span className="text-[9px] font-bold tracking-[1.5px] text-white/60">
+                ÇARŞI PİYASA
+              </span>
             </div>
-          ))}
+            <span className="text-[9px] font-semibold text-white/35">09:41</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {[
+              { code: "USD", price: "41,9120", up: true },
+              { code: "EUR", price: "47,3088", up: false },
+              { code: "GRAM", price: "5.412,80", up: true },
+              { code: "ÇEYREK", price: "8.960,00", up: true },
+            ].map((r) => (
+              <div
+                key={r.code}
+                className="rounded-[10px] px-2.5 py-2"
+                style={{ background: "rgba(255,255,255,0.05)" }}
+              >
+                <div className="text-[8.5px] font-bold tracking-wide text-white/65">
+                  {r.code}
+                </div>
+                <div
+                  className="text-[12px] font-bold text-white mt-0.5"
+                  style={{ fontFeatureSettings: '"tnum" on' }}
+                >
+                  {r.price}
+                </div>
+                <div
+                  className="text-[8.5px] font-bold mt-0.5"
+                  style={{
+                    color: r.up ? "#4ADE80" : "#F87171",
+                    fontFeatureSettings: '"tnum" on',
+                  }}
+                >
+                  {r.up ? "▲ %0,34" : "▼ %0,18"}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="absolute" style={{ bottom: 6, right: 18 }}>
-        <Grid3x3 size={42} color="#fff" strokeWidth={1.2} opacity={0.12} />
       </div>
     </div>
   );
@@ -271,86 +352,58 @@ function WidgetVisual() {
 
 function NotifVisual() {
   return (
-    <div className="relative w-full h-full flex items-center justify-center px-2">
-      <div
-        className="absolute"
-        style={{
-          width: 220,
-          height: 220,
-          borderRadius: "50%",
-          background: "radial-gradient(circle,#F59E0B 0%,#7C2D12 50%,transparent 70%)",
-          opacity: 0.35,
-          filter: "blur(8px)",
-        }}
-      />
-      {/* notification cards */}
-      <div className="relative z-10 w-full flex flex-col gap-2">
-        <div
-          className="rounded-2xl p-3 flex items-start gap-2.5"
-          style={{
-            background: "rgba(255,255,255,0.07)",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            transform: "rotate(-1.5deg)",
-          }}
-        >
+    <div className="relative w-full px-6" style={{ height: 240 }}>
+      {/* time */}
+      <div className="text-center pt-1">
+        <div className="text-[44px] font-bold text-white tracking-[-1.5px] leading-none">
+          09:41
+        </div>
+        <div className="text-[11px] font-semibold text-white/55 mt-1">
+          Salı, 21 Nisan
+        </div>
+      </div>
+      {/* stacked notification cards */}
+      <div className="absolute left-6 right-6 bottom-1 flex flex-col gap-1.5">
+        {[
+          {
+            title: "USD %1,2 yükseldi",
+            sub: "Şimdi 41,9120 TL · son 30 dakikada",
+            time: "şimdi",
+          },
+          {
+            title: "Açılış brifingi hazır",
+            sub: "USD 41,91 · GRAM 5.412 · ONS 3.412",
+            time: "09:00",
+          },
+        ].map((n, i) => (
           <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "#0B3D91" }}
+            key={i}
+            className="rounded-[14px] px-3 py-2.5 flex items-start gap-2.5"
+            style={{
+              background: "rgba(255,255,255,0.10)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
           >
-            <Bell size={16} color="#fff" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[10px] font-bold text-white/85">Çarşı Piyasa · şimdi</div>
-            <div className="text-[11px] font-semibold text-white/95 mt-0.5 leading-tight">
-              USD %1,2 yükseldi → 41,9120
+            <img
+              src={ASSET("logo-light.png")}
+              alt=""
+              className="w-4 h-4 object-contain mt-0.5"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[10.5px] font-bold text-white/95">Çarşı Piyasa</span>
+                <span className="text-[9.5px] text-white/45">· {n.time}</span>
+              </div>
+              <div className="text-[11.5px] font-semibold text-white/95 mt-0.5 leading-snug">
+                {n.title}
+              </div>
+              <div className="text-[10px] font-medium text-white/55 mt-0.5">
+                {n.sub}
+              </div>
             </div>
           </div>
-        </div>
-        <div
-          className="rounded-2xl p-3 flex items-start gap-2.5"
-          style={{
-            background: "rgba(255,255,255,0.07)",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            transform: "rotate(1deg)",
-          }}
-        >
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "#B45309" }}
-          >
-            <Sparkles size={16} color="#fff" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[10px] font-bold text-white/85">Açılış Brifingi · 09:00</div>
-            <div className="text-[11px] font-semibold text-white/95 mt-0.5 leading-tight">
-              ONS 3.412 · GRAM 5.412 · USD 41,91
-            </div>
-          </div>
-        </div>
-        <div
-          className="rounded-2xl p-3 flex items-start gap-2.5"
-          style={{
-            background: "rgba(255,255,255,0.07)",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            transform: "rotate(-0.5deg)",
-          }}
-        >
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "#8B5CF6" }}
-          >
-            <Bell size={16} color="#fff" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[10px] font-bold text-white/85">Haber · BloombergHT</div>
-            <div className="text-[11px] font-semibold text-white/95 mt-0.5 leading-tight">
-              Merkez faiz kararı bugün açıklanacak
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
@@ -358,148 +411,170 @@ function NotifVisual() {
 
 function PortfolioVisual() {
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <div
-        className="absolute"
-        style={{
-          width: 220,
-          height: 220,
-          borderRadius: "50%",
-          background: "radial-gradient(circle,#10B981 0%,#064E3B 55%,transparent 72%)",
-          opacity: 0.45,
-          filter: "blur(6px)",
-        }}
-      />
-      <div
-        className="relative z-10 rounded-[20px] p-4 w-[230px]"
-        style={{
-          background: "linear-gradient(160deg,#064E3B 0%,#0B0F1E 100%)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 18px 38px rgba(16,185,129,0.35)",
-        }}
-      >
-        <div className="flex items-center gap-2 mb-3">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: "#10B981" }}
-          >
-            <Wallet size={16} color="#fff" />
-          </div>
-          <div className="text-[10.5px] font-bold tracking-[1.5px] text-white/65">PORTFÖYÜM</div>
+    <div className="relative w-full px-6" style={{ height: 240 }}>
+      {/* big number */}
+      <div className="text-center pt-2">
+        <div className="text-[10px] font-bold tracking-[2.5px] text-white/55">
+          PORTFÖY DEĞERİ
         </div>
-        <div className="text-[10.5px] font-medium text-white/55 mb-1">Toplam Değer</div>
-        <div className="text-[24px] font-bold text-white tracking-[-0.5px]" style={{ fontFeatureSettings: '"tnum" on' }}>
+        <div
+          className="text-[40px] font-bold text-white tracking-[-1.6px] leading-none mt-2"
+          style={{ fontFeatureSettings: '"tnum" on, "lnum" on' }}
+        >
           ₺127.840
         </div>
-        <div className="text-[11px] font-bold text-emerald-400 mt-1">▲ +%4,82  ·  ₺5.880</div>
-
-        <div className="mt-4 space-y-2">
-          {[
-            { code: "USD", qty: "1.500", val: "₺62.868", pct: "+%2,1", up: true },
-            { code: "GRAM", qty: "8 gr", val: "₺43.302", pct: "+%6,4", up: true },
-            { code: "ÇEYREK", qty: "2,5 ad", val: "₺22.400", pct: "−%0,4", up: false },
-          ].map((r) => (
-            <div
-              key={r.code}
-              className="flex items-center justify-between rounded-lg px-2.5 py-1.5"
-              style={{ background: "rgba(255,255,255,0.04)" }}
-            >
-              <div>
-                <div className="text-[10px] font-bold text-white/85">{r.code}</div>
-                <div className="text-[8.5px] text-white/45">{r.qty}</div>
+        <div
+          className="text-[12px] font-bold mt-1.5"
+          style={{ color: "#4ADE80", fontFeatureSettings: '"tnum" on' }}
+        >
+          ▲ +%4,82  ·  +₺5.880
+        </div>
+      </div>
+      {/* compact rows */}
+      <div className="absolute left-6 right-6 bottom-2 space-y-1.5">
+        {[
+          { code: "USD", qty: "1.500", val: "₺62.868", pct: "+%2,1", up: true },
+          { code: "GRAM", qty: "8 gr", val: "₺43.302", pct: "+%6,4", up: true },
+          { code: "ÇEYREK", qty: "2,5 ad.", val: "₺22.400", pct: "−%0,4", up: false },
+        ].map((r) => (
+          <div
+            key={r.code}
+            className="flex items-center justify-between rounded-[10px] px-2.5 py-1.5"
+            style={{ background: "rgba(255,255,255,0.06)" }}
+          >
+            <div>
+              <div className="text-[10.5px] font-bold text-white">{r.code}</div>
+              <div className="text-[9px] text-white/55">{r.qty}</div>
+            </div>
+            <div className="text-right">
+              <div
+                className="text-[10.5px] font-bold text-white"
+                style={{ fontFeatureSettings: '"tnum" on' }}
+              >
+                {r.val}
               </div>
-              <div className="text-right">
-                <div className="text-[10.5px] font-bold text-white" style={{ fontFeatureSettings: '"tnum" on' }}>
-                  {r.val}
-                </div>
-                <div
-                  className="text-[8.5px] font-bold"
-                  style={{ color: r.up ? "#4ADE80" : "#F87171" }}
-                >
-                  {r.pct}
-                </div>
+              <div
+                className="text-[9px] font-bold mt-0.5"
+                style={{ color: r.up ? "#4ADE80" : "#F87171" }}
+              >
+                {r.pct}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-// ---------- main ----------
+// =============== content ===============
 
 const SLIDES: Slide[] = [
   {
-    index: 0,
-    total: 4,
-    eyebrow: "ANLIK · DOĞRU · TÜRKÇE",
-    title: "Türkiye'nin canlı piyasa cebinde.",
-    body: "68 sembol, 5 kategori. Döviz, gram altın, sarrafiye, külçe, paladyum ve gümüş — hepsi tek ekranda saniyelik güncel.",
-    cta: "Devam Et",
-    visual: WelcomeVisual,
-    bg: "linear-gradient(180deg,#0A0F1E 0%,#10172A 50%,#0B3D91 130%)",
-    accent: "#3A6EE0",
+    num: "01",
+    total: "04",
+    eyebrow: "TÜRKİYE İÇİN",
+    title: [
+      "Bütün döviz, gram",
+      "ve sarrafiye altın",
+      "tek ekranda.",
+    ],
+    body: "68 sembol, 5 kategori. Saniye saniye güncel veri, sade arayüz, gizli ücret yok.",
+    cta: "Tanıtıma başla",
+    visual: HeroVisual,
+    ground: "#F5F2EC",
+    ink: "#0B1224",
+    accent: "#0B3D91",
+    divider: "rgba(11,18,36,0.08)",
+    showSkip: true,
   },
   {
-    index: 1,
-    total: 4,
-    eyebrow: "ANA EKRAN WIDGET'I",
-    title: "4 sembolün her zaman gözünün önünde.",
-    body: "Telefonunu açmadan ana ekrandan döviz ve altın fiyatlarını gör. Hangi 4 sembolün gözükeceğine sen karar ver.",
-    cta: "Devam Et",
+    num: "02",
+    total: "04",
+    eyebrow: "ANA EKRAN",
+    title: [
+      "Telefonu açmadan",
+      "fiyatı görüyorsun.",
+    ],
+    body: "Ana ekrana eklenebilen widget ile dilediğin 4 sembolü hep gözünün önünde tut. Açık, koyu ve otomatik tema.",
+    cta: "Sıradaki",
     visual: WidgetVisual,
-    bg: "linear-gradient(180deg,#0F0B1E 0%,#1E1A3A 60%,#3730A3 130%)",
-    accent: "#6366F1",
+    ground: "#EDEAE3",
+    ink: "#0B1224",
+    accent: "#0B3D91",
+    divider: "rgba(11,18,36,0.08)",
+    showSkip: true,
   },
   {
-    index: 2,
-    total: 4,
-    eyebrow: "BİLDİRİMLER",
-    title: "Önemli olduğunda haber al.",
-    body: "Fiyat hareketleri, sabah/akşam brifingi, haftalık portföy özeti ve seçili haberler. Hepsi sessiz, hepsi senin kontrolünde.",
-    cta: "Bildirimleri Aç",
+    num: "03",
+    total: "04",
+    eyebrow: "AKILLI BİLDİRİM",
+    title: [
+      "Sadece önemli",
+      "olduğunda haber verir.",
+    ],
+    body: "Fiyat hareketi, açılış ve kapanış brifingi, haftalık portföy özeti. Hepsi sessiz, hepsi senin kontrolünde.",
+    cta: "Bildirimlere izin ver",
     visual: NotifVisual,
-    bg: "linear-gradient(180deg,#1A0F0F 0%,#2A1810 55%,#7C2D12 130%)",
+    ground: "linear-gradient(180deg,#0B1224 0%,#08111F 100%)",
+    ink: "#FFFFFF",
     accent: "#F59E0B",
+    divider: "rgba(255,255,255,0.10)",
+    showSkip: true,
   },
   {
-    index: 3,
-    total: 4,
-    eyebrow: "PORTFÖY & ALARMLAR",
-    title: "Hesabını her zaman bil.",
-    body: "Aldığın fiyatı gir, ortalama maliyetini ve kâr-zararını anlık takip et. Hedef fiyata ulaşan sembollerde alarm kur.",
-    cta: "Hadi Başlayalım",
+    num: "04",
+    total: "04",
+    eyebrow: "PORTFÖY VE ALARM",
+    title: [
+      "Aldığın fiyatı",
+      "bilirsen, kazandığını",
+      "da bilirsin.",
+    ],
+    body: "Pozisyonlarını gir, ortalama maliyeti gör, hedef fiyat geldiğinde alarmla bilgilen.",
+    cta: "Uygulamaya başla",
     visual: PortfolioVisual,
-    bg: "linear-gradient(180deg,#0B1F18 0%,#0F2A1F 55%,#064E3B 130%)",
-    accent: "#10B981",
+    ground: "linear-gradient(180deg,#0B3D91 0%,#082A66 100%)",
+    ink: "#FFFFFF",
+    accent: "#F5F2EC",
+    divider: "rgba(255,255,255,0.14)",
+    showSkip: false,
   },
 ];
 
 export function OnboardingFlow() {
   return (
     <div
-      className="min-h-screen w-full flex items-start justify-center py-10"
-      style={{ background: "#06080F" }}
+      className="min-h-screen w-full flex items-start justify-center py-12"
+      style={{ background: "#0B0F1A" }}
     >
-      <div className="flex flex-col gap-8">
-        <div className="flex items-end gap-2 px-2">
-          <div className="text-[14px] font-bold text-white">Onboarding Akışı</div>
-          <div className="text-[11px] text-white/40 mb-0.5">4 sayfa · sağa kaydırılır</div>
+      <div className="flex flex-col gap-10">
+        <div className="px-2 flex items-baseline gap-3">
+          <img
+            src={ASSET("logo-light.png")}
+            alt=""
+            className="w-5 h-5 object-contain"
+          />
+          <span className="text-[15px] font-bold text-white tracking-[-0.3px]">
+            Çarşı Piyasa · Onboarding
+          </span>
+          <span className="text-[11px] text-white/40">4 sayfa, sağa kaydırma akışı</span>
         </div>
 
-        <div className="flex items-start gap-7">
+        <div className="flex items-start gap-8">
           {SLIDES.map((s, i) => (
-            <PhoneFrame key={i} label={`SAYFA ${i + 1}`} isLast={i === SLIDES.length - 1}>
-              <SlideShell slide={s} />
+            <PhoneFrame key={i} label={`SAYFA ${s.num}`}>
+              <SlideShell slide={s} activeIdx={i} />
             </PhoneFrame>
           ))}
         </div>
 
-        <div className="text-[11px] text-white/40 px-2 leading-relaxed max-w-[1000px]">
-          Akış: izinler ASLA ilk açılışta sistem tarafından sorulmaz. Önce bu 4 sayfa gösterilir,
-          ardından kullanıcı 3. sayfada "Bildirimleri Aç" deyince native izin diyaloğu çıkar.
-          Atla'ya basan da rahatsız edilmez — daha sonra Ayarlar'dan açabilir.
+        <div
+          className="text-[11.5px] text-white/45 px-2 max-w-[1100px] leading-relaxed font-medium"
+        >
+          Akış kuralı: hiçbir izin sistem tarafından ilk açılışta sorulmaz. Kullanıcı 3. sayfada
+          "Bildirimlere izin ver" butonuna basınca native diyalog açılır. Atlayan kullanıcı
+          rahatsız edilmez, izinleri istediği zaman ayarlardan açabilir.
         </div>
       </div>
     </div>
