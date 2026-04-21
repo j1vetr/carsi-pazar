@@ -109,7 +109,7 @@ async function displayOngoing(): Promise<void> {
       ongoing: true,
       autoCancel: false,
       onlyAlertOnce: true,
-      smallIcon: "ic_notification",
+      smallIcon: "notification_icon",
       color: "#0B3D91",
       colorized: true,
       asForegroundService: true,
