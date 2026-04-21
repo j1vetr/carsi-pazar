@@ -109,7 +109,7 @@ export default function PrivacyScreen() {
 
   const onMail = () => {
     Haptics.selectionAsync().catch(() => {});
-    Linking.openURL("mailto:kvkk@carsipiyasa.com").catch(() => {});
+    Linking.openURL("mailto:hello@toov.com.tr").catch(() => {});
   };
 
   return (
@@ -213,7 +213,7 @@ export default function PrivacyScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.contactLabel}>KVKK Başvuru</Text>
-              <Text style={styles.contactValue}>kvkk@carsipiyasa.com</Text>
+              <Text style={styles.contactValue}>hello@toov.com.tr</Text>
             </View>
             <Icon name="chevron-forward" size={16} color={colors.mutedForeground} />
           </Pressable>
