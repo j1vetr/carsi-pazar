@@ -97,13 +97,14 @@ export function ModernPriceRow({
     flash: { ...StyleSheet.absoluteFillObject },
     iconWrap: { marginRight: 12 },
 
-    nameCol: { flex: 1, justifyContent: "center", minWidth: 0 },
-    headRow: { flexDirection: "row", alignItems: "baseline", gap: 6 },
-    code: {
+    nameCol: { flex: 1, justifyContent: "center", minWidth: 0, paddingRight: 8 },
+    headRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+    codeText: {
       fontSize: 14.5,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
       letterSpacing: -0.2,
+      flexShrink: 1,
     },
     badge: {
       fontSize: 9,
@@ -115,6 +116,7 @@ export function ModernPriceRow({
       borderRadius: 4,
       backgroundColor: colors.surface,
       overflow: "hidden",
+      flexShrink: 0,
     },
     name: {
       fontSize: 11,
@@ -123,11 +125,15 @@ export function ModernPriceRow({
       marginTop: 2,
     },
 
-    buyCol: {
-      width: 78,
+    priceCol: {
+      width: 158,
       alignItems: "flex-end",
       justifyContent: "center",
-      paddingHorizontal: 4,
+    },
+    priceRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      gap: 4,
     },
     buyText: {
       fontSize: 12.5,
@@ -136,10 +142,14 @@ export function ModernPriceRow({
       fontVariant: ["tabular-nums"],
       letterSpacing: -0.3,
     },
-
-    sellCol: { width: 96, alignItems: "flex-end", justifyContent: "center" },
+    sep: {
+      fontSize: 11,
+      color: colors.mutedForeground,
+      opacity: 0.55,
+      marginHorizontal: 1,
+    },
     sellText: {
-      fontSize: 14,
+      fontSize: 14.5,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
       fontVariant: ["tabular-nums"],
@@ -183,11 +193,13 @@ export function ModernPriceRow({
 
       <View style={styles.nameCol}>
         <View style={styles.headRow}>
-          {nameFirst ? (
-            <Text style={styles.code} numberOfLines={1}>{item.nameTR}</Text>
-          ) : (
-            <Text style={styles.code} numberOfLines={1}>{displayCode}</Text>
-          )}
+          <Text
+            style={styles.codeText}
+            numberOfLines={nameFirst ? 2 : 1}
+            ellipsizeMode="tail"
+          >
+            {nameFirst ? item.nameTR : displayCode}
+          </Text>
           {badge ? <Text style={styles.badge}>{badge}</Text> : null}
         </View>
         <Text style={styles.name} numberOfLines={1}>
@@ -195,12 +207,12 @@ export function ModernPriceRow({
         </Text>
       </View>
 
-      <View style={styles.buyCol}>
-        <Text style={styles.buyText} numberOfLines={1}>{buyStr}</Text>
-      </View>
-
-      <View style={styles.sellCol}>
-        <Text style={styles.sellText} numberOfLines={1}>{sellStr}</Text>
+      <View style={styles.priceCol}>
+        <View style={styles.priceRow}>
+          <Text style={styles.buyText} numberOfLines={1}>{buyStr}</Text>
+          <Text style={styles.sep}>·</Text>
+          <Text style={styles.sellText} numberOfLines={1}>{sellStr}</Text>
+        </View>
         <View style={styles.changePill}>
           <Text style={styles.changeText}>
             {hasChange ? `${isPositive ? "▲" : "▼"} ${Math.abs(item.changePercent).toFixed(2)}%` : "—"}
@@ -244,11 +256,12 @@ export function ModernTableHeader({
       letterSpacing: 1.4,
     },
   });
+  // Alış/Satış artık tek kolonda yan yana gösteriliyor → birleşik başlık.
+  const priceLabel = `${cols[1]} · ${cols[2]}`.toUpperCase();
   return (
     <View style={styles.wrap}>
       <Text style={[styles.label, { flex: 1, marginLeft: withIcon ? 46 : 0 }]}>{cols[0].toUpperCase()}</Text>
-      <Text style={[styles.label, { width: 78, textAlign: "right", paddingHorizontal: 4 }]}>{cols[1].toUpperCase()}</Text>
-      <Text style={[styles.label, { width: 96, textAlign: "right" }]}>{cols[2].toUpperCase()}</Text>
+      <Text style={[styles.label, { width: 158, textAlign: "right" }]}>{priceLabel}</Text>
       <View style={{ width: 31 }} />
     </View>
   );
