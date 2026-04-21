@@ -1,0 +1,48 @@
+Build request failed. Make sure you are using the latest eas-cli version. If the problem persists, report the issue.
+    Error: build command failed.
+root@162-55-4-35:~/carsi-pazar/artifacts/doviz-altin# cd artifacts/doviz-altin
+-bash: cd: artifacts/doviz-altin: No such file or directory
+root@162-55-4-35:~/carsi-pazar/artifacts/doviz-altin# EXPO_DEBUG=1 eas build --platform android --profile preview --non-interactive=false
+(node:1742579) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Unexpected argument: false
+See more help with --help
+UnexpectedArgsError: Unexpected argument: false
+See more help with --help
+    at validateArgs (/root/.nvm/versions/node/v22.22.2/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/parser/validate.js:54:19)
+    at validate (/root/.nvm/versions/node/v22.22.2/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/parser/validate.js:272:5)
+    at Object.parse (/root/.nvm/versions/node/v22.22.2/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/parser/index.js:22:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async Build.parse (/root/.nvm/versions/node/v22.22.2/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/command.js:280:25)
+    at async Build.runAsync (/root/.nvm/versions/node/v22.22.2/lib/node_modules/eas-cli/build/commands/build/index.js:109:37)
+    at async Build.run (/root/.nvm/versions/node/v22.22.2/lib/node_modules/eas-cli/build/commandUtils/EasCommand.js:176:16)
+    at async Build._run (/root/.nvm/versions/node/v22.22.2/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/command.js:182:22)
+    at async Config.runCommand (/root/.nvm/versions/node/v22.22.2/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/config/config.js:445:25)
+    at async run (/root/.nvm/versions/node/v22.22.2/lib/node_modules/eas-cli/node_modules/@oclif/core/lib/main.js:97:16) {
+  code: undefined,
+  oclif: { exit: 2 },
+  skipOclifErrorHandling: undefined,
+  suggestions: undefined,
+  parse: {
+    input: {
+      '--': undefined,
+      args: {},
+      argv: [Array],
+      context: [Build],
+      flags: [Object],
+      strict: true
+    },
+    output: {
+      args: {},
+      argv: [Array],
+      flags: [Object],
+      metadata: [Object],
+      nonExistentFlags: [],
+      raw: [Array]
+    }
+  },
+  showHelp: true,
+  args: [ 'false' ]
+}
+    Error: build command failed.
+root@162-55-4-35:~/carsi-pazar/artifacts/doviz-altin#
