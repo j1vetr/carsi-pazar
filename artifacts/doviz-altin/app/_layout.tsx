@@ -21,7 +21,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { MenuDrawer } from "@/components/MenuDrawer";
 import { AppProvider } from "@/contexts/AppContext";
 import { DrawerProvider } from "@/contexts/DrawerContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ThemeProvider, ThemedTreeRemount } from "@/contexts/ThemeContext";
 import { scheduleReviewPrompt } from "@/lib/reviewPrompt";
 import { restoreOngoingNotificationIfEnabled } from "@/lib/ongoingNotification";
 import { isOnboardingSeen } from "@/lib/onboardingPref";
@@ -145,8 +145,10 @@ export default function RootLayout() {
             <DrawerProvider>
               <GestureHandlerRootView style={{ flex: 1 }}>
                 <KeyboardProvider>
-                  <RootLayoutNav />
-                  <MenuDrawer />
+                  <ThemedTreeRemount>
+                    <RootLayoutNav />
+                    <MenuDrawer />
+                  </ThemedTreeRemount>
                   {!lottieDone && (
                     <View style={styles.splash} pointerEvents="none">
                       <LottieView

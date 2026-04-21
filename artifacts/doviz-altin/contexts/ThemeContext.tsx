@@ -57,6 +57,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Tema değişince alt ağacı tamamen remount eder. Bu sayede StyleSheet.create
+ * ile sabitlenmiş renkler ve closure'a yakalanmış colors değerleri kullanan
+ * ekranlar da anında yeni temaya geçer (uygulamayı yeniden başlatma gerekmez).
+ * Provider'ların state'i (AppContext, QueryClient vb.) etkilenmez.
+ */
+export function ThemedTreeRemount({ children }: { children: React.ReactNode }) {
+  const { effective, ready } = useTheme();
+  if (!ready) return <>{children}</>;
+  return <React.Fragment key={effective}>{children}</React.Fragment>;
+}
+
 export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
   if (!ctx) {
