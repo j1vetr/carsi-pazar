@@ -25,6 +25,9 @@ import {
   apiGetNews,
   apiGetPrefs,
   apiSetPrefs,
+  apiGetPortfolio,
+  apiSetPortfolio,
+  type ServerPortfolioItem,
   type ServerAlert,
   type ServerNewsItem,
   type UserPrefs,
@@ -252,6 +255,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     movesEnabled: true,
     weeklyEnabled: true,
     favorites: [],
+    favoritesUpdatedAt: 0,
   });
   const [inboxUnread, setInboxUnread] = useState<number>(0);
   const historicalCache = useRef<Map<string, HistoricalPoint[]>>(new Map());
@@ -262,6 +266,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const newsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deviceIdRef = useRef<string | null>(null);
+  // Bulut senkronu için son değişiklik zaman damgaları (cihaz saati, ms).
+  // Açılışta sunucu vs lokal karşılaştırması ve last-write-wins çözümü için kullanılır.
+  const portfolioUpdatedAtRef = useRef<number>(0);
+  const favoritesUpdatedAtRef = useRef<number>(0);
+  // Portföy push için debounce timer
+  const portfolioPushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000;
   const HISTORY_MAX_AGE_MS = 48 * 60 * 60 * 1000;
@@ -369,29 +379,82 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setupPushAndRegister()
         .then(({ deviceId }) => {
           deviceIdRef.current = deviceId;
-          // Tercihleri yükle (paralel)
+          // Tercihleri yükle + favoriler için last-write-wins sync (paralel)
           apiGetPrefs(deviceId)
-            .then((p) => {
+            .then(async (p) => {
               if (!mounted) return;
               setPrefs(p);
               // Haftalık hatırlatıcıyı sunucu tercihine göre kur
               void scheduleWeeklyPortfolioReminder(p.weeklyEnabled !== false);
+
+              // Favoriler için zaman damgası karşılaştırması:
+              // Sunucu daha yeni → lokali sunucu ile değiştir.
+              // Lokal daha yeni (ya da sunucu hiç yazmamış ama lokal varsa) → push'la.
+              const localFavTs = favoritesUpdatedAtRef.current;
+              const serverFavTs = p.favoritesUpdatedAt || 0;
+              if (
+                serverFavTs > 0 &&
+                serverFavTs > localFavTs &&
+                Array.isArray(p.favorites)
+              ) {
+                setFavorites(p.favorites);
+                favoritesUpdatedAtRef.current = serverFavTs;
+                await AsyncStorage.multiSet([
+                  ["favorites", JSON.stringify(p.favorites)],
+                  ["favorites_updatedAt", String(serverFavTs)],
+                ]);
+              } else if (localFavTs > 0) {
+                // Lokal'de KULLANICI değişikliği var (timestamp > 0) ve sunucudan
+                // daha yeni → push'la. Aksi halde dokunma: timestamp 0 = ilk
+                // kurulumdaki varsayılan liste, sunucudaki gerçek veriyi ezmesin.
+                try {
+                  const raw = await AsyncStorage.getItem("favorites");
+                  if (raw) {
+                    const list = JSON.parse(raw) as string[];
+                    if (Array.isArray(list)) {
+                      void apiSetPrefs({
+                        deviceId,
+                        favorites: list,
+                        favoritesUpdatedAt: localFavTs,
+                      });
+                    }
+                  }
+                } catch {}
+              }
             })
             .catch(() => {});
-          // İlk açılışta cihazdaki favori listesini sunucuya gönder ki
-          // brifing/önemli hareket scheduler'ları doğru sembolleri kullansın.
-          // (Boş değilse — boş ise sunucu default'una saygı duyar.)
-          AsyncStorage.getItem("favorites")
-            .then((raw) => {
-              if (!raw) return;
-              try {
-                const list = JSON.parse(raw) as string[];
-                if (Array.isArray(list) && list.length > 0) {
-                  void apiSetPrefs({ deviceId, favorites: list });
+
+          // Portföy için last-write-wins sync (paralel)
+          apiGetPortfolio(deviceId)
+            .then(async ({ items: serverItems, clientUpdatedAt: serverTs }) => {
+              if (!mounted) return;
+              const localTs = portfolioUpdatedAtRef.current;
+              if (serverTs > 0 && serverTs > localTs) {
+                // Sunucu daha yeni → lokali değiştir
+                const next = fromServerPortfolio(serverItems);
+                setPortfolio(next);
+                portfolioUpdatedAtRef.current = serverTs;
+                await AsyncStorage.multiSet([
+                  ["portfolio", JSON.stringify(next)],
+                  ["portfolio_updatedAt", String(serverTs)],
+                ]);
+              } else if (localTs > serverTs) {
+                // Lokal yeni → sunucuya push'la (debounce gerek yok, tek seferlik)
+                try {
+                  const raw = await AsyncStorage.getItem("portfolio");
+                  const list = raw ? (JSON.parse(raw) as PortfolioItem[]) : [];
+                  await apiSetPortfolio({
+                    deviceId,
+                    items: toServerPortfolio(list),
+                    clientUpdatedAt: localTs,
+                  });
+                } catch (err) {
+                  console.warn("[portfolio] ilk push hatası:", err);
                 }
-              } catch {}
+              }
             })
-            .catch(() => {});
+            .catch((err) => console.warn("[portfolio] sync hatası:", err));
+
           return apiListAlerts(deviceId);
         })
         .then((server) => {
@@ -454,6 +517,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       if (newsIntervalRef.current) clearInterval(newsIntervalRef.current);
+      if (portfolioPushTimer.current) clearTimeout(portfolioPushTimer.current);
       if (respSub) respSub.remove();
       if (foregroundSub) foregroundSub.remove();
       if (inboxSub) inboxSub();
@@ -485,10 +549,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const loadStoredData = async () => {
     try {
-      const [storedPortfolio, storedFavorites, storedHistory] = await Promise.all([
+      const [
+        storedPortfolio,
+        storedFavorites,
+        storedHistory,
+        storedPortfolioTs,
+        storedFavoritesTs,
+      ] = await Promise.all([
         AsyncStorage.getItem("portfolio"),
         AsyncStorage.getItem("favorites"),
         AsyncStorage.getItem("priceHistory_v1"),
+        AsyncStorage.getItem("portfolio_updatedAt"),
+        AsyncStorage.getItem("favorites_updatedAt"),
       ]);
       if (storedPortfolio) setPortfolio(JSON.parse(storedPortfolio));
       if (storedFavorites) setFavorites(JSON.parse(storedFavorites));
@@ -500,8 +572,59 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           }
         } catch {}
       }
+      const pTs = storedPortfolioTs ? Number(storedPortfolioTs) : 0;
+      const fTs = storedFavoritesTs ? Number(storedFavoritesTs) : 0;
+      portfolioUpdatedAtRef.current = Number.isFinite(pTs) ? pTs : 0;
+      favoritesUpdatedAtRef.current = Number.isFinite(fTs) ? fTs : 0;
     } catch {}
   };
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Bulut senkronu yardımcıları
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // Lokal portföyü ServerPortfolioItem formatına çevir (alanları sterilize et).
+  const toServerPortfolio = (items: PortfolioItem[]): ServerPortfolioItem[] =>
+    items.map((it) => ({
+      id: it.id,
+      type: it.type,
+      code: it.code,
+      name: it.name,
+      nameTR: it.nameTR,
+      amount: it.amount,
+      purchasePrice: it.purchasePrice,
+      purchaseDate: it.purchaseDate,
+    }));
+
+  // Sunucudaki portföyü lokal PortfolioItem'a güvenle dönüştür (eksik alanları doldur).
+  const fromServerPortfolio = (items: ServerPortfolioItem[]): PortfolioItem[] =>
+    items.map((it) => ({
+      id: it.id,
+      type: it.type,
+      code: it.code,
+      name: it.name,
+      nameTR: it.nameTR,
+      amount: it.amount,
+      purchasePrice: it.purchasePrice,
+      purchaseDate: it.purchaseDate || new Date().toISOString(),
+    }));
+
+  // Portföy push'unu debounce eder; arka arkaya değişimlerde tek bir POST yapılır.
+  const schedulePortfolioPush = useCallback(
+    (items: PortfolioItem[], ts: number) => {
+      if (portfolioPushTimer.current) clearTimeout(portfolioPushTimer.current);
+      portfolioPushTimer.current = setTimeout(() => {
+        const deviceId = deviceIdRef.current;
+        if (!deviceId) return;
+        apiSetPortfolio({
+          deviceId,
+          items: toServerPortfolio(items),
+          clientUpdatedAt: ts,
+        }).catch((err) => console.warn("[portfolio] sync hatası:", err));
+      }, 3000);
+    },
+    []
+  );
 
   // Derived state
   const buckets = useMemo(() => {
@@ -629,19 +752,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       };
       const updated = [...portfolio, newItem];
+      const ts = Date.now();
       setPortfolio(updated);
-      await AsyncStorage.setItem("portfolio", JSON.stringify(updated));
+      portfolioUpdatedAtRef.current = ts;
+      await AsyncStorage.multiSet([
+        ["portfolio", JSON.stringify(updated)],
+        ["portfolio_updatedAt", String(ts)],
+      ]);
+      schedulePortfolioPush(updated, ts);
     },
-    [portfolio]
+    [portfolio, schedulePortfolioPush]
   );
 
   const removeFromPortfolio = useCallback(
     async (id: string) => {
       const updated = portfolio.filter((p) => p.id !== id);
+      const ts = Date.now();
       setPortfolio(updated);
-      await AsyncStorage.setItem("portfolio", JSON.stringify(updated));
+      portfolioUpdatedAtRef.current = ts;
+      await AsyncStorage.multiSet([
+        ["portfolio", JSON.stringify(updated)],
+        ["portfolio_updatedAt", String(ts)],
+      ]);
+      schedulePortfolioPush(updated, ts);
     },
-    [portfolio]
+    [portfolio, schedulePortfolioPush]
   );
 
   const addAlert = useCallback(
@@ -689,13 +824,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const updated = favorites.includes(code)
         ? favorites.filter((f) => f !== code)
         : [...favorites, code];
+      const ts = Date.now();
       setFavorites(updated);
-      await AsyncStorage.setItem("favorites", JSON.stringify(updated));
+      favoritesUpdatedAtRef.current = ts;
+      await AsyncStorage.multiSet([
+        ["favorites", JSON.stringify(updated)],
+        ["favorites_updatedAt", String(ts)],
+      ]);
       // Brifing + önemli hareket scheduler'ları için sunucuya senkronize et
       const deviceId = deviceIdRef.current;
       if (deviceId) {
-        try { await apiSetPrefs({ deviceId, favorites: updated }); }
-        catch (err) { console.warn("[favs] sync hatası:", err); }
+        try {
+          await apiSetPrefs({
+            deviceId,
+            favorites: updated,
+            favoritesUpdatedAt: ts,
+          });
+        } catch (err) {
+          console.warn("[favs] sync hatası:", err);
+        }
       }
     },
     [favorites]
