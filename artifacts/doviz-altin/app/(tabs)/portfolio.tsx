@@ -30,6 +30,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp, PortfolioItem } from "@/contexts/AppContext";
+import { formatSymbolName } from "@/lib/symbolDescriptions";
 
 // ── Number formatting ──────────────────────────────────────────────────────
 const fmtTL = (v: number) =>
@@ -162,7 +163,7 @@ function AddAssetModal({
                   }}
                 >
                   <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: selectedCode === asset.code ? colors.primaryForeground : colors.foreground, letterSpacing: -0.1 }}>
-                    {asset.code}
+                    {formatSymbolName(asset.code)}
                   </Text>
                 </Pressable>
               ))}

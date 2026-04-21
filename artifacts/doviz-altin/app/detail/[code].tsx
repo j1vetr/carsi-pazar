@@ -17,6 +17,7 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import { AssetIcon } from "@/components/AssetIcon";
+import { getSymbolDescription, formatSymbolName } from "@/lib/symbolDescriptions";
 
 function AddAlertModal({
   visible,
@@ -88,7 +89,7 @@ function AddAlertModal({
           </View>
           <View style={{ backgroundColor: colors.secondary, borderRadius: 10, padding: 14 }}>
             <Text style={{ fontSize: 12, fontFamily: "Inter_400Regular", color: colors.mutedForeground }}>
-              {code} fiyatı ₺{parseFloat(targetPrice || "0").toFixed(2)} seviyesinin {direction === "above" ? "üzerine çıktığında" : "altına düştüğünde"} bildirim alacaksınız.
+              {nameTR} fiyatı ₺{parseFloat(targetPrice || "0").toFixed(2)} seviyesinin {direction === "above" ? "üzerine çıktığında" : "altına düştüğünde"} bildirim alacaksınız.
             </Text>
           </View>
         </View>
@@ -165,7 +166,7 @@ export default function DetailScreen() {
               {item.nameTR}
             </Text>
             <Text style={{ fontSize: 13, fontFamily: "Inter_400Regular", color: type === "gold" ? "rgba(255,255,255,0.7)" : colors.mutedForeground, marginTop: 2 }}>
-              {code}
+              {getSymbolDescription(code!) ?? formatSymbolName(code!)}
             </Text>
           </View>
         </View>

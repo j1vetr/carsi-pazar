@@ -1,3 +1,5 @@
+import { findMetaByCode } from "./haremApi";
+
 /**
  * Insan diline çevrilmiş kısa sembol açıklamaları.
  * ModernPriceRow alt satırında ONS_EUR gibi kodlar yerine bunları gösterir.
@@ -73,4 +75,38 @@ const DESCRIPTIONS: Record<string, string> = {
 /** Bir sembol kodu için kısa Türkçe açıklama. Yoksa null. */
 export function getSymbolDescription(code: string): string | null {
   return DESCRIPTIONS[code] ?? null;
+}
+
+/**
+ * Bir sembol kodunu ekranda gösterilecek sade Türkçe ada çevirir.
+ * - Underscore içermeyen kısa kodlar (USD, EUR, GBP) olduğu gibi döner.
+ * - Underscore'lu kodlar (ONS_EUR, BANKA_ALTIN) önce nameTR'ye, yoksa
+ *   ayraçla bölünmüş forma düşer.
+ */
+export function formatSymbolName(code: string): string {
+  if (!code) return code;
+  if (!code.includes("_")) return code;
+  const meta = findMetaByCode(code);
+  if (meta?.nameTR) return meta.nameTR;
+  return code.replace(/_/g, " · ");
+}
+
+/**
+ * API kategori başlıklarını (DOVIZ, MADEN, PARITE, GRAM ALTIN, SARRAFIYE)
+ * kullanıcıya gösterilecek anlaşılır Türkçe başlıklara çevirir.
+ */
+const CATEGORY_TITLES: Record<string, { title: string; subtitle?: string }> = {
+  DOVIZ: { title: "Döviz Kurları", subtitle: "Türk Lirası karşılığı" },
+  MADEN: { title: "Değerli Madenler", subtitle: "Altın, gümüş, platin, paladyum" },
+  PARITE: { title: "Uluslararası Pariteler", subtitle: "Çapraz döviz kurları" },
+  "GRAM ALTIN": { title: "Gram & Külçe Altın", subtitle: "5 gr – 100 gr arası" },
+  SARRAFIYE: { title: "Sarrafiye Altın", subtitle: "Çeyrek, yarım, tam, ata" },
+};
+
+export function getCategoryTitle(category: string): string {
+  return CATEGORY_TITLES[category]?.title ?? category;
+}
+
+export function getCategorySubtitle(category: string): string | undefined {
+  return CATEGORY_TITLES[category]?.subtitle;
 }

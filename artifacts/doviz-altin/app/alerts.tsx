@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp, PriceAlert } from "@/contexts/AppContext";
+import { formatSymbolName } from "@/lib/symbolDescriptions";
 
 function AlertCard({ alert, colors, onDelete }: { alert: PriceAlert; colors: any; onDelete: () => void }) {
   const directionColor = alert.direction === "above" ? colors.rise : colors.fall;
@@ -40,7 +41,7 @@ function AlertCard({ alert, colors, onDelete }: { alert: PriceAlert; colors: any
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <Text style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: colors.foreground }}>{alert.code}</Text>
+            <Text style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: colors.foreground }}>{formatSymbolName(alert.code)}</Text>
             <View style={{ backgroundColor: directionColor + "15", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, flexDirection: "row", alignItems: "center", gap: 3 }}>
               <Icon name={directionIcon} size={11} color={directionColor} />
               <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: directionColor }}>

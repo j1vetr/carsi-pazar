@@ -18,6 +18,7 @@ import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import { AssetIcon } from "@/components/AssetIcon";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import { formatSymbolName } from "@/lib/symbolDescriptions";
 
 // ── Number formatting ──────────────────────────────────────────────────────
 const fmtAmount = (v: number): string => {
@@ -90,7 +91,7 @@ function CurrencyPickerModal({
                 <AssetIcon code={item.code} type={item.assetType} size={36} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.2 }}>{item.code}</Text>
+                <Text style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.2 }}>{formatSymbolName(item.code)}</Text>
                 <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 2 }}>{item.nameTR}</Text>
               </View>
             </Pressable>
@@ -131,7 +132,7 @@ function AssetSelector({
         <AssetIcon code={code} type={assetType} size={36} />
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}>
-            {code}
+            {formatSymbolName(code)}
           </Text>
           <Text numberOfLines={1} style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 2 }}>
             {nameTR}

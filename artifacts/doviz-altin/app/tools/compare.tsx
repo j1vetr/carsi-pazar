@@ -16,6 +16,7 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
+import { formatSymbolName } from "@/lib/symbolDescriptions";
 
 type Slot = "a" | "b";
 
@@ -408,7 +409,7 @@ function CompareCard({
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 18, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.4 }}>
-              {asset.code}
+              {formatSymbolName(asset.code)}
             </Text>
             <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 2 }} numberOfLines={1}>
               {asset.name}
