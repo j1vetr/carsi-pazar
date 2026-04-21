@@ -318,6 +318,12 @@ export interface PriceRow {
   badge?: string;    // optional small badge
 }
 
+const CURRENCY_GLYPH: Record<string, string> = {
+  USD: "$", EUR: "\u20AC", GBP: "\u00A3", CHF: "Fr", JPY: "\u00A5",
+  SAR: "SR", AED: "AE", CAD: "C$", AUD: "A$", CNY: "\u00A5", RUB: "\u20BD",
+  DKK: "kr", SEK: "kr", NOK: "kr", TRY: "\u20BA", BANKAUSD: "B$",
+};
+
 export function Row({
   theme,
   row,
@@ -353,11 +359,13 @@ export function Row({
           alignItems: "center",
           justifyContent: "center",
           marginRight: 12,
-          fontSize: 16,
+          fontSize: CURRENCY_GLYPH[row.code] ? 15 : 16,
+          fontWeight: 700,
+          color: t.ink,
           flexShrink: 0,
         }}
       >
-        {row.flag ?? row.code.slice(0, 2)}
+        {CURRENCY_GLYPH[row.code] ?? row.flag ?? row.code.slice(0, 2)}
       </div>
 
       {/* code + name */}
