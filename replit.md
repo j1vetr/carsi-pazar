@@ -57,6 +57,13 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `app.json` splash + bildirim ikonları renkli `icon.png`'ye taşındı (yeni APK gerekiyor)
 - **DEVAM EDEN:** APK'da widget hâlâ tamamen şeffaf — root cause araştırması sürüyor
 
+### Bildirim çubuğu (canlı / foreground service)
+- `lib/ongoingNotification.ts` — `@notifee/react-native` ile Android foreground service. Widget config'inden 4 sembolü okur, BIGTEXT stilinde 4 satır gösterir. ~90 sn'de bir refresh, AppState=active'de de tetiklenir. iOS no-op.
+- `app/settings/widget.tsx` — "BİLDİRİM ÇUBUĞU · CANLI" bölümünde toggle (varsayılan KAPALI). Açıldığında runtime POST_NOTIFICATIONS izni istenir, kapatıldığında service durur.
+- `app/_layout.tsx` — `restoreOngoingNotificationIfEnabled` ile uygulama açılışında AsyncStorage flag'i true ise service yeniden bağlanır.
+- `app.json` android.permissions: POST_NOTIFICATIONS, FOREGROUND_SERVICE, FOREGROUND_SERVICE_DATA_SYNC, WAKE_LOCK eklendi.
+- Native modül; Expo Go çalışmaz, dev client/EAS build gerekir.
+
 **newArchEnabled:** `true` (Reanimated 4 gerektiriyor, sabit)
 
 **Backend haberler:**

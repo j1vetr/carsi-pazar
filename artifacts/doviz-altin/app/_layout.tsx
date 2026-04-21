@@ -23,6 +23,7 @@ import { AppProvider } from "@/contexts/AppContext";
 import { DrawerProvider } from "@/contexts/DrawerContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { scheduleReviewPrompt } from "@/lib/reviewPrompt";
+import { restoreOngoingNotificationIfEnabled } from "@/lib/ongoingNotification";
 import { registerWidgetBackgroundTask } from "@/lib/widgetBackgroundTask";
 import { refreshPriceWidget } from "@/widgets/refresh";
 
@@ -86,6 +87,7 @@ export default function RootLayout() {
     if (Platform.OS !== "android") return;
     void refreshPriceWidget();
     void registerWidgetBackgroundTask();
+    void restoreOngoingNotificationIfEnabled();
     const sub = AppState.addEventListener("change", (state: AppStateStatus) => {
       if (state === "active") void refreshPriceWidget();
     });
