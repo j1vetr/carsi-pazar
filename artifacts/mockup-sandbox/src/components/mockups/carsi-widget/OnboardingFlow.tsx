@@ -20,6 +20,7 @@ type Slide = {
   buttonBg: string;
   buttonInk: string;
   showSkip: boolean;
+  dark: boolean;
 };
 
 function PhoneFrame({ children, label }: { children: React.ReactNode; label: string }) {
@@ -74,17 +75,30 @@ function PageIndex({ num, total, ink }: { num: string; total: string; ink: strin
   );
 }
 
-function BrandHeader({ ink }: { ink: string }) {
+function BrandHeader({ ink, onDark }: { ink: string; onDark: boolean }) {
   return (
     <div className="flex items-center gap-2">
-      <img
-        src={ASSET("icon.png")}
-        alt=""
-        className="w-[20px] h-[20px] object-contain rounded-[5px]"
-      />
+      <div
+        className="flex items-center justify-center"
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: 6,
+          background: onDark ? "#FFFFFF" : "transparent",
+          padding: onDark ? 2 : 0,
+          boxShadow: onDark ? "0 1px 4px rgba(0,0,0,0.25)" : "none",
+        }}
+      >
+        <img
+          src={ASSET("icon.png")}
+          alt=""
+          className="w-full h-full object-contain"
+          style={{ borderRadius: 4 }}
+        />
+      </div>
       <span
         className="text-[10.5px] font-bold tracking-[2px]"
-        style={{ color: ink, opacity: 0.78 }}
+        style={{ color: ink, opacity: 0.85 }}
       >
         ÇARŞI PİYASA
       </span>
@@ -125,7 +139,7 @@ function SlideShell({ slide, activeIdx }: { slide: Slide; activeIdx: number }) {
 
       {/* header row */}
       <div className="flex items-center justify-between px-6 pt-5">
-        <BrandHeader ink={slide.ink} />
+        <BrandHeader ink={slide.ink} onDark={slide.dark} />
         <PageIndex num={slide.num} total={slide.total} ink={slide.ink} />
       </div>
 
@@ -367,11 +381,21 @@ function NotifVisual() {
               border: "1px solid rgba(255,255,255,0.08)",
             }}
           >
-            <img
-              src={ASSET("icon.png")}
-              alt=""
-              className="w-[18px] h-[18px] object-contain mt-0.5 rounded-[4px]"
-            />
+            <div
+              className="mt-0.5 flex items-center justify-center"
+              style={{
+                width: 22, height: 22, borderRadius: 6,
+                background: "#FFFFFF", padding: 2,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+              }}
+            >
+              <img
+                src={ASSET("icon.png")}
+                alt=""
+                className="w-full h-full object-contain"
+                style={{ borderRadius: 4 }}
+              />
+            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-[10.5px] font-bold text-white/95">Çarşı Piyasa</span>
@@ -457,6 +481,7 @@ const LIGHT = {
   divider: "rgba(11,31,58,0.08)",
   buttonBg: "#0B3D91",
   buttonInk: "#FFFFFF",
+  dark: false,
 };
 
 const DARK = {
@@ -467,6 +492,7 @@ const DARK = {
   divider: "rgba(255,255,255,0.10)",
   buttonBg: "#FFFFFF",
   buttonInk: "#0B1F3A",
+  dark: true,
 };
 
 const NAVY = {
@@ -477,6 +503,7 @@ const NAVY = {
   divider: "rgba(255,255,255,0.16)",
   buttonBg: "#FFFFFF",
   buttonInk: "#0B3D91",
+  dark: true,
 };
 
 const SLIDES: Slide[] = [
