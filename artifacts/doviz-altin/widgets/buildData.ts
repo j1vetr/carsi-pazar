@@ -7,6 +7,7 @@ import {
   mapPrices,
   SYMBOL_REGISTRY,
   type AssetRate,
+  type RawHaremResponse,
 } from "@/lib/haremApi";
 import type { AssetKind, PriceWidgetData, WidgetRow } from "./PriceWidget";
 
@@ -54,9 +55,23 @@ export function errorData(message: string): PriceWidgetData {
   };
 }
 
+async function fetchWithRetry(): Promise<RawHaremResponse> {
+  try {
+    return await fetchAllPrices();
+  } catch (e1) {
+    // Geçici network glitch için kısa bir bekleme + tek retry
+    await new Promise((r) => setTimeout(r, 2000));
+    try {
+      return await fetchAllPrices();
+    } catch (e2) {
+      throw e2 instanceof Error ? e2 : e1;
+    }
+  }
+}
+
 export async function buildData(codes: string[]): Promise<PriceWidgetData> {
   try {
-    const raw = await fetchAllPrices();
+    const raw = await fetchWithRetry();
     const rates = mapPrices(raw, {});
     const byCode = new Map<string, AssetRate>(rates.map((r) => [r.meta.code, r]));
 
@@ -78,6 +93,13 @@ export async function buildData(codes: string[]): Promise<PriceWidgetData> {
 
     return { rows, updatedAt: fmtTime(new Date()) };
   } catch (e) {
+    // Network başarısız → eldeki son başarılı cache'i kullan (kullanıcı eski
+    // ama doğru fiyat görmeli; widget'ta "Bağlantı yok" basmaktansa).
+    const cached = await readWidgetCache();
+    if (cached && cached.rows.length > 0) {
+      // updatedAt'i koru — kullanıcı son verinin saatini görsün.
+      return { ...cached, error: undefined };
+    }
     const msg = e instanceof Error ? e.message : "Bağlantı yok";
     return errorData(msg.length > 30 ? "Bağlantı yok" : msg);
   }
