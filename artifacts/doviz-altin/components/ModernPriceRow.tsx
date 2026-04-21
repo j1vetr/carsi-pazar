@@ -1,0 +1,249 @@
+import React, { useCallback, useEffect, useRef } from "react";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
+import { Icon } from "@/components/Icon";
+import { AssetIcon } from "@/components/AssetIcon";
+import { useColors } from "@/hooks/useColors";
+import { CurrencyRate, GoldRate } from "@/contexts/AppContext";
+
+interface Props {
+  item: CurrencyRate | GoldRate;
+  type: "currency" | "gold";
+  isFavorite?: boolean;
+  onPress: () => void;
+  onFavoriteToggle?: () => void;
+  /** Override displayed code (e.g. shorten "GRAM_ALTIN" to "GRAM") */
+  codeOverride?: string;
+  /** Small badge after code, e.g. "YENİ" / "ESKİ" */
+  badge?: string;
+  /** Show item name first instead of code (used for gold sarrafiye where name is meaningful) */
+  nameFirst?: boolean;
+}
+
+const MONO = Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" });
+
+function fmt(n: number): string {
+  if (n >= 1000) return n.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (n >= 10) return n.toLocaleString("tr-TR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+  return n.toLocaleString("tr-TR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+}
+
+export function ModernPriceRow({
+  item,
+  type,
+  isFavorite,
+  onPress,
+  onFavoriteToggle,
+  codeOverride,
+  badge,
+  nameFirst,
+}: Props) {
+  const colors = useColors();
+  const flashOpacity = useSharedValue(0);
+  const prevPrice = useRef(item.buy);
+
+  useEffect(() => {
+    const delta = item.buy - prevPrice.current;
+    if (delta !== 0) {
+      const meaningful = Math.abs(delta / (prevPrice.current || 1)) > 0.0001;
+      if (meaningful) {
+        const dir = delta > 0 ? 1 : -1;
+        flashOpacity.value = withTiming(dir * 0.07, { duration: 120 }, () => {
+          flashOpacity.value = withTiming(0, { duration: 600 });
+        });
+      }
+      prevPrice.current = item.buy;
+    }
+  }, [item.buy, flashOpacity]);
+
+  const flashStyle = useAnimatedStyle(() => ({
+    opacity: Math.abs(flashOpacity.value),
+    backgroundColor: flashOpacity.value >= 0 ? colors.rise : colors.fall,
+  }));
+
+  const handlePress = useCallback(() => {
+    if (typeof Haptics?.impactAsync === "function") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    }
+    onPress();
+  }, [onPress]);
+
+  const isPositive = item.changePercent >= 0;
+  const hasChange = Math.abs(item.changePercent) >= 0.005;
+  const changeColor = hasChange ? (isPositive ? colors.rise : colors.fall) : colors.mutedForeground;
+  const changeBg = hasChange ? (isPositive ? colors.riseSoft : colors.fallSoft) : colors.surface;
+
+  const displayCode = codeOverride ?? item.code;
+  const buyStr = fmt(item.buy);
+  const sellStr = fmt(item.sell);
+
+  const styles = StyleSheet.create({
+    pressable: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.background,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+      overflow: "hidden",
+    },
+    flash: { ...StyleSheet.absoluteFillObject },
+    iconWrap: { marginRight: 12 },
+
+    nameCol: { flex: 1, justifyContent: "center", minWidth: 0 },
+    headRow: { flexDirection: "row", alignItems: "baseline", gap: 6 },
+    code: {
+      fontSize: 14.5,
+      fontFamily: "Inter_700Bold",
+      color: colors.foreground,
+      letterSpacing: -0.2,
+    },
+    badge: {
+      fontSize: 9,
+      fontFamily: "Inter_700Bold",
+      color: colors.mutedForeground,
+      letterSpacing: 0.6,
+      paddingHorizontal: 5,
+      paddingVertical: 1,
+      borderRadius: 4,
+      backgroundColor: colors.surface,
+      overflow: "hidden",
+    },
+    name: {
+      fontSize: 11,
+      fontFamily: "Inter_500Medium",
+      color: colors.mutedForeground,
+      marginTop: 2,
+    },
+
+    buyCol: {
+      width: 78,
+      alignItems: "flex-end",
+      justifyContent: "center",
+      paddingHorizontal: 4,
+    },
+    buyText: {
+      fontSize: 12.5,
+      color: colors.mutedForeground,
+      fontFamily: MONO,
+      fontVariant: ["tabular-nums"],
+      letterSpacing: -0.3,
+    },
+
+    sellCol: { width: 96, alignItems: "flex-end", justifyContent: "center" },
+    sellText: {
+      fontSize: 14,
+      fontFamily: "Inter_700Bold",
+      color: colors.foreground,
+      fontVariant: ["tabular-nums"],
+      letterSpacing: -0.3,
+      lineHeight: 17,
+    },
+    changePill: {
+      marginTop: 3,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+      borderRadius: 5,
+      backgroundColor: changeBg,
+    },
+    changeText: {
+      fontSize: 10.5,
+      fontFamily: "Inter_700Bold",
+      color: changeColor,
+      fontVariant: ["tabular-nums"],
+      letterSpacing: -0.1,
+    },
+
+    starBtn: { marginLeft: 8, padding: 4 },
+  });
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={styles.pressable}
+      android_ripple={{ color: colors.surface }}
+    >
+      <Animated.View style={[styles.flash, flashStyle]} pointerEvents="none" />
+
+      <View style={styles.iconWrap}>
+        <AssetIcon code={item.code} type={type} size={34} variant="soft" />
+      </View>
+
+      <View style={styles.nameCol}>
+        <View style={styles.headRow}>
+          {nameFirst ? (
+            <Text style={styles.code} numberOfLines={1}>{item.nameTR}</Text>
+          ) : (
+            <Text style={styles.code} numberOfLines={1}>{displayCode}</Text>
+          )}
+          {badge ? <Text style={styles.badge}>{badge}</Text> : null}
+        </View>
+        <Text style={styles.name} numberOfLines={1}>
+          {nameFirst ? item.code : item.nameTR}
+        </Text>
+      </View>
+
+      <View style={styles.buyCol}>
+        <Text style={styles.buyText} numberOfLines={1}>{buyStr}</Text>
+      </View>
+
+      <View style={styles.sellCol}>
+        <Text style={styles.sellText} numberOfLines={1}>{sellStr}</Text>
+        <View style={styles.changePill}>
+          <Text style={styles.changeText}>
+            {hasChange ? `${isPositive ? "▲" : "▼"} ${Math.abs(item.changePercent).toFixed(2)}%` : "—"}
+          </Text>
+        </View>
+      </View>
+
+      {onFavoriteToggle ? (
+        <Pressable onPress={onFavoriteToggle} style={styles.starBtn} hitSlop={8}>
+          <Icon
+            name={isFavorite ? "star" : "star-outline"}
+            size={15}
+            color={isFavorite ? colors.gold : colors.mutedForeground}
+          />
+        </Pressable>
+      ) : null}
+    </Pressable>
+  );
+}
+
+export function ModernTableHeader({ cols = ["Birim", "Alış", "Satış"] }: { cols?: [string, string, string] | string[] }) {
+  const colors = useColors();
+  const styles = StyleSheet.create({
+    wrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      backgroundColor: colors.surface,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    label: {
+      fontSize: 9.5,
+      fontFamily: "Inter_700Bold",
+      color: colors.mutedForeground,
+      letterSpacing: 1.4,
+    },
+  });
+  return (
+    <View style={styles.wrap}>
+      <Text style={[styles.label, { flex: 1, marginLeft: 46 }]}>{cols[0].toUpperCase()}</Text>
+      <Text style={[styles.label, { width: 78, textAlign: "right", paddingHorizontal: 4 }]}>{cols[1].toUpperCase()}</Text>
+      <Text style={[styles.label, { width: 96, textAlign: "right" }]}>{cols[2].toUpperCase()}</Text>
+      <View style={{ width: 31 }} />
+    </View>
+  );
+}

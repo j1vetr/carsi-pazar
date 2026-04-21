@@ -11,6 +11,7 @@ import {
   Bell,
   BellOff,
   Mail,
+  Menu,
   Briefcase,
   Building2,
   Check,
@@ -86,6 +87,7 @@ export type IconName =
   | "apps-outline"
   | "checkmark"
   | "refresh"
+  | "menu"
   | "x";
 
 const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
@@ -115,6 +117,7 @@ const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
   "diamond": Gem,
   "add": Plus,
   "refresh": RotateCw,
+  "menu": Menu,
   "ellipsis-horizontal": MoreHorizontal,
   "flag": Flag,
   "alert-circle": AlertCircle,

@@ -9,169 +9,14 @@ import {
   Text,
   View,
 } from "react-native";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
-import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { useApp, GoldRate } from "@/contexts/AppContext";
-import { PriceCard } from "@/components/PriceCard";
-import { AssetPickerModal, PickerSection } from "@/components/AssetPickerModal";
-import { GOLD_DEFAULT, loadGoldMiniCodes, saveGoldMiniCodes } from "@/lib/miniCardPrefs";
-
-function GoldHero({
-  gram,
-  miniItems,
-  onEditMini,
-  colors,
-  lastUpdated,
-}: {
-  gram: GoldRate | undefined;
-  miniItems: (GoldRate | undefined)[];
-  onEditMini: (idx: number) => void;
-  colors: any;
-  lastUpdated: Date | null;
-}) {
-  const formatTime = (date: Date | null) => {
-    if (!date) return "BAĞLANIYOR";
-    return date.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  };
-  const fmt = (n: number, frac = 2) =>
-    n.toLocaleString("tr-TR", { minimumFractionDigits: frac, maximumFractionDigits: frac });
-  const gramBuy = gram?.buy ?? 0;
-  const gramChange = gram?.change ?? 0;
-  const gramPct = gram?.changePercent ?? 0;
-  const isPos = gramChange >= 0;
-  const hasChange = Math.abs(gramPct) >= 0.005;
-
-  return (
-    <LinearGradient
-      colors={[colors.primary, colors.primaryDark, "#04173B"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 18 }}
-    >
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <View>
-          <Image
-            source={require("@/assets/images/logo-dark.png")}
-            style={{ width: 140, height: 38 }}
-            contentFit="contain"
-          />
-          <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: "rgba(255,255,255,0.7)", letterSpacing: 1.4, marginTop: 2 }}>
-            ALTIN PİYASASI
-          </Text>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <View style={{
-            paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999,
-            backgroundColor: "rgba(255,255,255,0.1)",
-          }}>
-            <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.9)", letterSpacing: 1 }}>
-              {formatTime(lastUpdated)}
-            </Text>
-          </View>
-          <Pressable
-            onPress={() => router.push("/alerts")}
-            style={{
-              width: 34, height: 34, borderRadius: 17,
-              backgroundColor: "rgba(255,255,255,0.1)",
-              alignItems: "center", justifyContent: "center",
-            }}
-            hitSlop={6}
-          >
-            <Icon name="notifications-outline" size={17} color="#FFFFFF" />
-          </Pressable>
-        </View>
-      </View>
-
-      <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.55)", letterSpacing: 1.5, marginBottom: 4 }}>
-        GRAM ALTIN · TL
-      </Text>
-      <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
-        <View>
-          <Text style={{ fontSize: 38, fontFamily: "Inter_700Bold", color: "#FFFFFF", letterSpacing: -1, fontVariant: ["tabular-nums"] }}>
-            {fmt(gramBuy)}
-          </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6, gap: 8 }}>
-            <View style={{
-              flexDirection: "row", alignItems: "center", gap: 4,
-              paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
-              backgroundColor: hasChange ? (isPos ? "rgba(94,234,168,0.15)" : "rgba(255,133,133,0.15)") : "rgba(255,255,255,0.1)",
-            }}>
-              {hasChange && (
-                <Icon name={isPos ? "caret-up" : "caret-down"} size={11} color={isPos ? "#5EEAA8" : "#FF8585"} />
-              )}
-              <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: hasChange ? (isPos ? "#5EEAA8" : "#FF8585") : "rgba(255,255,255,0.7)" }}>
-                {hasChange ? `${isPos ? "+" : ""}${gramPct.toFixed(2)}%` : "—"}
-              </Text>
-            </View>
-            <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.6)" }}>
-              {hasChange ? `${isPos ? "+" : ""}${fmt(gramChange)} ₺` : "Baseline alınıyor"}
-            </Text>
-          </View>
-        </View>
-        <View style={{ alignItems: "flex-end" }}>
-          <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.55)", letterSpacing: 1.5 }}>
-            SATIŞ
-          </Text>
-          <Text style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginTop: 4, fontVariant: ["tabular-nums"] }}>
-            {fmt(gram?.sell ?? 0)}
-          </Text>
-        </View>
-      </View>
-
-      <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
-        {miniItems.map((item, idx) => {
-          const prefix = item?.code === "ONS" ? "$" : "₺";
-          const val = item?.buy ?? 0;
-          const pct = item?.changePercent ?? 0;
-          const up = pct >= 0;
-          const hasChange = Math.abs(pct) >= 0.005;
-          const valStr = `${prefix}${fmt(val)}`;
-          const miniFontSize = valStr.length <= 7 ? 16 : valStr.length <= 9 ? 14 : valStr.length <= 10 ? 13 : 12;
-          return (
-            <Pressable
-              key={`mini-${idx}`}
-              onPress={() => {
-                if (item) router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "gold" } });
-              }}
-              onLongPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-                onEditMini(idx);
-              }}
-              delayLongPress={350}
-              style={{
-                flex: 1,
-                backgroundColor: "rgba(255,255,255,0.08)",
-                borderRadius: 12, paddingVertical: 10, paddingHorizontal: 12,
-              }}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                <Text numberOfLines={1} style={{ fontSize: 10, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.55)", letterSpacing: 1 }}>
-                  {item?.code ?? "—"}
-                </Text>
-                <Icon name="ellipsis-horizontal" size={11} color="rgba(255,255,255,0.4)" />
-              </View>
-              <Text
-                numberOfLines={1}
-                ellipsizeMode="clip"
-                style={{ fontSize: miniFontSize, fontFamily: "Inter_700Bold", color: "#FFFFFF", marginTop: 2, fontVariant: ["tabular-nums"] }}
-              >
-                {valStr}
-              </Text>
-              <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", marginTop: 2, color: hasChange ? (up ? "#5EEAA8" : "#FF8585") : "rgba(255,255,255,0.45)" }}>
-                {hasChange ? `${up ? "▲" : "▼"} ${Math.abs(pct).toFixed(2)}%` : "—"}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    </LinearGradient>
-  );
-}
+import { MinimalTopBar } from "@/components/MinimalTopBar";
+import { ModernPriceRow, ModernTableHeader } from "@/components/ModernPriceRow";
 
 interface Section {
   title: string;
@@ -189,58 +34,16 @@ export default function GoldScreen() {
   } = useApp();
   const [emission, setEmission] = useState<"yeni" | "eski">("yeni");
   const [manualRefreshing, setManualRefreshing] = useState(false);
-  const [miniCodes, setMiniCodes] = useState<string[]>(GOLD_DEFAULT);
-  const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"all" | "favorites">("all");
   const sectionListRef = useRef<SectionList<GoldRate, Section>>(null);
-
-  useEffect(() => {
-    loadGoldMiniCodes().then(setMiniCodes);
-  }, []);
-
-  const updateMiniCode = useCallback((idx: number, code: string) => {
-    setMiniCodes((prev) => {
-      const next = [...prev];
-      next[idx] = code;
-      void saveGoldMiniCodes(next);
-      return next;
-    });
-  }, []);
 
   const onManualRefresh = useCallback(async () => {
     setManualRefreshing(true);
     try { await refreshData(); } finally { setManualRefreshing(false); }
   }, [refreshData]);
 
-  const topPadding = Platform.OS === "web" ? 14 : insets.top;
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
-
-  const allGold = useMemo(() => [
-    ...goldGram, ...goldCoinsYeni, ...goldCoinsEski, ...goldBars, ...goldBracelets,
-    ...metals, ...silvers, ...goldParities, ...ratios,
-  ], [goldGram, goldCoinsYeni, goldCoinsEski, goldBars, goldBracelets, metals, silvers, goldParities, ratios]);
-
-  const lookupGold = useCallback(
-    (code: string) => allGold.find((g) => g.code === code),
-    [allGold]
-  );
-
-  const goldPickerSections = useMemo<PickerSection[]>(() => {
-    const buildSec = (title: string, arr: GoldRate[]): PickerSection | null =>
-      arr.length ? {
-        title,
-        items: arr.map((g) => ({ code: g.code, label: g.nameTR, sub: g.code, type: "gold" as const })),
-      } : null;
-    return [
-      buildSec("Gram & Ons", goldGram),
-      buildSec("Sarrafiye Yeni", goldCoinsYeni),
-      buildSec("Külçe", goldBars),
-      buildSec("Bilezik & Ayar", goldBracelets),
-      buildSec("Platin & Paladyum", metals),
-      buildSec("Gümüş", silvers),
-    ].filter((s): s is PickerSection => s !== null);
-  }, [goldGram, goldCoinsYeni, goldBars, goldBracelets, metals, silvers]);
 
   const allSections: Section[] = useMemo(() => {
     const list: Section[] = [];
@@ -249,7 +52,7 @@ export default function GoldScreen() {
     if (coins.length) {
       list.push({
         title: "Sarrafiye Altın",
-        subtitle: emission === "yeni" ? "Yeni Emisyon" : "Eski Emisyon",
+        subtitle: emission === "yeni" ? "Yeni emisyon" : "Eski emisyon",
         data: coins,
       });
     }
@@ -281,7 +84,7 @@ export default function GoldScreen() {
   };
 
   const chips = useMemo(() => {
-    const items: { key: string; label: string; icon?: "star" }[] = [{ key: "all", label: "Tümü" }];
+    const items: { key: string; label: string; icon?: "star" | "star-outline" }[] = [{ key: "all", label: "Tümü" }];
     allSections.forEach((s, idx) => items.push({ key: `s-${idx}`, label: shortenTitle(s.title) }));
     items.push({ key: "favorites", label: "Favoriler", icon: "star" });
     return items;
@@ -309,40 +112,48 @@ export default function GoldScreen() {
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
-    heroWrap: { paddingTop: topPadding },
+
     titleRow: {
-      paddingHorizontal: 20, paddingTop: 18, paddingBottom: 6,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 18, paddingTop: 16, paddingBottom: 4,
       backgroundColor: colors.background,
     },
     titleText: {
-      fontSize: 18, fontFamily: "Inter_700Bold",
-      color: colors.foreground, letterSpacing: -0.4,
+      fontSize: 16, fontFamily: "Inter_700Bold",
+      color: colors.foreground, letterSpacing: -0.3,
     },
-    chipScrollContent: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8, gap: 8 },
+    titleMeta: {
+      fontSize: 9.5, fontFamily: "Inter_700Bold",
+      color: colors.mutedForeground, letterSpacing: 1.4,
+    },
+
+    chipScrollContent: {
+      paddingHorizontal: 14, paddingTop: 12, paddingBottom: 8, gap: 8,
+    },
     chip: {
       flexDirection: "row", alignItems: "center", gap: 5,
-      paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999,
-      borderWidth: 1, borderColor: colors.border,
-      backgroundColor: colors.background,
+      paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999,
+      backgroundColor: colors.surface,
     },
-    chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    chipActive: { backgroundColor: colors.foreground },
     chipText: {
-      fontSize: 12, fontFamily: "Inter_600SemiBold",
+      fontSize: 12.5, fontFamily: "Inter_700Bold",
       color: colors.mutedForeground, letterSpacing: -0.1,
     },
-    chipTextActive: { color: "#FFFFFF" },
+    chipTextActive: { color: colors.background },
+
     sectionRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: 20,
-      paddingTop: 18,
-      paddingBottom: 8,
+      paddingHorizontal: 18, paddingTop: 18, paddingBottom: 8,
       backgroundColor: colors.background,
     },
-    sectionLeft: { flexDirection: "row", alignItems: "baseline", gap: 8 },
+    sectionLeft: { flexDirection: "row", alignItems: "baseline", gap: 8, flexShrink: 1 },
     sectionTitle: {
-      fontSize: 16, fontFamily: "Inter_700Bold",
+      fontSize: 15, fontFamily: "Inter_700Bold",
       color: colors.foreground, letterSpacing: -0.2,
     },
     sectionSubtitle: {
@@ -350,20 +161,21 @@ export default function GoldScreen() {
       color: colors.mutedForeground,
     },
     emissionPill: {
-      flexDirection: "row", backgroundColor: colors.secondary,
+      flexDirection: "row", backgroundColor: colors.surface,
       borderRadius: 8, padding: 2,
     },
     emissionBtn: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
-    emissionBtnActive: { backgroundColor: colors.card },
+    emissionBtnActive: { backgroundColor: colors.background },
     emissionText: { fontSize: 11, fontFamily: "Inter_700Bold" },
+
     list: { paddingBottom: bottomPadding + 16 },
-    emptyWrap: {
-      paddingVertical: 60, alignItems: "center", paddingHorizontal: 32,
-    },
+
+    emptyWrap: { paddingVertical: 60, alignItems: "center", paddingHorizontal: 32 },
   });
 
   return (
     <View style={styles.container}>
+      <MinimalTopBar lastUpdated={lastUpdated} />
       <SectionList
         ref={sectionListRef}
         sections={sections}
@@ -371,17 +183,9 @@ export default function GoldScreen() {
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
           <View>
-            <View style={styles.heroWrap}>
-              <GoldHero
-                gram={goldGram.find((g) => g.code === "ALTIN")}
-                miniItems={miniCodes.map((c) => lookupGold(c))}
-                onEditMini={setEditingIdx}
-                colors={colors}
-                lastUpdated={lastUpdated}
-              />
-            </View>
             <View style={styles.titleRow}>
               <Text style={styles.titleText}>Altın / Madenler</Text>
+              <Text style={styles.titleMeta}>{lastUpdated ? "KAPALIÇARŞI" : "BAĞLANIYOR"}</Text>
             </View>
             <ScrollView
               horizontal
@@ -395,7 +199,11 @@ export default function GoldScreen() {
                 return (
                   <Pressable key={c.key} onPress={() => onChipPress(c.key)} style={[styles.chip, active && styles.chipActive]}>
                     {c.icon ? (
-                      <Icon name={c.icon} size={11} color={active ? "#FFFFFF" : colors.mutedForeground} />
+                      <Icon
+                        name={active ? "star" : "star-outline"}
+                        size={11}
+                        color={active ? colors.background : colors.mutedForeground}
+                      />
                     ) : null}
                     <Text style={[styles.chipText, active && styles.chipTextActive]}>{c.label}</Text>
                   </Pressable>
@@ -404,56 +212,66 @@ export default function GoldScreen() {
             </ScrollView>
           </View>
         }
-        renderSectionHeader={({ section }) => (
-          <View style={styles.sectionRow}>
-            <View style={styles.sectionLeft}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              {section.subtitle ? (
-                <Text style={styles.sectionSubtitle}>{section.subtitle}</Text>
-              ) : null}
-            </View>
-            {section.title === "Sarrafiye Altın" ? (
-              <View style={styles.emissionPill}>
-                <Pressable
-                  onPress={() => setEmission("yeni")}
-                  style={[styles.emissionBtn, emission === "yeni" && styles.emissionBtnActive]}
-                >
-                  <Text style={[styles.emissionText, { color: emission === "yeni" ? colors.foreground : colors.mutedForeground }]}>
-                    Yeni
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => setEmission("eski")}
-                  style={[styles.emissionBtn, emission === "eski" && styles.emissionBtnActive]}
-                >
-                  <Text style={[styles.emissionText, { color: emission === "eski" ? colors.foreground : colors.mutedForeground }]}>
-                    Eski
-                  </Text>
-                </Pressable>
+        renderSectionHeader={({ section }) => {
+          const isSarrafiye = section.title === "Sarrafiye Altın";
+          return (
+            <View>
+              <View style={styles.sectionRow}>
+                <View style={styles.sectionLeft}>
+                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  {section.subtitle ? (
+                    <Text style={styles.sectionSubtitle} numberOfLines={1}>{section.subtitle}</Text>
+                  ) : null}
+                </View>
+                {isSarrafiye ? (
+                  <View style={styles.emissionPill}>
+                    <Pressable
+                      onPress={() => setEmission("yeni")}
+                      style={[styles.emissionBtn, emission === "yeni" && styles.emissionBtnActive]}
+                    >
+                      <Text style={[styles.emissionText, { color: emission === "yeni" ? colors.foreground : colors.mutedForeground }]}>
+                        Yeni
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => setEmission("eski")}
+                      style={[styles.emissionBtn, emission === "eski" && styles.emissionBtnActive]}
+                    >
+                      <Text style={[styles.emissionText, { color: emission === "eski" ? colors.foreground : colors.mutedForeground }]}>
+                        Eski
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : null}
               </View>
-            ) : null}
-          </View>
-        )}
-        renderItem={({ item }) => (
-          <PriceCard
-            item={item}
-            type="gold"
-            hideIcon
-            nameFirst
-            isFavorite={favorites.includes(item.code)}
-            onFavoriteToggle={() => toggleFavorite(item.code)}
-            onPress={() => router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "gold" } })}
-          />
-        )}
+              <ModernTableHeader />
+            </View>
+          );
+        }}
+        renderItem={({ item, section }) => {
+          const isSarrafiye = section.title === "Sarrafiye Altın";
+          const badge = isSarrafiye ? (emission === "yeni" ? "YENİ" : "ESKİ") : undefined;
+          return (
+            <ModernPriceRow
+              item={item}
+              type="gold"
+              badge={badge}
+              nameFirst
+              isFavorite={favorites.includes(item.code)}
+              onFavoriteToggle={() => toggleFavorite(item.code)}
+              onPress={() => router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "gold" } })}
+            />
+          );
+        }}
         ListEmptyComponent={
           viewMode === "favorites" ? (
             <View style={styles.emptyWrap}>
               <Icon name="star-outline" size={32} color={colors.mutedForeground} />
-              <Text style={{ fontSize: 14, fontFamily: "Inter_600SemiBold", color: colors.foreground, marginTop: 12, textAlign: "center" }}>
-                Henüz Favori Altın Yok
+              <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 12, textAlign: "center" }}>
+                Henüz favori altın yok
               </Text>
               <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 6, textAlign: "center", lineHeight: 18 }}>
-                Bir altın kartının yıldızına dokunarak favorilerine ekleyebilirsin.
+                Bir altın satırının yıldızına dokunarak favorilerine ekleyebilirsin.
               </Text>
             </View>
           ) : null
@@ -464,15 +282,6 @@ export default function GoldScreen() {
         }}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={manualRefreshing} onRefresh={onManualRefresh} tintColor={colors.primary} />}
-      />
-
-      <AssetPickerModal
-        visible={editingIdx !== null}
-        title="Mini Kartı Seç"
-        sections={goldPickerSections}
-        selectedCode={editingIdx !== null ? miniCodes[editingIdx] : undefined}
-        onSelect={(code) => editingIdx !== null && updateMiniCode(editingIdx, code)}
-        onClose={() => setEditingIdx(null)}
       />
     </View>
   );

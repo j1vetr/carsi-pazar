@@ -34,8 +34,11 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - Web önizleme: `Platform.OS === "web"` durumunda haremApi.ts ve haremSocket.ts api-server proxy'sini kullanır (`https://${EXPO_PUBLIC_DOMAIN}/api/harem/prices`, 3sn in-memory cache)
 - `contexts/AppContext.tsx` — bucket'lar: currencies, currencyParities, parities, goldGram, goldCoinsYeni, goldCoinsEski, goldBars, goldBracelets, goldParities, metals, silvers, ratios, spreads, **banks**; `findRateByCode()` tüm bucket'larda arama yapar (favoriler, portföy, alarm, mini kart picker tek yerden); rolling 24h baseline AsyncStorage'a saatlik persist edilir
 - UI ekranları:
-  - `(tabs)/index.tsx` — hero + marquee + döviz listesi + **"Banka Fiyatları" footer section** (BANKAUSD + BANKA ALTIN)
-  - `(tabs)/gold.tsx` — SectionList: Gram Altın & Ons / Sarrafiye (Yeni/Eski toggle pill) / Külçe / Bilezik / Platin & Paladyum / Gümüş / Altın Pariteleri / Au-Ag Oranı
+  - `(tabs)/index.tsx` — **Hero/marquee/mini-card kaldırıldı.** `MinimalTopBar` (sol: hamburger→drawer, orta: tema-adaptif logo, sağ: tarih + canlı saat noktası) + "Döviz Kurları" başlığı + Tümü/Favoriler segment chip + `ModernTableHeader` + `ModernPriceRow` listesi + **"Banka Fiyatları" footer section** (BANKAUSD + BANKA ALTIN, aynı row componenti)
+  - `(tabs)/gold.tsx` — Hero kaldırıldı; aynı `MinimalTopBar`; başlık altında scroll'lanabilir bölüm chip'leri (Tümü / Gram & Ons / Sarrafiye / Külçe / Bilezik / Platin / Gümüş / Pariteler / Oran / Favoriler), her section header altında `ModernTableHeader`; Sarrafiye sektionunda Yeni/Eski toggle pill + her satıra YENİ/ESKİ badge
+  - `components/MinimalTopBar.tsx` — paylaşımlı topbar; `useTheme().effective` ile logo otomatik swap (`logo-light.png` light mode'da, `logo-dark.png` dark mode'da); 1sn tick'leyen canlı saat; hamburger butonu `useDrawer().open()` çağırır
+  - `components/ModernPriceRow.tsx` — yeni temiz satır: AssetIcon disc + (kod/badge + isim) + monospace alış (sönük) + monospace satış (bold) + altında renkli pill içinde `▲/▼ %X.XX`; `nameFirst` ve `badge` prop'ları gold için
+  - `components/Icon.tsx` — `"menu"` ikonu eklendi (Lucide `Menu`)
   - `(tabs)/menu.tsx` — Drawer-style menü; üst kısımda ortalı `logo-dark.png` (ikon/metin yok, "Hakkında" linki kaldırıldı), alt footer: "Anlık Döviz & Altın Takibinde Türkiye'nin Tercihi"
   - `app/parities.tsx` — detaylı parite ekranı (Uluslararası + Çapraz)
   - `app/news.tsx` — RSS haberler (kategori filtreli, featured + liste, bildirim toggle)
