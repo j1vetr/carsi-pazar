@@ -46,6 +46,8 @@ function RootLayoutNav() {
       <Stack.Screen name="tools/converter" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="tools/gold-calc" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="tools/compare" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="legal/disclaimer" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="legal/privacy" options={{ headerShown: false, animation: "slide_from_right" }} />
     </Stack>
   );
 }

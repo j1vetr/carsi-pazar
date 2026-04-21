@@ -12,6 +12,7 @@ import {
   BellOff,
   Mail,
   Menu,
+  ShieldCheck,
   Briefcase,
   Building2,
   Check,
@@ -88,6 +89,7 @@ export type IconName =
   | "checkmark"
   | "refresh"
   | "menu"
+  | "shield-outline"
   | "x";
 
 const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
@@ -118,6 +120,7 @@ const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
   "add": Plus,
   "refresh": RotateCw,
   "menu": Menu,
+  "shield-outline": ShieldCheck,
   "ellipsis-horizontal": MoreHorizontal,
   "flag": Flag,
   "alert-circle": AlertCircle,

@@ -103,6 +103,13 @@ function buildSections(activeAlertCount: number, inboxUnread: number): SectionDe
         { key: "theme", label: "Tema", icon: "flame-outline", color: "#EC4899", route: "/settings/theme" },
       ],
     },
+    {
+      title: "YASAL",
+      items: [
+        { key: "disclaimer", label: "Yasal Uyarı", icon: "alert-circle", color: "#F59E0B", route: "/legal/disclaimer" },
+        { key: "privacy", label: "KVKK Aydınlatma Metni", icon: "shield-outline", color: "#0EA5E9", route: "/legal/privacy" },
+      ],
+    },
   ];
   return sections;
 }
