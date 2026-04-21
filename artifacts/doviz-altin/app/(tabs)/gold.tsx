@@ -244,7 +244,7 @@ export default function GoldScreen() {
                   </View>
                 ) : null}
               </View>
-              <ModernTableHeader />
+              <ModernTableHeader withIcon={false} />
             </View>
           );
         }}

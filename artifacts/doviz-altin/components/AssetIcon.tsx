@@ -20,35 +20,6 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   BANKAUSD: "B$",
 };
 
-// Sade, metal tipine göre gruplanmış simge (boyut/birim kodları kaldırıldı).
-function getGoldLabel(code: string): string {
-  if (code.startsWith("GUMUS") || code.includes("GUMUS") || code === "ONS_GUMUS" || code === "KG_GUMUS") {
-    return "Ag";
-  }
-  if (code.startsWith("PLATIN")) return "Pt";
-  if (code.startsWith("PALADYUM")) return "Pd";
-  return "Au";
-}
-
-const PARITY_LABELS: Record<string, string> = {
-  EURUSD: "€$",
-  GBPUSD: "£$",
-  AUDUSD: "A$",
-  USDCHF: "$₣",
-  USDCAD: "$C",
-  USDJPY: "$¥",
-  USDSAR: "$SR",
-  USDDKK: "$kr",
-  USDNOK: "$kr",
-  USDSEK: "$kr",
-  USDRUB: "$₽",
-  EURGBP: "€£",
-  EURCHF: "€₣",
-  EURUSDS: "€$",
-  XUSDTRY: "$₺",
-  FARKEUR: "F€",
-};
-
 interface AssetIconProps {
   code: string;
   type: "currency" | "gold" | "country";
@@ -99,24 +70,8 @@ export function AssetIcon({ code, type, size = 40, variant = "soft", tone }: Ass
   }
 
   if (type === "gold") {
-    const label = PARITY_LABELS[code] ?? getGoldLabel(code);
-    const fontSize = label.length > 2 ? size * 0.32 : size * 0.4;
-    return (
-      <View style={[styles.box, { width: size, height: size, borderRadius: size / 2 }, containerStyle]}>
-        <Text
-          style={{
-            fontSize,
-            lineHeight: size,
-            fontFamily: "Inter_700Bold",
-            color: fgColor,
-            includeFontPadding: false,
-            textAlignVertical: "center",
-          }}
-        >
-          {label}
-        </Text>
-      </View>
-    );
+    // Gold rozetleri tamamen kaldırıldı; çağıran zaten render etmemeli.
+    return null;
   }
 
   return (

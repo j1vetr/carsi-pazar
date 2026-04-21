@@ -175,9 +175,11 @@ export function ModernPriceRow({
     >
       <Animated.View style={[styles.flash, flashStyle]} pointerEvents="none" />
 
-      <View style={styles.iconWrap}>
-        <AssetIcon code={item.code} type={type} size={34} variant="soft" />
-      </View>
+      {type === "gold" ? null : (
+        <View style={styles.iconWrap}>
+          <AssetIcon code={item.code} type={type} size={34} variant="soft" />
+        </View>
+      )}
 
       <View style={styles.nameCol}>
         <View style={styles.headRow}>
@@ -219,7 +221,10 @@ export function ModernPriceRow({
   );
 }
 
-export function ModernTableHeader({ cols = ["Birim", "Alış", "Satış"] }: { cols?: [string, string, string] | string[] }) {
+export function ModernTableHeader({
+  cols = ["Birim", "Alış", "Satış"],
+  withIcon = true,
+}: { cols?: [string, string, string] | string[]; withIcon?: boolean }) {
   const colors = useColors();
   const styles = StyleSheet.create({
     wrap: {
@@ -241,7 +246,7 @@ export function ModernTableHeader({ cols = ["Birim", "Alış", "Satış"] }: { c
   });
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.label, { flex: 1, marginLeft: 46 }]}>{cols[0].toUpperCase()}</Text>
+      <Text style={[styles.label, { flex: 1, marginLeft: withIcon ? 46 : 0 }]}>{cols[0].toUpperCase()}</Text>
       <Text style={[styles.label, { width: 78, textAlign: "right", paddingHorizontal: 4 }]}>{cols[1].toUpperCase()}</Text>
       <Text style={[styles.label, { width: 96, textAlign: "right" }]}>{cols[2].toUpperCase()}</Text>
       <View style={{ width: 31 }} />
