@@ -12,6 +12,7 @@ export const modules: ModuleMap = {
   "./components/mockups/carsi-widget/NotifShellA.tsx": () => import("../components/mockups/carsi-widget/NotifShellA.tsx"),
   "./components/mockups/carsi-widget/NotifShellB.tsx": () => import("../components/mockups/carsi-widget/NotifShellB.tsx"),
   "./components/mockups/carsi-widget/NotifShellC.tsx": () => import("../components/mockups/carsi-widget/NotifShellC.tsx"),
+  "./components/mockups/carsi-widget/OnboardingFlow.tsx": () => import("../components/mockups/carsi-widget/OnboardingFlow.tsx"),
   "./components/mockups/carsi-widget/PulseDark.tsx": () => import("../components/mockups/carsi-widget/PulseDark.tsx"),
   "./components/mockups/carsi-widget/PulseLight.tsx": () => import("../components/mockups/carsi-widget/PulseLight.tsx"),
   "./components/mockups/carsi-widget/SettingsScreen.tsx": () => import("../components/mockups/carsi-widget/SettingsScreen.tsx"),
