@@ -10,6 +10,7 @@ import { Icon } from "@/components/Icon";
 import { AssetIcon } from "@/components/AssetIcon";
 import { useColors } from "@/hooks/useColors";
 import { CurrencyRate, GoldRate } from "@/contexts/AppContext";
+import { getSymbolDescription } from "@/lib/symbolDescriptions";
 
 interface Props {
   item: CurrencyRate | GoldRate;
@@ -188,7 +189,7 @@ export function ModernPriceRow({
           {badge ? <Text style={styles.badge}>{badge}</Text> : null}
         </View>
         <Text style={styles.name} numberOfLines={1}>
-          {nameFirst ? item.code : item.nameTR}
+          {nameFirst ? (getSymbolDescription(item.code) ?? item.nameTR) : item.nameTR}
         </Text>
       </View>
 

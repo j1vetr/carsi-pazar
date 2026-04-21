@@ -20,55 +20,15 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   BANKAUSD: "B$",
 };
 
-const GOLD_LABELS: Record<string, string> = {
-  ALTIN: "GR",
-  ONS: "OZ",
-  ONS_SPOT: "OZS",
-  ONS_EUR: "€OZ",
-  CEYREK: "¼",
-  CEYREK_ESKI: "¼E",
-  YARIM: "½",
-  YARIM_ESKI: "½E",
-  TAM: "1",
-  TAM_ESKI: "1E",
-  ATA: "A",
-  ATA_ESKI: "AE",
-  ATA5: "A5",
-  ATA5_ESKI: "A5E",
-  GREMESE: "GR",
-  GREMESE_YENI: "GR",
-  GREMESE_ESKI: "GRE",
-  KULCE: "KU",
-  GUMUS: "Ag",
-  GUMUS_TRY: "Ag",
-  GUMUS_USD_GR: "Ag$",
-  ONS_GUMUS: "AgZ",
-  KG_GUMUS: "AgK",
-  PLATIN: "Pt",
-  PLATIN_USD: "Pt$",
-  PALADYUM: "Pd",
-  PALADYUM_USD: "Pd$",
-  PAR_USD: "P$",
-  PAR_EUR: "P€",
-  PAR_GBP: "P£",
-  PAR_CHF: "P₣",
-  AU_AG: "Au/Ag",
-  FARK: "F",
-  VADE_FARK: "VF",
-  RESAT: "R",
-  BAR5: "5g",
-  BAR10: "10g",
-  BAR20: "20g",
-  BAR50: "50g",
-  BAR100: "100",
-  GRAM5: "5g",
-  GRAM10: "10g",
-  GRAM20: "20g",
-  GRAM50: "50g",
-  GRAM100: "100",
-  BANKA_ALTIN: "B-Au",
-  BANKAUSD: "B$",
-};
+// Sade, metal tipine göre gruplanmış simge (boyut/birim kodları kaldırıldı).
+function getGoldLabel(code: string): string {
+  if (code.startsWith("GUMUS") || code.includes("GUMUS") || code === "ONS_GUMUS" || code === "KG_GUMUS") {
+    return "Ag";
+  }
+  if (code.startsWith("PLATIN")) return "Pt";
+  if (code.startsWith("PALADYUM")) return "Pd";
+  return "Au";
+}
 
 const PARITY_LABELS: Record<string, string> = {
   EURUSD: "€$",
@@ -139,7 +99,7 @@ export function AssetIcon({ code, type, size = 40, variant = "soft", tone }: Ass
   }
 
   if (type === "gold") {
-    const label = GOLD_LABELS[code] ?? PARITY_LABELS[code] ?? "Au";
+    const label = PARITY_LABELS[code] ?? getGoldLabel(code);
     const fontSize = label.length > 2 ? size * 0.32 : size * 0.4;
     return (
       <View style={[styles.box, { width: size, height: size, borderRadius: size / 2 }, containerStyle]}>

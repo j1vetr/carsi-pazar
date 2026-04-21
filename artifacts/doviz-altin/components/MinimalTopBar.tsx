@@ -41,7 +41,6 @@ export function MinimalTopBar({ lastUpdated }: { lastUpdated: Date | null }) {
   const topPadding = Platform.OS === "web" ? 14 : insets.top;
   const date = formatDateTR(now);
   const time = lastUpdated ? formatTime(lastUpdated) : formatTime(now);
-  const live = !!lastUpdated;
 
   // Logo: in light theme show the dark version (so it reads), in dark theme show the light version.
   const logo = isDark
@@ -101,12 +100,6 @@ export function MinimalTopBar({ lastUpdated }: { lastUpdated: Date | null }) {
       letterSpacing: -0.2,
       fontFamily: Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" }),
     },
-    liveDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: live ? colors.rise : colors.mutedForeground,
-    },
     bellBtn: {
       width: 38,
       height: 38,
@@ -132,10 +125,7 @@ export function MinimalTopBar({ lastUpdated }: { lastUpdated: Date | null }) {
         <View style={styles.rightWrap}>
           <View style={styles.rightStack}>
             <Text style={styles.dateText}>{date}</Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-              <View style={styles.liveDot} />
-              <Text style={styles.timeText}>{time}</Text>
-            </View>
+            <Text style={styles.timeText}>{time}</Text>
           </View>
         </View>
       </View>

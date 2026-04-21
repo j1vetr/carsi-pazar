@@ -47,21 +47,21 @@ export default function GoldScreen() {
 
   const allSections: Section[] = useMemo(() => {
     const list: Section[] = [];
-    if (goldGram.length) list.push({ title: "Gram Altın & Ons", subtitle: `${goldGram.length} varlık`, data: goldGram });
+    if (goldGram.length) list.push({ title: "Gram & Ons Altın", subtitle: "Saf altın fiyatları", data: goldGram });
     const coins = emission === "yeni" ? goldCoinsYeni : goldCoinsEski;
     if (coins.length) {
       list.push({
         title: "Sarrafiye Altın",
-        subtitle: emission === "yeni" ? "Yeni emisyon" : "Eski emisyon",
+        subtitle: emission === "yeni" ? "Yeni basım" : "Eski basım (1980 öncesi)",
         data: coins,
       });
     }
-    if (goldBars.length) list.push({ title: "Külçe Altın", subtitle: "Boyutlar", data: goldBars });
-    if (goldBracelets.length) list.push({ title: "Bilezik & Ayar", data: goldBracelets });
-    if (metals.length) list.push({ title: "Platin & Paladyum", data: metals });
-    if (silvers.length) list.push({ title: "Gümüş", data: silvers });
-    if (goldParities.length) list.push({ title: "Altın Pariteleri", subtitle: "1 oz altın paritesi", data: goldParities });
-    if (ratios.length) list.push({ title: "Altın / Gümüş Oranı", data: ratios });
+    if (goldBars.length) list.push({ title: "Külçe Altın", subtitle: "Gram bazlı külçeler", data: goldBars });
+    if (goldBracelets.length) list.push({ title: "Bilezik & Ziynet", subtitle: "Ayar bazlı bilezikler", data: goldBracelets });
+    if (metals.length) list.push({ title: "Platin & Paladyum", subtitle: "Değerli madenler", data: metals });
+    if (silvers.length) list.push({ title: "Gümüş", subtitle: "Gram, ons ve kg", data: silvers });
+    if (goldParities.length) list.push({ title: "Altın Pariteleri", subtitle: "1 ons altın karşılığı", data: goldParities });
+    if (ratios.length) list.push({ title: "Altın / Gümüş Oranı", subtitle: "1 ons altın = kaç ons gümüş", data: ratios });
     return list;
   }, [emission, goldGram, goldCoinsYeni, goldCoinsEski, goldBars, goldBracelets, metals, silvers, goldParities, ratios]);
 
