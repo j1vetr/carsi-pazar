@@ -35,15 +35,14 @@ export function NotifShellA() {
         >
           {/* header */}
           <div className="flex items-center px-4 pt-3 pb-2 gap-2">
-            <div
-              className="w-5 h-5 rounded-[6px] flex items-center justify-center text-[10px] font-bold"
-              style={{ background: "#0B3D91", color: "#fff" }}
-            >
-              ÇP
-            </div>
+            <img
+              src="/brand/logo-light.png"
+              alt="Çarşı Piyasa"
+              className="w-5 h-5 rounded-[6px] object-contain"
+            />
             <span className="text-[12px] font-semibold text-white/85">Çarşı Piyasa</span>
             <span className="text-[11px] text-white/40">·</span>
-            <span className="text-[11px] text-white/45">canlı</span>
+            <span className="text-[11px] text-white/45">Canlı</span>
             <span className="text-[11px] text-white/40">·</span>
             <span className="text-[11px] text-white/45">09:41</span>
             <div className="ml-auto flex items-center gap-2 text-white/55">
@@ -99,12 +98,8 @@ export function NotifShellA() {
 
             {/* footer micro-actions */}
             <div className="mt-3 flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-[10.5px] text-white/45 font-medium">
-                <span
-                  className="w-1.5 h-1.5 rounded-full inline-block"
-                  style={{ background: "#22C55E" }}
-                />
-                <span>Her 1–2 dk yenilenir</span>
+              <div className="flex items-center text-[10.5px] text-white/45 font-medium">
+                <span>Her 1–2 dakikada bir yenilenir.</span>
               </div>
               <button
                 className="flex items-center gap-1 text-[11px] font-semibold text-white/85 px-2.5 py-1 rounded-full"
