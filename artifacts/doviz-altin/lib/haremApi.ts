@@ -95,8 +95,6 @@ export const SYMBOL_REGISTRY: SymbolMeta[] = [
   { symbol: "ATA5_ESKI", code: "ATA5_ESKI", nameTR: "5'li Ata (Eski)", name: "5x Ata (Old)", category: "SARRAFIYE", group: "gold-coin", unit: "adet", decimals: 2, iconKey: "ATA5", emission: "eski" },
   { symbol: "GREMESE_YENI", code: "GREMESE_YENI", nameTR: "Gremese Altın (Yeni)", name: "Gremese (New)", category: "SARRAFIYE", group: "gold-coin", unit: "adet", decimals: 2, iconKey: "GREMESE", emission: "yeni" },
   { symbol: "GREMESE_ESKI", code: "GREMESE_ESKI", nameTR: "Gremese Altın (Eski)", name: "Gremese (Old)", category: "SARRAFIYE", group: "gold-coin", unit: "adet", decimals: 2, iconKey: "GREMESE", emission: "eski" },
-  { symbol: "AYAR22", code: "AYAR22", nameTR: "22 Ayar Bilezik", name: "22K Bracelet", category: "SARRAFIYE", group: "gold-bracelet", unit: "₺/gr", decimals: 2, iconKey: "AYAR22" },
-  { symbol: "AYAR14", code: "AYAR14", nameTR: "14 Ayar Altın", name: "14K Gold", category: "SARRAFIYE", group: "gold-bracelet", unit: "₺/gr", decimals: 2, iconKey: "AYAR14" },
   { symbol: "KULCEALTIN", code: "KULCE", nameTR: "Külçe Altın", name: "Bullion", category: "SARRAFIYE", group: "gold-bar", unit: "₺/kg", decimals: 2, iconKey: "KULCE" },
 
   // ===== PARITE (Uluslararası pariteler) =====
