@@ -26,7 +26,6 @@ const TAG = "[CARSI-WIDGET]";
 
 function optionsFromConfig(cfg: WidgetConfig): RenderOptions {
   return {
-    template: cfg.template,
     priceField: cfg.priceField,
     theme: cfg.theme,
   };
@@ -42,7 +41,7 @@ function safeRender(
   try {
     props.renderWidget(PriceWidget({ data, size, options }));
     console.log(
-      `${TAG} renderWidget OK stage=${stage} tpl=${options.template} rows=${data.rows.length} loading=${!!data.loading} err=${data.error ?? "-"}`,
+      `${TAG} renderWidget OK stage=${stage} field=${options.priceField} rows=${data.rows.length} loading=${!!data.loading} err=${data.error ?? "-"}`,
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -81,13 +80,19 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps): Promise<
   }
   const options = optionsFromConfig(config);
 
+  const isRefreshClick =
+    props.widgetAction === "WIDGET_CLICK" &&
+    (props.clickAction === "REFRESH" ||
+      (props as unknown as { clickActionData?: { type?: string } })
+        .clickActionData?.type === "REFRESH");
+
   switch (props.widgetAction) {
     case "WIDGET_ADDED":
     case "WIDGET_UPDATE":
     case "WIDGET_RESIZED":
     case "WIDGET_CLICK": {
       const cached = await readWidgetCache();
-      if (cached) {
+      if (cached && !isRefreshClick) {
         safeRender(props, cached, size, options, "cache");
       } else {
         safeRender(props, loadingData(), size, options, "loading");

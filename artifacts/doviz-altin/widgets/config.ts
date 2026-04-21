@@ -2,15 +2,12 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export type WidgetTemplate = "list" | "strip";
-export type PriceField = "buy" | "sell" | "both";
+export type PriceField = "buy" | "sell";
 export type WidgetTheme = "auto" | "dark" | "light";
 
 export interface WidgetConfig {
-  template: WidgetTemplate;
   /** Symbol codes from SYMBOL_REGISTRY. Always exactly 4. */
   codes: string[];
-  /** Strip layout shows only one price; list can show both. */
   priceField: PriceField;
   theme: WidgetTheme;
 }
@@ -18,24 +15,16 @@ export interface WidgetConfig {
 export const WIDGET_CONFIG_KEY = "@carsi/widget-config-v1";
 
 export const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
-  template: "list",
   codes: ["USD", "EUR", "ALTIN", "CEYREK"],
-  priceField: "both",
+  priceField: "sell",
   theme: "auto",
 };
 
 function sanitize(raw: unknown): WidgetConfig {
   const def = DEFAULT_WIDGET_CONFIG;
   if (!raw || typeof raw !== "object") return def;
-  const obj = raw as Partial<WidgetConfig>;
-  const template: WidgetTemplate =
-    obj.template === "strip" ? "strip" : "list";
-  const priceField: PriceField =
-    obj.priceField === "buy"
-      ? "buy"
-      : obj.priceField === "sell"
-        ? "sell"
-        : "both";
+  const obj = raw as Partial<WidgetConfig> & { template?: unknown };
+  const priceField: PriceField = obj.priceField === "buy" ? "buy" : "sell";
   const theme: WidgetTheme =
     obj.theme === "dark" ? "dark" : obj.theme === "light" ? "light" : "auto";
   let codes = Array.isArray(obj.codes)
@@ -46,10 +35,7 @@ function sanitize(raw: unknown): WidgetConfig {
   } else if (codes.length > 4) {
     codes = codes.slice(0, 4);
   }
-  // Strip layout requires single price field (default to sell if "both").
-  const finalPriceField: PriceField =
-    template === "strip" && priceField === "both" ? "sell" : priceField;
-  return { template, codes, priceField: finalPriceField, theme };
+  return { codes, priceField, theme };
 }
 
 export async function readWidgetConfig(): Promise<WidgetConfig> {

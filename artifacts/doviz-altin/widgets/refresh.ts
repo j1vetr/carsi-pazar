@@ -9,7 +9,7 @@ import { readWidgetConfig } from "./config";
 
 const TAG = "[CARSI-WIDGET]";
 
-const FALLBACK_WIDTH = 320;
+const FALLBACK_WIDTH = 360;
 const FALLBACK_HEIGHT = 130;
 
 let inFlight: Promise<void> | null = null;
@@ -42,7 +42,6 @@ export async function refreshPriceWidget(
         await writeWidgetCache(data);
       }
       const options: RenderOptions = {
-        template: config.template,
         priceField: config.priceField,
         theme: config.theme,
       };
@@ -60,7 +59,7 @@ export async function refreshPriceWidget(
         },
       });
       console.log(
-        `${TAG} refresh OK tpl=${config.template} rows=${data.rows.length} err=${data.error ?? "-"}`,
+        `${TAG} refresh OK field=${config.priceField} rows=${data.rows.length} err=${data.error ?? "-"}`,
       );
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);

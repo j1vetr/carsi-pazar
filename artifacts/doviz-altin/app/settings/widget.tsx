@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  Image,
   Modal,
   Platform,
   Pressable,
@@ -22,17 +23,18 @@ import {
   writeWidgetConfig,
   type PriceField,
   type WidgetConfig,
-  type WidgetTemplate,
   type WidgetTheme,
 } from "@/widgets/config";
 import { refreshPriceWidget } from "@/widgets/refresh";
+
+const LOGO_DARK = require("@/assets/images/logo-dark.png");
+const LOGO_LIGHT = require("@/assets/images/logo-light.png");
 
 type Colors = ReturnType<typeof useColors>;
 
 type SegmentOption<T extends string> = {
   value: T;
   label: string;
-  disabled?: boolean;
 };
 
 function Segmented<T extends string>({
@@ -60,7 +62,6 @@ function Segmented<T extends string>({
         return (
           <Pressable
             key={opt.value}
-            disabled={opt.disabled}
             onPress={() => {
               Haptics.selectionAsync().catch(() => {});
               onChange(opt.value);
@@ -71,7 +72,6 @@ function Segmented<T extends string>({
               borderRadius: 9,
               backgroundColor: active ? colors.card : "transparent",
               alignItems: "center",
-              opacity: opt.disabled ? 0.4 : 1,
             }}
           >
             <Text
@@ -91,13 +91,7 @@ function Segmented<T extends string>({
   );
 }
 
-function SectionLabel({
-  colors,
-  children,
-}: {
-  colors: Colors;
-  children: string;
-}) {
+function SectionLabel({ colors, children }: { colors: Colors; children: string }) {
   return (
     <Text
       style={{
@@ -114,13 +108,7 @@ function SectionLabel({
   );
 }
 
-function Card({
-  colors,
-  children,
-}: {
-  colors: Colors;
-  children: React.ReactNode;
-}) {
+function Card({ colors, children }: { colors: Colors; children: React.ReactNode }) {
   return (
     <View
       style={{
@@ -136,6 +124,251 @@ function Card({
   );
 }
 
+/* ─────────────────  PREVIEW (mirrors native PulseView)  ───────────────── */
+
+const PREVIEW_TINTS_LIGHT = ["#1D4ED8", "#0F766E", "#B45309", "#BE123C"];
+const PREVIEW_TINTS_DARK = ["#60A5FA", "#2DD4BF", "#F59E0B", "#FB7185"];
+
+const PREVIEW_PALETTE = {
+  light: {
+    bg: "#F1F4FB",
+    card: "#FFFFFF",
+    border: "#E2E8F0",
+    divider: "#EEF2F7",
+    fg: "#0F172A",
+    muted: "#64748B",
+    refreshBg: "#0B1220",
+    refreshFg: "#FFFFFF",
+    up: "#15803D",
+    upBg: "rgba(22,163,74,0.15)",
+    down: "#B91C1C",
+    downBg: "rgba(220,38,38,0.15)",
+    flat: "#64748B",
+    flatBg: "rgba(100,116,139,0.15)",
+    tints: PREVIEW_TINTS_LIGHT,
+    logo: LOGO_LIGHT,
+  },
+  dark: {
+    bg: "#05070E",
+    card: "#10172A",
+    border: "#1F2A44",
+    divider: "#1B2540",
+    fg: "#F8FAFC",
+    muted: "#94A3B8",
+    refreshBg: "#2563EB",
+    refreshFg: "#FFFFFF",
+    up: "#4ADE80",
+    upBg: "rgba(34,197,94,0.20)",
+    down: "#FCA5A5",
+    downBg: "rgba(248,113,113,0.20)",
+    flat: "#94A3B8",
+    flatBg: "rgba(148,163,184,0.20)",
+    tints: PREVIEW_TINTS_DARK,
+    logo: LOGO_DARK,
+  },
+};
+
+interface PreviewRow {
+  label: string;
+  buy: string;
+  sell: string;
+  changePercent: number;
+}
+
+const SAMPLE_ROWS: PreviewRow[] = [
+  { label: "USD",    buy: "34,2050", sell: "34,2180", changePercent: 0.42 },
+  { label: "EUR",    buy: "37,0810", sell: "37,1045", changePercent: 0.18 },
+  { label: "GRAM",   buy: "2.855,40", sell: "2.856,90", changePercent: -0.07 },
+  { label: "ÇEYREK", buy: "4.710,00", sell: "4.712,00", changePercent: 0.31 },
+];
+
+function fmtPercent(v: number): string {
+  if (!Number.isFinite(v) || v === 0) return "0,00%";
+  const abs = Math.abs(v).toLocaleString("tr-TR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `${v > 0 ? "▲" : "▼"} ${abs}%`;
+}
+
+function PreviewCell({
+  row,
+  tint,
+  pal,
+  isFirst,
+  priceField,
+}: {
+  row: PreviewRow;
+  tint: string;
+  pal: typeof PREVIEW_PALETTE.light;
+  isFirst: boolean;
+  priceField: PriceField;
+}) {
+  const up = row.changePercent > 0;
+  const down = row.changePercent < 0;
+  const cColor = up ? pal.up : down ? pal.down : pal.flat;
+  const cBg = up ? pal.upBg : down ? pal.downBg : pal.flatBg;
+  const value = priceField === "buy" ? row.buy : row.sell;
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 6,
+        borderLeftWidth: isFirst ? 0 : 1,
+        borderLeftColor: pal.divider,
+        height: "100%",
+      }}
+    >
+      <View
+        style={{
+          width: 3,
+          height: 38,
+          backgroundColor: tint,
+          borderRadius: 2,
+          marginRight: 6,
+        }}
+      />
+      <View style={{ flex: 1 }}>
+        <Text
+          numberOfLines={1}
+          style={{ fontSize: 9, fontFamily: "Inter_700Bold", color: pal.muted, letterSpacing: 0.4 }}
+        >
+          {row.label}
+        </Text>
+        <Text
+          numberOfLines={1}
+          style={{
+            fontSize: 13,
+            fontWeight: "700",
+            fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }),
+            color: pal.fg,
+            marginTop: 2,
+          }}
+        >
+          {value}
+        </Text>
+        <View
+          style={{
+            backgroundColor: cBg,
+            borderRadius: 4,
+            paddingHorizontal: 4,
+            paddingVertical: 1,
+            alignSelf: "flex-start",
+            marginTop: 3,
+          }}
+        >
+          <Text
+            numberOfLines={1}
+            style={{ fontSize: 8.5, fontFamily: "Inter_700Bold", color: cColor }}
+          >
+            {fmtPercent(row.changePercent)}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function WidgetPreview({
+  codes,
+  priceField,
+  themeMode,
+  systemDark,
+}: {
+  codes: string[];
+  priceField: PriceField;
+  themeMode: WidgetTheme;
+  systemDark: boolean;
+}) {
+  const isDark = themeMode === "dark" || (themeMode === "auto" && systemDark);
+  const pal = isDark ? PREVIEW_PALETTE.dark : PREVIEW_PALETTE.light;
+
+  const rows: PreviewRow[] = codes.slice(0, 4).map((code, i) => {
+    const meta = SYMBOL_REGISTRY.find((m) => m.code === code);
+    const sample = SAMPLE_ROWS[i] ?? SAMPLE_ROWS[0];
+    return { ...sample, label: meta?.code ?? code };
+  });
+
+  return (
+    <View
+      style={{
+        height: 116,
+        borderRadius: 18,
+        backgroundColor: pal.bg,
+        padding: 4,
+      }}
+    >
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: pal.card,
+          borderRadius: 14,
+          borderWidth: 1,
+          borderColor: pal.border,
+          flexDirection: "row",
+          alignItems: "center",
+          overflow: "hidden",
+        }}
+      >
+        {/* logo */}
+        <View style={{ width: 78, alignItems: "center", justifyContent: "center" }}>
+          <Image
+            source={pal.logo}
+            style={{ width: 64, height: 16, resizeMode: "contain" }}
+          />
+        </View>
+        <View style={{ width: 1, height: "70%", backgroundColor: pal.divider }} />
+
+        {/* cells */}
+        <View style={{ flex: 1, flexDirection: "row", height: "100%" }}>
+          {rows.map((row, i) => (
+            <PreviewCell
+              key={`${row.label}-${i}`}
+              row={row}
+              tint={pal.tints[i] ?? pal.tints[0]}
+              pal={pal}
+              isFirst={i === 0}
+              priceField={priceField}
+            />
+          ))}
+        </View>
+
+        {/* refresh */}
+        <View style={{ width: 60, alignItems: "center", justifyContent: "center" }}>
+          <View
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: pal.refreshBg,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon name="refresh" size={18} color={pal.refreshFg} />
+          </View>
+          <Text
+            style={{
+              fontSize: 8,
+              fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }),
+              fontWeight: "700",
+              color: pal.muted,
+              marginTop: 3,
+            }}
+          >
+            14:32
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/* ───────────────────────  SYMBOL SLOTS + PICKER  ─────────────────────── */
+
 function SymbolSlot({
   colors,
   index,
@@ -150,7 +383,10 @@ function SymbolSlot({
   const meta = SYMBOL_REGISTRY.find((m) => m.code === code);
   const title = meta?.code ?? code;
   const subtitle = meta?.nameTR ?? "Sembol seç";
-  const isGold = meta?.category === "MADEN" || meta?.category === "SARRAFIYE" || meta?.category === "GRAM ALTIN";
+  const isGold =
+    meta?.category === "MADEN" ||
+    meta?.category === "SARRAFIYE" ||
+    meta?.category === "GRAM ALTIN";
   const accent = isGold ? "#F59E0B" : "#3B82F6";
   return (
     <Pressable
@@ -323,7 +559,11 @@ function SymbolPickerModal({
 
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 14, paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingVertical: 14,
+            paddingBottom: insets.bottom + 24,
+          }}
           showsVerticalScrollIndicator={false}
         >
           {grouped.map(([category, items]) => (
@@ -423,12 +663,15 @@ function SymbolPickerModal({
   );
 }
 
+/* ──────────────────────────────  SCREEN  ────────────────────────────── */
+
 export default function WidgetSettingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [config, setConfig] = useState<WidgetConfig>(DEFAULT_WIDGET_CONFIG);
   const [pickerIdx, setPickerIdx] = useState<number | null>(null);
   const isAndroid = Platform.OS === "android";
+  const systemDark = colors.background === "#000000" || colors.foreground === "#FFFFFF" || colors.foreground === "#F8FAFC";
 
   useEffect(() => {
     void readWidgetConfig().then(setConfig);
@@ -441,22 +684,8 @@ export default function WidgetSettingsScreen() {
     });
   };
 
-  const setTemplate = (template: WidgetTemplate) => {
-    let priceField = config.priceField;
-    if (template === "strip" && priceField === "both") {
-      priceField = "sell";
-    }
-    apply({ ...config, template, priceField });
-  };
-
-  const setPriceField = (priceField: PriceField) => {
-    apply({ ...config, priceField });
-  };
-
-  const setTheme = (theme: WidgetTheme) => {
-    apply({ ...config, theme });
-  };
-
+  const setPriceField = (priceField: PriceField) => apply({ ...config, priceField });
+  const setTheme = (theme: WidgetTheme) => apply({ ...config, theme });
   const setCodeAt = (idx: number, code: string) => {
     const codes = [...config.codes];
     codes[idx] = code;
@@ -464,7 +693,8 @@ export default function WidgetSettingsScreen() {
     setPickerIdx(null);
   };
 
-  const bottomPad = (Platform.OS === "android" ? Math.max(insets.bottom, 16) : insets.bottom) + 24;
+  const bottomPad =
+    (Platform.OS === "android" ? Math.max(insets.bottom, 16) : insets.bottom) + 24;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -474,6 +704,27 @@ export default function WidgetSettingsScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: bottomPad }}
         showsVerticalScrollIndicator={false}
       >
+        {/* PREVIEW */}
+        <SectionLabel colors={colors}>ÖNİZLEME</SectionLabel>
+        <WidgetPreview
+          codes={config.codes}
+          priceField={config.priceField}
+          themeMode={config.theme}
+          systemDark={systemDark}
+        />
+        <Text
+          style={{
+            fontSize: 11.5,
+            fontFamily: "Inter_500Medium",
+            color: colors.mutedForeground,
+            marginTop: 10,
+            marginHorizontal: 4,
+            lineHeight: 16,
+          }}
+        >
+          Aşağıdaki seçimler bu önizlemeyi ve ana ekrandaki widget'ı anında günceller.
+        </Text>
+
         {!isAndroid ? (
           <View
             style={{
@@ -482,7 +733,7 @@ export default function WidgetSettingsScreen() {
               backgroundColor: colors.card,
               borderWidth: StyleSheet.hairlineWidth,
               borderColor: colors.border,
-              marginBottom: 16,
+              marginTop: 16,
               flexDirection: "row",
               alignItems: "center",
               gap: 10,
@@ -503,33 +754,8 @@ export default function WidgetSettingsScreen() {
           </View>
         ) : null}
 
-        <SectionLabel colors={colors}>ŞABLON</SectionLabel>
-        <Card colors={colors}>
-          <Segmented
-            colors={colors}
-            value={config.template}
-            onChange={setTemplate}
-            options={[
-              { value: "list", label: "Liste · 4×2" },
-              { value: "strip", label: "Şerit · 4×1" },
-            ]}
-          />
-          <Text
-            style={{
-              fontSize: 11.5,
-              fontFamily: "Inter_500Medium",
-              color: colors.mutedForeground,
-              marginTop: 10,
-              lineHeight: 16,
-            }}
-          >
-            {config.template === "list"
-              ? "4 satır liste · alış / satış · % değişim · güncelleme saati."
-              : "Tek satır kompakt görünüm · seçtiğin tek fiyat alanı · % değişim."}
-          </Text>
-        </Card>
-
-        <View style={{ height: 18 }} />
+        {/* SYMBOLS */}
+        <View style={{ height: 22 }} />
         <SectionLabel colors={colors}>SEMBOLLER · 4 ADET</SectionLabel>
         <Card colors={colors}>
           {config.codes.map((code, idx) => (
@@ -550,10 +776,11 @@ export default function WidgetSettingsScreen() {
               lineHeight: 16,
             }}
           >
-            68 sembol arasından seç. Para birimleri mavi, altın/maden amber renkli aksent ile gösterilir.
+            68 sembol arasından seç. Her hücre kendi renk aksanıyla gösterilir.
           </Text>
         </Card>
 
+        {/* PRICE FIELD */}
         <View style={{ height: 18 }} />
         <SectionLabel colors={colors}>FİYAT ALANI</SectionLabel>
         <Card colors={colors}>
@@ -564,28 +791,11 @@ export default function WidgetSettingsScreen() {
             options={[
               { value: "buy", label: "Alış" },
               { value: "sell", label: "Satış" },
-              {
-                value: "both",
-                label: "İkisi",
-                disabled: config.template === "strip",
-              },
             ]}
           />
-          {config.template === "strip" ? (
-            <Text
-              style={{
-                fontSize: 11.5,
-                fontFamily: "Inter_500Medium",
-                color: colors.mutedForeground,
-                marginTop: 10,
-                lineHeight: 16,
-              }}
-            >
-              Şerit şablonda yer dar olduğu için tek fiyat alanı gösterilir.
-            </Text>
-          ) : null}
         </Card>
 
+        {/* THEME */}
         <View style={{ height: 18 }} />
         <SectionLabel colors={colors}>TEMA</SectionLabel>
         <Card colors={colors}>
@@ -599,9 +809,21 @@ export default function WidgetSettingsScreen() {
               { value: "light", label: "Açık" },
             ]}
           />
+          <Text
+            style={{
+              fontSize: 11.5,
+              fontFamily: "Inter_500Medium",
+              color: colors.mutedForeground,
+              marginTop: 10,
+              lineHeight: 16,
+            }}
+          >
+            Açık temada koyu logo, koyu temada açık logo gösterilir.
+          </Text>
         </Card>
 
-        <View style={{ height: 18 }} />
+        {/* MANUAL REFRESH */}
+        <View style={{ height: 22 }} />
         <Pressable
           onPress={() => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
@@ -618,8 +840,15 @@ export default function WidgetSettingsScreen() {
             gap: 8,
           })}
         >
-          <Icon name="swap-vertical" size={18} color="#fff" />
-          <Text style={{ color: "#fff", fontSize: 14, fontFamily: "Inter_700Bold", letterSpacing: -0.2 }}>
+          <Icon name="refresh" size={18} color="#fff" />
+          <Text
+            style={{
+              color: "#fff",
+              fontSize: 14,
+              fontFamily: "Inter_700Bold",
+              letterSpacing: -0.2,
+            }}
+          >
             Widget'ı Şimdi Yenile
           </Text>
         </Pressable>
@@ -634,8 +863,8 @@ export default function WidgetSettingsScreen() {
             lineHeight: 16,
           }}
         >
-          Android sistemi widget'ı 30 dakikada bir kendiliğinden günceller. Uygulamayı her açtığında da
-          taze veri ile yenilenir.
+          Widget üzerindeki ↻ butonu ile her an manuel güncelle. Sistem 30 dk'da bir otomatik tazeler;
+          uygulamayı her açtığında da taze veriyle yenilenir.
         </Text>
       </ScrollView>
 

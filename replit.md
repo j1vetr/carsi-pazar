@@ -43,9 +43,12 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
   - `app/settings/*` — tema kartı (YAKINDA badge yok), widget açıklaması iki satıra fit edilmiş
 - `components/AssetIcon.tsx` — yeni semboller için fallback (B$ / B-Au labels banka için)
 
-**Android Widget (4×2):**
-- `widgets/PriceWidget.tsx` — `react-native-android-widget` ile yazılmış FlexWidget tabanlı UI; `{ light, dark }` `WidgetRepresentation` döndürür (kütüphane `light` ve opsiyonel `dark` JSX kabul eder), sistem temasına göre Android otomatik seçer
-- `widgets/widget-task.tsx` — headless task; `WIDGET_ADDED/UPDATE/RESIZED/CLICK` event'lerinde önce loading state çizilir, sonra `fetchAllPrices()` ile USD/EUR/Gram Altın/Çeyrek fiyatları render edilir
+**Android Widget (4×1 Pulse):**
+- Tek tasarım: **Pulse** layout — solda logo (light/dark otomatik), 4 fiyat hücresi (renkli tint stripler), sağda dairesel ↻ refresh butonu + güncelleme saati. Eski `list`/`strip` template ayrımı kaldırıldı; `WidgetTemplate` tipi ve `priceField: "both"` seçeneği config'den çıkarıldı.
+- `widgets/config.ts` — `WidgetConfig = { codes[4], priceField: "buy"|"sell", theme: "auto"|"dark"|"light" }`. Eski `template` alanı sanitize'da düşürülür (geriye dönük uyumluluk).
+- `widgets/PriceWidget.tsx` — tek `PulseView`, `ImageWidget` ile bundled logo (`assets/images/logo-{light,dark}.png`); refresh butonu `clickAction="REFRESH"`, kart geneli `clickAction="OPEN_APP"`.
+- `widgets/widget-task.tsx` — `clickAction === "REFRESH"` olduğunda cache'i atlayıp doğrudan fresh fetch yapar.
+- `app/settings/widget.tsx` — ŞABLON bölümü kaldırıldı; üstte canlı önizleme bloğu (PulseView'in pure-RN kopyası, seçimlere anında reaktif), FİYAT ALANI sadece Alış/Satış, TEMA aynen.
 - `widgets/index.ts` — `registerWidgetTaskHandler` çağrısı; **`index.js` içinde `expo-router/entry`'den ÖNCE** import edilerek headless JS context'te task'ın garantili olarak kayıt olması sağlanır
 - `app.json` plugin: `updatePeriodMillis: 1800000` (30 dk, Android minimumu); resizable; widget'a tıklayınca uygulama açılır
 - `app.json` splash + bildirim ikonları renkli `icon.png`'ye taşındı (yeni APK gerekiyor)

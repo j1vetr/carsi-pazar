@@ -28,6 +28,7 @@ import {
   MoreHorizontal,
   Newspaper,
   Plus,
+  RotateCw,
   Search,
   Settings,
   Star,
@@ -84,6 +85,7 @@ export type IconName =
   | "bar-chart-outline"
   | "apps-outline"
   | "checkmark"
+  | "refresh"
   | "x";
 
 const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
@@ -112,6 +114,7 @@ const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
   "briefcase-outline": Briefcase,
   "diamond": Gem,
   "add": Plus,
+  "refresh": RotateCw,
   "ellipsis-horizontal": MoreHorizontal,
   "flag": Flag,
   "alert-circle": AlertCircle,
