@@ -24,6 +24,9 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 ## doviz-altin (Canlı Döviz & Altın)
 
+> **⚠️ MIGRATION STATUS — DO NOT RE-ASK, DO NOT RE-DO:**
+> finansveri.com tamamen kaldırıldı (kod + secret). HaremAPI geçişi %100 tamamlandı: SYMBOL_REGISTRY (68 sembol/5 kategori), AppContext bucket refactor, tüm UI ekranları (parities.tsx dahil), AssetIcon fallback'leri, widget, banka fiyatları hepsi hazır. `FINANSVERI_API_KEY` secret'ı silinmiş; `EXPO_PUBLIC_HAREMAPI_KEY` shared env'de ayarlı. Bu konuda herhangi bir "migration" görevi açıldığında NO-OP olarak kapatın.
+
 **Data source:** HaremAPI.tr (68 sembol, 5 kategori: DOVIZ / MADEN / PARITE / GRAM ALTIN / SARRAFIYE + BANKA bucket)
 - `EXPO_PUBLIC_HAREMAPI_KEY` shared env var olarak ayarlı (api-server tarafında `HAREMAPI_KEY` fallback'iyle de okunur)
 - `lib/haremApi.ts` — `SYMBOL_REGISTRY` ile 68 sembolün TR isim / grup / birim / decimal / flag / iconKey eşlemesi; `mapPrices()` API yanıtını AssetRate listesine çevirir; `bid===0 && ask===0` olan stale semboller filtrelenir. `BANKAUSD` ve `BANKA ALTIN` için ayrı `bank` group'u eklendi.
