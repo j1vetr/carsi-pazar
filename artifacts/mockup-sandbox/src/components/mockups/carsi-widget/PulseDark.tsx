@@ -1,10 +1,10 @@
 import { RefreshCw } from "lucide-react";
 
 const ROWS = [
-  { code: "USD",   price: "34,2180", pct: "+0,42", dir: "up",   tint: "#60A5FA" },
-  { code: "EUR",   price: "37,1045", pct: "+0,18", dir: "up",   tint: "#2DD4BF" },
-  { code: "GRAM",  price: "2.856,90", pct: "-0,07", dir: "down", tint: "#F59E0B" },
-  { code: "ÇEYREK", price: "4.712,00", pct: "+0,31", dir: "up",  tint: "#FB7185" },
+  { code: "USD",    price: "34,2180", pct: "0,42", dir: "up",   tint: "#60A5FA" },
+  { code: "EUR",    price: "37,1045", pct: "0,18", dir: "up",   tint: "#2DD4BF" },
+  { code: "GRAM",   price: "2.856,90", pct: "0,07", dir: "down", tint: "#F59E0B" },
+  { code: "ÇEYREK", price: "4.712,00", pct: "0,31", dir: "up",   tint: "#FB7185" },
 ];
 
 export function PulseDark() {
@@ -14,64 +14,68 @@ export function PulseDark() {
            background:
              "radial-gradient(900px 360px at 18% 15%, #1E2A4A 0%, transparent 55%), radial-gradient(800px 340px at 90% 88%, #3B1D3A 0%, transparent 58%), linear-gradient(180deg,#05070E 0%,#0A0F1C 100%)",
          }}>
-      <div className="relative w-[820px] h-[130px] rounded-[30px] overflow-hidden"
+      <div className="relative w-[860px] h-[156px] rounded-[32px] overflow-hidden flex items-stretch"
            style={{
-             background:
-               "linear-gradient(180deg,rgba(20,27,45,0.88) 0%,rgba(12,17,30,0.94) 100%)",
-             backdropFilter: "blur(20px)",
+             background: "linear-gradient(180deg,rgba(22,29,48,0.92) 0%,rgba(12,17,30,0.96) 100%)",
+             backdropFilter: "blur(24px)",
              boxShadow:
-               "0 1px 0 rgba(255,255,255,0.08) inset, 0 0 0 1px rgba(255,255,255,0.06), 0 32px 56px -20px rgba(0,0,0,0.6), 0 8px 18px -10px rgba(0,0,0,0.4)",
+               "0 1px 0 rgba(255,255,255,0.09) inset, 0 0 0 1px rgba(255,255,255,0.07), 0 38px 68px -22px rgba(0,0,0,0.7), 0 12px 22px -12px rgba(0,0,0,0.5)",
            }}>
-        {/* brand strip */}
-        <div className="absolute left-0 top-0 bottom-0 w-[110px] flex flex-col items-start justify-center pl-5"
-             style={{ background: "linear-gradient(135deg,#1E3A8A 0%,#0F172A 100%)" }}>
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[8px] font-semibold tracking-[0.18em] text-emerald-300/90">CANLI</span>
-          </div>
-          <div className="text-white text-[14px] font-['Inter'] font-extrabold tracking-tight leading-none">ÇARŞI</div>
-          <div className="text-white/60 text-[9px] font-medium tracking-[0.22em] mt-0.5">PİYASA</div>
+        {/* LOGO */}
+        <div className="flex items-center justify-center pl-7 pr-5 shrink-0">
+          <img src="/__mockup/brand/logo-light.png"
+               alt="Çarşı Piyasa"
+               className="h-[44px] w-auto"
+               style={{ filter: "drop-shadow(0 2px 8px rgba(96,165,250,0.25))" }} />
         </div>
 
-        {/* cells */}
-        <div className="absolute left-[110px] right-[78px] top-0 bottom-0 flex items-stretch">
+        {/* divider */}
+        <div className="w-px my-5" style={{ background: "linear-gradient(180deg,transparent,rgba(255,255,255,0.14),transparent)" }} />
+
+        {/* CELLS */}
+        <div className="flex-1 flex items-stretch">
           {ROWS.map((r, i) => {
             const up = r.dir === "up";
             return (
               <div key={r.code}
-                   className="flex-1 flex flex-col justify-center px-3 relative"
-                   style={{ borderLeft: i === 0 ? "none" : "1px solid rgba(255,255,255,0.06)" }}>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="w-1 h-3 rounded-sm" style={{ background: r.tint }} />
-                  <span className="text-[9.5px] font-bold tracking-[0.12em] text-slate-400">{r.code}</span>
-                </div>
-                <div className="text-[17px] font-['JetBrains_Mono'] font-bold text-white leading-none tabular-nums">
-                  {r.price}
-                </div>
-                <div className="mt-1.5 inline-flex items-center w-fit gap-1 px-1.5 py-0.5 rounded-md"
-                     style={{
-                       background: up ? "rgba(34,197,94,0.15)" : "rgba(248,113,113,0.15)",
-                       color: up ? "#4ADE80" : "#FCA5A5",
-                     }}>
-                  <span className="text-[9px] leading-none">{up ? "▲" : "▼"}</span>
-                  <span className="text-[9.5px] font-bold tabular-nums leading-none">{r.pct.replace("+","").replace("-","")}%</span>
+                   className="flex-1 flex flex-col justify-center px-4 relative"
+                   style={{ borderLeft: i === 0 ? "none" : "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="absolute left-4 top-6 bottom-6 w-[3px] rounded-full"
+                     style={{ background: r.tint, boxShadow: `0 0 14px ${r.tint}aa` }} />
+                <div className="pl-3">
+                  <div className="text-[10px] font-bold tracking-[0.14em] text-slate-400 mb-1.5">{r.code}</div>
+                  <div className="text-[21px] font-['JetBrains_Mono'] font-extrabold text-white leading-none tabular-nums">
+                    {r.price}
+                  </div>
+                  <div className="mt-2 inline-flex items-center w-fit gap-1 px-1.5 py-[3px] rounded-md"
+                       style={{
+                         background: up ? "rgba(34,197,94,0.18)" : "rgba(248,113,113,0.18)",
+                         color: up ? "#4ADE80" : "#FCA5A5",
+                       }}>
+                    <span className="text-[10px] leading-none">{up ? "▲" : "▼"}</span>
+                    <span className="text-[10.5px] font-bold tabular-nums leading-none">{r.pct}%</span>
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* refresh capsule */}
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5">
+        {/* REFRESH */}
+        <div className="flex flex-col items-center justify-center gap-2 px-5 shrink-0">
           <button
-            className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+            className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
             style={{
               background: "linear-gradient(180deg,#3B82F6 0%,#1D4ED8 100%)",
-              boxShadow: "0 8px 18px -4px rgba(59,130,246,0.55), 0 0 0 1px rgba(255,255,255,0.1) inset",
+              boxShadow:
+                "0 12px 24px -6px rgba(59,130,246,0.6), 0 0 0 1px rgba(255,255,255,0.12) inset, 0 1px 0 rgba(255,255,255,0.18) inset",
             }}>
-            <RefreshCw className="w-4 h-4 text-white" strokeWidth={2.4} />
+            <RefreshCw className="w-5 h-5 text-white" strokeWidth={2.4} />
           </button>
-          <div className="text-[8.5px] font-semibold tracking-wider text-slate-400 tabular-nums leading-none">14:32</div>
+          <div className="flex items-center gap-1">
+            <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[9.5px] font-semibold tracking-wider text-slate-400 tabular-nums leading-none">14:32</span>
+          </div>
         </div>
       </div>
     </div>
