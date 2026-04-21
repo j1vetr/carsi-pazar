@@ -596,18 +596,39 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       purchaseDate: it.purchaseDate,
     }));
 
-  // Sunucudaki portföyü lokal PortfolioItem'a güvenle dönüştür (eksik alanları doldur).
-  const fromServerPortfolio = (items: ServerPortfolioItem[]): PortfolioItem[] =>
-    items.map((it) => ({
-      id: it.id,
-      type: it.type,
-      code: it.code,
-      name: it.name,
-      nameTR: it.nameTR,
-      amount: it.amount,
-      purchasePrice: it.purchasePrice,
-      purchaseDate: it.purchaseDate || new Date().toISOString(),
-    }));
+  // Sunucudaki portföyü lokal PortfolioItem'a güvenle dönüştür.
+  // Bozuk veya eksik item'ları sessizce atar (runtime hata olmasın).
+  const fromServerPortfolio = (raw: unknown): PortfolioItem[] => {
+    if (!Array.isArray(raw)) return [];
+    const out: PortfolioItem[] = [];
+    for (const it of raw) {
+      if (!it || typeof it !== "object") continue;
+      const o = it as Record<string, unknown>;
+      const id = typeof o.id === "string" ? o.id : null;
+      const code = typeof o.code === "string" ? o.code : null;
+      const amount =
+        typeof o.amount === "number" && Number.isFinite(o.amount) ? o.amount : null;
+      const purchasePrice =
+        typeof o.purchasePrice === "number" && Number.isFinite(o.purchasePrice)
+          ? o.purchasePrice
+          : null;
+      if (!id || !code || amount === null || purchasePrice === null) continue;
+      out.push({
+        id,
+        type: o.type === "gold" ? "gold" : "currency",
+        code,
+        name: typeof o.name === "string" ? o.name : code,
+        nameTR: typeof o.nameTR === "string" ? o.nameTR : code,
+        amount,
+        purchasePrice,
+        purchaseDate:
+          typeof o.purchaseDate === "string" && o.purchaseDate
+            ? o.purchaseDate
+            : new Date().toISOString(),
+      });
+    }
+    return out;
+  };
 
   // Portföy push'unu debounce eder; arka arkaya değişimlerde tek bir POST yapılır.
   const schedulePortfolioPush = useCallback(

@@ -360,26 +360,47 @@ export const setPrefs = onRequest(COMMON, async (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>;
   const deviceId = getString(body.deviceId);
   if (!deviceId) return bad(res, 400, "deviceId required");
-  const update: Record<string, unknown> = { updatedAt: FieldValue.serverTimestamp() };
-  if (typeof body.newsEnabled === "boolean") update.newsEnabled = body.newsEnabled;
-  if (Array.isArray(body.newsCategories)) {
-    update.newsCategories = body.newsCategories.filter((c): c is string => typeof c === "string");
-  }
-  if (typeof body.briefingEnabled === "boolean") update.briefingEnabled = body.briefingEnabled;
-  if (typeof body.movesEnabled === "boolean") update.movesEnabled = body.movesEnabled;
-  if (typeof body.weeklyEnabled === "boolean") update.weeklyEnabled = body.weeklyEnabled;
-  if (Array.isArray(body.favorites)) {
-    update.favorites = body.favorites
-      .filter((c): c is string => typeof c === "string")
-      .map((s) => s.toUpperCase())
-      .slice(0, 30);
-    // Cihazdan gelen timestamp varsa kullan, yoksa şimdiki zaman
-    update.favoritesUpdatedAt =
-      typeof body.favoritesUpdatedAt === "number"
-        ? body.favoritesUpdatedAt
-        : Date.now();
-  }
-  await db.doc(`prefs/${deviceId}`).set(update, { merge: true });
+
+  const ref = db.doc(`prefs/${deviceId}`);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const existing = snap.exists ? (snap.data() ?? {}) : {};
+    const update: Record<string, unknown> = {
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    if (typeof body.newsEnabled === "boolean") update.newsEnabled = body.newsEnabled;
+    if (Array.isArray(body.newsCategories)) {
+      update.newsCategories = body.newsCategories.filter(
+        (c): c is string => typeof c === "string"
+      );
+    }
+    if (typeof body.briefingEnabled === "boolean") update.briefingEnabled = body.briefingEnabled;
+    if (typeof body.movesEnabled === "boolean") update.movesEnabled = body.movesEnabled;
+    if (typeof body.weeklyEnabled === "boolean") update.weeklyEnabled = body.weeklyEnabled;
+
+    // Favoriler için timestamp-based CAS: gelen timestamp sunucudakinden eskiyse
+    // yazma yapma (eş zamanlı yarış durumunda eski yazımın yenisini ezmesini engeller).
+    if (Array.isArray(body.favorites)) {
+      const incomingTs =
+        typeof body.favoritesUpdatedAt === "number"
+          ? body.favoritesUpdatedAt
+          : Date.now();
+      const existingTs =
+        typeof existing.favoritesUpdatedAt === "number"
+          ? existing.favoritesUpdatedAt
+          : 0;
+      if (incomingTs >= existingTs) {
+        update.favorites = body.favorites
+          .filter((c): c is string => typeof c === "string")
+          .map((s) => s.toUpperCase())
+          .slice(0, 30);
+        update.favoritesUpdatedAt = incomingTs;
+      }
+    }
+
+    tx.set(ref, update, { merge: true });
+  });
   res.json({ ok: true });
 });
 
@@ -453,15 +474,31 @@ export const setPortfolio = onRequest(COMMON, async (req, res) => {
   const items = sanitizePortfolioItems(body.items);
   const clientUpdatedAt =
     typeof body.clientUpdatedAt === "number" ? body.clientUpdatedAt : Date.now();
-  await db.doc(`portfolios/${deviceId}`).set(
-    {
-      items,
-      clientUpdatedAt,
-      updatedAt: FieldValue.serverTimestamp(),
-    },
-    { merge: true }
-  );
-  res.json({ ok: true, count: items.length });
+
+  const ref = db.doc(`portfolios/${deviceId}`);
+  // Timestamp-based CAS: gelen istekteki clientUpdatedAt sunucudakinden eskiyse
+  // (eş zamanlı startup-sync vs kullanıcı değişikliği yarışında geç gelen eski payload)
+  // yazma yapma. Bu, last-write-wins'i sunucu tarafında garanti eder.
+  let written = false;
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const existingTs =
+      snap.exists && typeof snap.data()?.clientUpdatedAt === "number"
+        ? (snap.data()!.clientUpdatedAt as number)
+        : 0;
+    if (clientUpdatedAt < existingTs) return;
+    tx.set(
+      ref,
+      {
+        items,
+        clientUpdatedAt,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    written = true;
+  });
+  res.json({ ok: true, count: items.length, written });
 });
 
 export const getPortfolio = onRequest(COMMON, async (req, res) => {
