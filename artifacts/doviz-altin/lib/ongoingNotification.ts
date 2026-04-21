@@ -39,6 +39,36 @@ async function setEnabledFlag(enabled: boolean): Promise<void> {
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 let appStateSub: { remove: () => void } | null = null;
 let serviceRegistered = false;
+let consecutiveFailures = 0;
+const MAX_FAILURES_BEFORE_DISABLE = 3;
+
+async function safeDisplayOngoing(): Promise<boolean> {
+  try {
+    await displayOngoing();
+    consecutiveFailures = 0;
+    return true;
+  } catch (err) {
+    consecutiveFailures += 1;
+    console.warn(
+      `[CARSI-ONGOING] displayNotification failed (${consecutiveFailures}/${MAX_FAILURES_BEFORE_DISABLE})`,
+      err,
+    );
+    if (consecutiveFailures >= MAX_FAILURES_BEFORE_DISABLE) {
+      console.warn("[CARSI-ONGOING] disabling toggle to prevent crash loop");
+      try {
+        await setEnabledFlag(false);
+        stopRefreshLoop();
+        detachAppStateListener();
+        const notifee = getNotifee();
+        if (notifee) {
+          try { await notifee.default.stopForegroundService(); } catch {}
+          try { await notifee.default.cancelNotification(NOTIFICATION_ID); } catch {}
+        }
+      } catch {}
+    }
+    return false;
+  }
+}
 
 function fmtPriceForLine(value: string): string {
   return value;
@@ -129,7 +159,7 @@ function startRefreshLoop(): void {
   if (refreshTimer) return;
   refreshTimer = setInterval(() => {
     if (AppState.currentState === "background" || AppState.currentState === "active") {
-      void displayOngoing().catch(() => {});
+      void safeDisplayOngoing();
     }
   }, REFRESH_INTERVAL_MS);
 }
@@ -145,7 +175,7 @@ function attachAppStateListener(): void {
   if (appStateSub) return;
   appStateSub = AppState.addEventListener("change", (state) => {
     if (state === "active") {
-      void displayOngoing().catch(() => {});
+      void safeDisplayOngoing();
     }
   });
 }
@@ -170,7 +200,9 @@ export async function startOngoingNotification(): Promise<void> {
     }
   } catch {}
   await setEnabledFlag(true);
-  await displayOngoing();
+  consecutiveFailures = 0;
+  const ok = await safeDisplayOngoing();
+  if (!ok) return;
   startRefreshLoop();
   attachAppStateListener();
 }
@@ -198,7 +230,9 @@ export async function restoreOngoingNotificationIfEnabled(): Promise<void> {
   const enabled = await isOngoingEnabled();
   if (!enabled) return;
   ensureForegroundServiceRegistered();
-  await displayOngoing();
+  consecutiveFailures = 0;
+  const ok = await safeDisplayOngoing();
+  if (!ok) return;
   startRefreshLoop();
   attachAppStateListener();
 }
@@ -208,5 +242,5 @@ export async function refreshOngoingNotificationIfEnabled(): Promise<void> {
   if (Platform.OS !== "android") return;
   const enabled = await isOngoingEnabled();
   if (!enabled) return;
-  await displayOngoing();
+  await safeDisplayOngoing();
 }
