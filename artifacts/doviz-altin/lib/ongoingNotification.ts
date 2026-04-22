@@ -75,7 +75,11 @@ let consecutiveFailures = 0;
 let inFlight = false;
 let lastSuccessData: PriceWidgetData | null = null;
 let serviceLoopActive = false;
-const MAX_FAILURES_BEFORE_DISABLE = 5;
+// Eskiden 5 ardışık hatada bildirimi otomatik kapatıyorduk; ama bu kötü
+// network koşullarında (≈7 dk fail) kullanıcının onayı olmadan bildirimi
+// sessizce yok ediyordu. Artık sadece ÇOK uzun süreli arka arkaya hatada
+// (≈3 saat = 120 × 90sn) loglayıp duruyoruz; bildirimi user kendisi kapatır.
+const MAX_FAILURES_BEFORE_DISABLE = 120;
 
 async function safeDisplayOngoing(): Promise<boolean> {
   // Re-entrancy guard: aynı anda iki displayOngoing çalışmasın. Birbirinin
