@@ -6,6 +6,38 @@ import { AppState, Platform } from "react-native";
 import { buildData } from "@/widgets/buildData";
 import { readWidgetConfig, type PriceField } from "@/widgets/config";
 import type { PriceWidgetData } from "@/widgets/PriceWidget";
+import { SYMBOL_REGISTRY } from "@/lib/haremApi";
+
+const META_BY_CODE = new Map(SYMBOL_REGISTRY.map((m) => [m.code.toUpperCase(), m]));
+
+function flagEmoji(iso?: string): string {
+  if (!iso || iso.length !== 2) return "";
+  const a = iso.toUpperCase().charCodeAt(0);
+  const b = iso.toUpperCase().charCodeAt(1);
+  if (a < 65 || a > 90 || b < 65 || b > 90) return "";
+  return String.fromCodePoint(0x1f1e6 + (a - 65), 0x1f1e6 + (b - 65));
+}
+
+function iconFor(code: string): string {
+  const meta = META_BY_CODE.get(code.toUpperCase());
+  if (meta?.flag) return flagEmoji(meta.flag);
+  const c = code.toUpperCase();
+  if (c.startsWith("ALTIN") || c.includes("GRAM") || c === "ONS" || c === "ONS_SPOT") return "🟡";
+  if (c.startsWith("GUMUS") || c === "XAG" || c.startsWith("AG")) return "⚪";
+  if (c.startsWith("PLATIN") || c === "XPT") return "⚙️";
+  if (c.startsWith("PALADYUM") || c === "XPD") return "⚙️";
+  return "•";
+}
+
+function nameFor(code: string): string {
+  const meta = META_BY_CODE.get(code.toUpperCase());
+  return meta?.nameTR || code;
+}
+
+function unitFor(code: string): string {
+  const meta = META_BY_CODE.get(code.toUpperCase());
+  return meta?.unit || "";
+}
 
 let notifeeMod: typeof import("@notifee/react-native") | null = null;
 function getNotifee() {
@@ -88,29 +120,41 @@ async function safeDisplayOngoing(): Promise<boolean> {
   }
 }
 
-function fmtPriceForLine(value: string): string {
-  return value;
+function fmtPct(p: number): string {
+  return `%${Math.abs(p).toFixed(2).replace(".", ",")}`;
 }
 
-function buildBigText(data: PriceWidgetData, priceField: PriceField): string {
+function arrow(p: number): string {
+  return p > 0 ? "▲" : p < 0 ? "▼" : "·";
+}
+
+/** Açık (expanded) hâlde gösterilen INBOX satırları — her sembol bir satır. */
+function buildInboxLines(data: PriceWidgetData, priceField: PriceField): string[] {
+  if (!data.rows.length) return ["Veriler yükleniyor…"];
+  return data.rows.map((r) => {
+    const code = r.label;
+    const price = priceField === "buy" ? r.buy : r.sell;
+    const unit = unitFor(code);
+    const flag = iconFor(code);
+    const name = nameFor(code);
+    const arr = arrow(r.changePercent);
+    const pct = fmtPct(r.changePercent);
+    // Format: "🇺🇸 Dolar · 44,93 ₺ · ▲ %0,02"
+    return `${flag} ${name}  ·  ${price}${unit ? " " + unit : ""}  ·  ${arr} ${pct}`;
+  });
+}
+
+/** Kapalı (collapsed) hâlde tek satırda 4 sembolün özeti. */
+function buildCompactBody(data: PriceWidgetData, priceField: PriceField): string {
   if (data.error) return data.error;
   if (!data.rows.length) return "Veriler yükleniyor…";
-  const lines = data.rows.map((r) => {
-    const price = priceField === "buy" ? r.buy : r.sell;
-    const sign = r.changePercent > 0 ? "▲" : r.changePercent < 0 ? "▼" : "·";
-    const pct = `${sign} %${Math.abs(r.changePercent).toFixed(2).replace(".", ",")}`;
-    return `${r.label.padEnd(8, " ")}  ${fmtPriceForLine(price)}  ${pct}`;
-  });
-  return lines.join("\n");
-}
-
-function buildTitle(data: PriceWidgetData, priceField: PriceField): string {
-  if (!data.rows.length) return "Çarşı Piyasa";
-  const head = data.rows.slice(0, 2).map((r) => {
-    const price = priceField === "buy" ? r.buy : r.sell;
-    return `${r.label} ${price}`;
-  });
-  return head.join("  ·  ");
+  return data.rows
+    .slice(0, 4)
+    .map((r) => {
+      const price = priceField === "buy" ? r.buy : r.sell;
+      return `${r.label} ${price} ${arrow(r.changePercent)}`;
+    })
+    .join("   ");
 }
 
 async function ensureChannel(): Promise<void> {
@@ -162,8 +206,9 @@ async function displayWithData(
   if (!notifee) return;
   await ensureChannel();
   const config = await readWidgetConfig();
-  const title = buildTitle(data, config.priceField);
-  const bigText = buildBigText(data, config.priceField);
+  const title = "Çarşı Piyasa";
+  const compactBody = buildCompactBody(data, config.priceField);
+  const lines = buildInboxLines(data, config.priceField);
   const subText = stale || data.error
     ? `Bağlantı yok · son ${data.updatedAt}`
     : `Güncellendi · ${data.updatedAt}`;
@@ -171,7 +216,7 @@ async function displayWithData(
   await notifee.default.displayNotification({
     id: NOTIFICATION_ID,
     title,
-    body: bigText.split("\n")[0] ?? "Çarşı Piyasa",
+    body: compactBody,
     android: {
       channelId: CHANNEL_ID,
       ongoing: true,
@@ -183,8 +228,10 @@ async function displayWithData(
       asForegroundService: true,
       pressAction: { id: "default", launchActivity: "default" },
       style: {
-        type: notifee.AndroidStyle.BIGTEXT,
-        text: bigText,
+        type: notifee.AndroidStyle.INBOX,
+        lines,
+        title,
+        summary: subText,
       },
       showTimestamp: false,
       timestamp: Date.now(),
