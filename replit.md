@@ -78,6 +78,16 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 **Cleanup notu:** finansveri.com tamamen kaldırıldı; eski `FINANSVERI_API_KEY` secret'ı silindi.
 
+### Tarihsel grafikler (MetalpriceAPI)
+- **Sunucu:** `artifacts/api-server/src/metalprice/` — MetalpriceAPI client + 36 sembol türetme + JSON storage + 5 yıllık backfill + 6 saatte bir self-healing daily cron.
+  - `symbols.ts` — sembol formülleri (USD baz). Forex TRY (USDTRY=TRY, EURTRY=TRY/EUR…), pariteler (EURUSD=1/EUR…), madenler USD (XAUUSD=1/XAU…), gram TL madenler (ALTIN=(1/XAU)·TRY/31.1034768).
+  - `storage.ts` — `data/history.json` tek dosya (~1.5 MB), atomik temp+rename, write queue ile race-koruma. `meta.highWatermark` = contiguous backfill cursor (today /latest yazımı bunu **ilerletmez** → kaçırılan günler bir sonraki tick'te otomatik tamamlanır).
+  - `backfill.ts` — `runBackfillIfNeeded()` 5 yıl × 365 gün chunk; `runDailyUpdate()` watermark'tan dünyaya kadar gap fill + today /latest refresh.
+  - `init.ts` — açılışta backfill+daily, sonra `setInterval(6h)`.
+- **Endpoint:** `GET /api/history/:symbol?range=1H|1A|3A|1Y|5Y` → `{ symbol, range, points: [{t,c}] }`. Admin POST `/admin/backfill` ve `/admin/refresh` sadece `NODE_ENV !== production`'da açık.
+- **Mobil:** `lib/historyApi.ts` mobile code → backend symbol mapping + `EXPO_PUBLIC_API_BASE` (default `https://$EXPO_PUBLIC_DOMAIN`). `hooks/usePriceHistory.ts` 6h staleTime memory cache. `components/PriceChart.tsx` close-only SVG line + period selector (1H/1A/1Y/5Y) + statlar. `app/detail/[code].tsx`'te `hasHistorySupport(code)` true ise "GEÇMİŞ FİYAT" kartı render olur; sarrafiye/külçe/parite altın/fark gibi sembollerde gizli.
+- **Maliyet:** ücretli plana göre 5 yıl backfill = 5 istek (tek seferlik), günlük 1 /latest çağrısı.
+
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages

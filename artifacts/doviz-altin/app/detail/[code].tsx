@@ -18,6 +18,9 @@ import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import { AssetIcon } from "@/components/AssetIcon";
 import { getSymbolDescription, formatSymbolName } from "@/lib/symbolDescriptions";
+import { PriceChart } from "@/components/PriceChart";
+import { usePriceHistory } from "@/hooks/usePriceHistory";
+import { hasHistorySupport, type HistoryRange } from "@/lib/historyApi";
 
 function AddAlertModal({
   visible,
@@ -109,6 +112,9 @@ export default function DetailScreen() {
   const insets = useSafeAreaInsets();
   const { findRateByCode, favorites, toggleFavorite } = useApp();
   const [showAlertModal, setShowAlertModal] = useState(false);
+  const [chartRange, setChartRange] = useState<HistoryRange>("1A");
+  const showChart = !!code && hasHistorySupport(code);
+  const history = usePriceHistory(code ?? "", chartRange);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const bottomPadding = Platform.OS === "web" ? 34 : insets.bottom;
@@ -193,6 +199,21 @@ export default function DetailScreen() {
         contentContainerStyle={{ paddingBottom: bottomPadding + 20 }}
         showsVerticalScrollIndicator={false}
       >
+        {showChart && (
+          <View style={{ marginHorizontal: 16, marginTop: 16, backgroundColor: colors.card, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.border }}>
+            <Text style={{ fontSize: 13, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, marginBottom: 12, letterSpacing: 0.5 }}>
+              GEÇMİŞ FİYAT
+            </Text>
+            <PriceChart
+              data={history.data}
+              range={chartRange}
+              onRangeChange={setChartRange}
+              loading={history.loading}
+              error={history.error}
+            />
+          </View>
+        )}
+
         <View style={{ marginHorizontal: 16, marginTop: 16, backgroundColor: colors.card, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.border }}>
           <Text style={{ fontSize: 13, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, marginBottom: 16, letterSpacing: 0.5 }}>
             FİYAT DETAYLARI
