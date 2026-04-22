@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import Svg, {
+  Circle,
   Defs,
   Line,
   LinearGradient,
@@ -11,52 +12,51 @@ import Svg, {
 import { useColors } from "@/hooks/useColors";
 import type { HistoryPoint, HistoryRange } from "@/lib/historyApi";
 
-const PERIODS: { key: HistoryRange; label: string }[] = [
-  { key: "1H", label: "1H" },
-  { key: "1A", label: "1A" },
-  { key: "1Y", label: "1Y" },
-  { key: "5Y", label: "5Y" },
-];
-
-const W = 320;
+const W = 354;
 const H = 200;
-const PAD = { top: 12, right: 8, bottom: 28, left: 56 };
+const PAD = { top: 14, right: 12, bottom: 26, left: 50 };
+
+const MONTHS_TR = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
+
+const RANGE_TITLE: Record<HistoryRange, string> = {
+  "1H": "SON 1 HAFTA",
+  "1A": "SON 1 AY",
+  "3A": "SON 3 AY",
+  "1Y": "SON 1 YIL",
+  "3Y": "SON 3 YIL",
+  "5Y": "SON 5 YIL",
+};
+
+const MONO_FONT = Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" });
 
 function formatTick(value: number): string {
-  if (value >= 10000) return value.toFixed(0);
-  if (value >= 100) return value.toFixed(1);
+  if (value >= 10000) return Math.round(value).toLocaleString("tr-TR");
+  if (value >= 100) return value.toFixed(0);
   if (value >= 10) return value.toFixed(2);
   return value.toFixed(4);
 }
 
 function formatXLabel(iso: string, range: HistoryRange): string {
   const d = new Date(iso);
-  if (range === "5Y" || range === "1Y") {
-    return `${d.getMonth() + 1}/${String(d.getFullYear()).slice(2)}`;
+  if (range === "5Y" || range === "3Y" || range === "1Y") {
+    return `${MONTHS_TR[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`;
   }
-  return `${d.getDate()}/${d.getMonth() + 1}`;
+  return `${d.getDate()} ${MONTHS_TR[d.getMonth()]}`;
 }
 
 interface PriceChartProps {
   data: HistoryPoint[];
   range: HistoryRange;
-  onRangeChange: (r: HistoryRange) => void;
   loading?: boolean;
   error?: string | null;
 }
 
-export function PriceChart({
-  data,
-  range,
-  onRangeChange,
-  loading,
-  error,
-}: PriceChartProps) {
+export function PriceChart({ data, range, loading, error }: PriceChartProps) {
   const colors = useColors();
 
   const chart = useMemo(() => {
     if (!data || data.length < 2) {
-      return { path: "", fill: "", grid: [], xLabels: [], first: 0, last: 0, hi: 0, lo: 0 };
+      return null;
     }
     const prices = data.map((d) => d.c);
     const minP = Math.min(...prices);
@@ -105,47 +105,38 @@ export function PriceChart({
       last: prices[prices.length - 1]!,
       hi: maxP,
       lo: minP,
+      lastX,
+      lastY: toY(prices[prices.length - 1]!),
     };
   }, [data, range]);
 
-  const isPositive = chart.last >= chart.first;
+  const isPositive = chart ? chart.last >= chart.first : true;
   const lineColor = isPositive ? colors.rise : colors.fall;
-  const changePct = chart.first ? ((chart.last - chart.first) / chart.first) * 100 : 0;
+  const changePct = chart && chart.first ? ((chart.last - chart.first) / chart.first) * 100 : 0;
+  const changeAbs = chart ? chart.last - chart.first : 0;
 
   const styles = StyleSheet.create({
     container: { width: "100%" },
-    periodRow: {
+    headerRow: {
       flexDirection: "row",
-      justifyContent: "center",
-      gap: 6,
-      marginBottom: 12,
+      justifyContent: "space-between",
+      alignItems: "baseline",
+      marginBottom: 10,
     },
-    periodBtn: {
-      paddingHorizontal: 16,
-      paddingVertical: 6,
-      borderRadius: 20,
-    },
-    periodText: {
-      fontSize: 13,
-      fontFamily: "Inter_600SemiBold",
-    },
-    statsRow: {
-      flexDirection: "row",
-      justifyContent: "space-around",
-      marginTop: 12,
-    },
-    statItem: { alignItems: "center" },
-    statLabel: {
+    headerLabel: {
       fontSize: 10,
+      fontFamily: "Inter_700Bold",
+      letterSpacing: 1.4,
       color: colors.mutedForeground,
-      fontFamily: "Inter_500Medium",
-      letterSpacing: 0.5,
     },
-    statValue: {
-      fontSize: 13,
-      fontFamily: "Inter_600SemiBold",
-      color: colors.foreground,
-      marginTop: 2,
+    headerChange: {
+      fontFamily: MONO_FONT,
+      fontSize: 12,
+      fontWeight: "700",
+    },
+    headerChangeMuted: {
+      color: colors.mutedForeground,
+      fontWeight: "500",
     },
     placeholder: {
       height: H,
@@ -153,56 +144,62 @@ export function PriceChart({
       justifyContent: "center",
     },
     placeholderText: {
-      fontSize: 13,
+      fontSize: 12,
       color: colors.mutedForeground,
       fontFamily: "Inter_400Regular",
+    },
+    statsRow: {
+      flexDirection: "row",
+      marginTop: 10,
+    },
+    statItem: { flex: 1 },
+    statLabel: {
+      fontSize: 9,
+      color: colors.mutedForeground,
+      fontFamily: "Inter_700Bold",
+      letterSpacing: 1.1,
+    },
+    statValue: {
+      fontFamily: MONO_FONT,
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.foreground,
+      marginTop: 4,
+      letterSpacing: -0.3,
     },
   });
 
   return (
     <View style={styles.container}>
-      <View style={styles.periodRow}>
-        {PERIODS.map((p) => {
-          const active = range === p.key;
-          return (
-            <TouchableOpacity
-              key={p.key}
-              style={[
-                styles.periodBtn,
-                { backgroundColor: active ? lineColor + "20" : colors.secondary },
-              ]}
-              onPress={() => onRangeChange(p.key)}
-            >
-              <Text
-                style={[
-                  styles.periodText,
-                  { color: active ? lineColor : colors.mutedForeground },
-                ]}
-              >
-                {p.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+      <View style={styles.headerRow}>
+        <Text style={styles.headerLabel}>{RANGE_TITLE[range]}</Text>
+        {chart ? (
+          <Text style={[styles.headerChange, { color: lineColor }]}>
+            {isPositive ? "+" : "−"}%{Math.abs(changePct).toFixed(2)}{"  "}
+            <Text style={styles.headerChangeMuted}>
+              ({isPositive ? "+" : "−"}{formatTick(Math.abs(changeAbs))})
+            </Text>
+          </Text>
+        ) : null}
       </View>
 
-      {loading && data.length === 0 ? (
+      {loading && (!chart) ? (
         <View style={styles.placeholder}>
-          <ActivityIndicator color={colors.primary} />
+          <ActivityIndicator color={colors.foreground} />
         </View>
       ) : error ? (
         <View style={styles.placeholder}>
           <Text style={styles.placeholderText}>Veri yüklenemedi</Text>
         </View>
-      ) : data.length < 2 ? (
+      ) : !chart ? (
         <View style={styles.placeholder}>
           <Text style={styles.placeholderText}>Bu aralık için yeterli veri yok</Text>
         </View>
       ) : (
-        <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ alignSelf: "center" }}>
+        <Svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet">
           <Defs>
             <LinearGradient id="pcGrad" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor={lineColor} stopOpacity={0.22} />
+              <Stop offset="0%" stopColor={lineColor} stopOpacity={0.18} />
               <Stop offset="100%" stopColor={lineColor} stopOpacity={0} />
             </LinearGradient>
           </Defs>
@@ -215,15 +212,15 @@ export function PriceChart({
                 x2={W - PAD.right}
                 y2={g.y}
                 stroke={colors.border}
-                strokeWidth={0.5}
-                strokeDasharray="3,3"
+                strokeWidth={0.6}
               />
               <SvgText
-                x={PAD.left - 4}
+                x={PAD.left - 6}
                 y={g.y + 3}
                 fontSize={9}
                 fill={colors.mutedForeground}
                 textAnchor="end"
+                fontFamily={MONO_FONT}
               >
                 {g.label}
               </SvgText>
@@ -244,33 +241,30 @@ export function PriceChart({
           ))}
 
           <Path d={chart.fill} fill="url(#pcGrad)" />
-          <Path d={chart.path} stroke={lineColor} strokeWidth={2} fill="none" />
+          <Path d={chart.path} stroke={lineColor} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          <Circle cx={chart.lastX} cy={chart.lastY} r={3.8} fill={lineColor} stroke={colors.card} strokeWidth={1.6} />
         </Svg>
       )}
 
-      {data.length >= 2 && (
+      {chart ? (
         <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>BAŞLANGIÇ</Text>
-            <Text style={styles.statValue}>{formatTick(chart.first)}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>EN YÜKSEK</Text>
-            <Text style={[styles.statValue, { color: colors.rise }]}>{formatTick(chart.hi)}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>EN DÜŞÜK</Text>
-            <Text style={[styles.statValue, { color: colors.fall }]}>{formatTick(chart.lo)}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>DEĞİŞİM</Text>
-            <Text style={[styles.statValue, { color: lineColor }]}>
-              {isPositive ? "+" : ""}
-              {changePct.toFixed(2)}%
-            </Text>
-          </View>
+          {[
+            { label: "BAŞLANGIÇ", value: formatTick(chart.first), color: colors.foreground },
+            { label: "EN YÜKSEK", value: formatTick(chart.hi), color: colors.rise },
+            { label: "EN DÜŞÜK", value: formatTick(chart.lo), color: colors.fall },
+            {
+              label: "DEĞİŞİM",
+              value: `${isPositive ? "+" : "−"}%${Math.abs(changePct).toFixed(2)}`,
+              color: lineColor,
+            },
+          ].map((s) => (
+            <View key={s.label} style={styles.statItem}>
+              <Text style={styles.statLabel}>{s.label}</Text>
+              <Text style={[styles.statValue, { color: s.color }]}>{s.value}</Text>
+            </View>
+          ))}
         </View>
-      )}
+      ) : null}
     </View>
   );
 }
