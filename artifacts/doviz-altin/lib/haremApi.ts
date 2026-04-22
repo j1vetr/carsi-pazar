@@ -147,8 +147,26 @@ export interface RawHaremResponse {
   prev24h?: ServerPrev24h;
 }
 
-export async function fetchAllPrices(): Promise<RawHaremResponse> {
-  const res = await fetch(FN.getPrices);
+/**
+ * Backend'den tüm fiyatları çeker. Timeout vermek için `timeoutMs` opsiyonu
+ * geçilebilir; widget ve foreground notification gibi arka plan görevlerinde
+ * fetch sonsuza kadar asılı kalmasın diye kullanılır.
+ */
+export async function fetchAllPrices(opts?: { timeoutMs?: number }): Promise<RawHaremResponse> {
+  const timeoutMs = opts?.timeoutMs;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let signal: AbortSignal | undefined;
+  if (timeoutMs && typeof AbortController !== "undefined") {
+    const ctrl = new AbortController();
+    signal = ctrl.signal;
+    timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  }
+  let res: Response;
+  try {
+    res = await fetch(FN.getPrices, signal ? { signal } : undefined);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
   if (!res.ok) throw new Error(`Backend hatası: ${res.status}`);
   const json = (await res.json()) as
     | { ts?: number; items?: RawHaremPrice[]; prev24h?: ServerPrev24h }

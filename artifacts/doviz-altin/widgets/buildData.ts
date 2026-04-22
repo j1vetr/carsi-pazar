@@ -55,14 +55,18 @@ export function errorData(message: string): PriceWidgetData {
   };
 }
 
+/**
+ * Toplam süre üst sınırı: ilk deneme 7sn, kısa retry 6sn → max ~13sn.
+ * Widget task'ı asla bunu aşmaz, "Yükleniyor..." kilidine girmez.
+ */
 async function fetchWithRetry(): Promise<RawHaremResponse> {
   try {
-    return await fetchAllPrices();
+    return await fetchAllPrices({ timeoutMs: 7000 });
   } catch (e1) {
     // Geçici network glitch için kısa bir bekleme + tek retry
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 1500));
     try {
-      return await fetchAllPrices();
+      return await fetchAllPrices({ timeoutMs: 6000 });
     } catch (e2) {
       throw e2 instanceof Error ? e2 : e1;
     }

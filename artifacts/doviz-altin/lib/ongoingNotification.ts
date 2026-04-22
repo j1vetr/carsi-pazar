@@ -36,13 +36,23 @@ async function setEnabledFlag(enabled: boolean): Promise<void> {
   } catch {}
 }
 
-let refreshTimer: ReturnType<typeof setInterval> | null = null;
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 let appStateSub: { remove: () => void } | null = null;
 let serviceRegistered = false;
 let consecutiveFailures = 0;
-const MAX_FAILURES_BEFORE_DISABLE = 3;
+let inFlight = false;
+let lastSuccessData: PriceWidgetData | null = null;
+let serviceLoopActive = false;
+const MAX_FAILURES_BEFORE_DISABLE = 5;
 
 async function safeDisplayOngoing(): Promise<boolean> {
+  // Re-entrancy guard: aynı anda iki displayOngoing çalışmasın. Birbirinin
+  // notification update'ini kesmesi crash'e (race) neden oluyordu.
+  if (inFlight) {
+    console.log("[CARSI-ONGOING] skip — previous update still in flight");
+    return true;
+  }
+  inFlight = true;
   try {
     await displayOngoing();
     consecutiveFailures = 0;
@@ -53,6 +63,12 @@ async function safeDisplayOngoing(): Promise<boolean> {
       `[CARSI-ONGOING] displayNotification failed (${consecutiveFailures}/${MAX_FAILURES_BEFORE_DISABLE})`,
       err,
     );
+    // Hata durumunda son başarılı veriyle bildirimi koru (kullanıcı boş kalmasın).
+    if (lastSuccessData) {
+      try {
+        await displayWithData(lastSuccessData, /* stale */ true);
+      } catch {}
+    }
     if (consecutiveFailures >= MAX_FAILURES_BEFORE_DISABLE) {
       console.warn("[CARSI-ONGOING] disabling toggle to prevent crash loop");
       try {
@@ -67,6 +83,8 @@ async function safeDisplayOngoing(): Promise<boolean> {
       } catch {}
     }
     return false;
+  } finally {
+    inFlight = false;
   }
 }
 
@@ -112,23 +130,43 @@ function ensureForegroundServiceRegistered(): void {
   const notifee = getNotifee();
   if (!notifee || serviceRegistered) return;
   serviceRegistered = true;
+  // Foreground service callback'i bir Promise döndürür ve native taraf bu
+  // promise resolve edilene kadar service'i (ve JS engine'i) ayakta tutar.
+  // Recursive setTimeout loop'u BU callback'in içine koyuyoruz ki uygulama
+  // arka plana atılsa bile JS task askıya alınmasın → bildirim gerçekten
+  // periyodik güncellensin.
   notifee.default.registerForegroundService(() => {
-    return new Promise(() => {
-      // Keep alive while ongoing notification is displayed.
+    return new Promise<void>(() => {
+      serviceLoopActive = true;
+      const tick = async () => {
+        if (!serviceLoopActive) return;
+        try {
+          await safeDisplayOngoing();
+        } catch {}
+        if (!serviceLoopActive) return;
+        refreshTimer = setTimeout(tick, REFRESH_INTERVAL_MS);
+      };
+      // İlk tick anında değil, kısa bir gecikmeyle (display çağrıları üst üste
+      // binmesin diye)
+      refreshTimer = setTimeout(tick, REFRESH_INTERVAL_MS);
+      // Promise asla resolve edilmez → service alive kalır.
     });
   });
 }
 
-async function displayOngoing(): Promise<void> {
+async function displayWithData(
+  data: PriceWidgetData,
+  stale: boolean,
+): Promise<void> {
   const notifee = getNotifee();
   if (!notifee) return;
-  ensureForegroundServiceRegistered();
   await ensureChannel();
   const config = await readWidgetConfig();
-  const data = await buildData(config.codes);
   const title = buildTitle(data, config.priceField);
   const bigText = buildBigText(data, config.priceField);
-  const subText = data.error ? "Bağlantı yok" : `Güncellendi · ${data.updatedAt}`;
+  const subText = stale || data.error
+    ? `Bağlantı yok · son ${data.updatedAt}`
+    : `Güncellendi · ${data.updatedAt}`;
 
   await notifee.default.displayNotification({
     id: NOTIFICATION_ID,
@@ -155,18 +193,31 @@ async function displayOngoing(): Promise<void> {
   });
 }
 
-function startRefreshLoop(): void {
-  if (refreshTimer) return;
-  refreshTimer = setInterval(() => {
-    if (AppState.currentState === "background" || AppState.currentState === "active") {
-      void safeDisplayOngoing();
-    }
-  }, REFRESH_INTERVAL_MS);
+async function displayOngoing(): Promise<void> {
+  const notifee = getNotifee();
+  if (!notifee) return;
+  ensureForegroundServiceRegistered();
+  const config = await readWidgetConfig();
+  // buildData kendi içinde 7sn + 6sn timeout uyguluyor → bu çağrı en geç ~13sn
+  // içinde resolve olur, foreground service'i bloklamaz.
+  const data = await buildData(config.codes);
+  const ok = data.rows.length > 0 && !data.error;
+  if (ok) {
+    lastSuccessData = data;
+    await displayWithData(data, false);
+  } else if (lastSuccessData) {
+    // Fetch fail oldu ama eldeki son veriyle bildirimi güncel tut.
+    await displayWithData(lastSuccessData, true);
+  } else {
+    // Hiç veri yoksa "Bağlantı yok" göster.
+    await displayWithData(data, true);
+  }
 }
 
 function stopRefreshLoop(): void {
+  serviceLoopActive = false;
   if (refreshTimer) {
-    clearInterval(refreshTimer);
+    clearTimeout(refreshTimer);
     refreshTimer = null;
   }
 }
@@ -201,9 +252,14 @@ export async function startOngoingNotification(): Promise<void> {
   } catch {}
   await setEnabledFlag(true);
   consecutiveFailures = 0;
+  // İlk displayOngoing çağrısı asForegroundService:true ile bildirimi
+  // gösterir → notifee native taraf foreground service'i başlatır →
+  // ensureForegroundServiceRegistered'da kayıtlı olan callback tetiklenir →
+  // periyodik refresh loop callback içinden başlar (app arka plana atılsa
+  // bile JS thread alive kalır).
+  ensureForegroundServiceRegistered();
   const ok = await safeDisplayOngoing();
   if (!ok) return;
-  startRefreshLoop();
   attachAppStateListener();
 }
 
@@ -233,7 +289,6 @@ export async function restoreOngoingNotificationIfEnabled(): Promise<void> {
   consecutiveFailures = 0;
   const ok = await safeDisplayOngoing();
   if (!ok) return;
-  startRefreshLoop();
   attachAppStateListener();
 }
 

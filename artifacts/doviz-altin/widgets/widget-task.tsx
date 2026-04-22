@@ -91,10 +91,14 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps): Promise<
     case "WIDGET_UPDATE":
     case "WIDGET_RESIZED":
     case "WIDGET_CLICK": {
+      // 1) Cache varsa HER ZAMAN önce onu render et (refresh tıklamasında bile).
+      //    Böylece kullanıcı asla boş "Yükleniyor..." görmez; en kötü ihtimalle
+      //    eski veri görür ama yenisi gelince üstüne yazılır.
       const cached = await readWidgetCache();
-      if (cached && !isRefreshClick) {
+      if (cached) {
         safeRender(props, cached, size, options, "cache");
       } else {
+        // İlk kurulumda cache yoksa zorunlu olarak loading göster.
         safeRender(props, loadingData(), size, options, "loading");
       }
 
@@ -105,8 +109,21 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps): Promise<
       );
       if (data.rows.length > 0 && !data.error) {
         await writeWidgetCache(data);
+        safeRender(props, data, size, options, "data");
+      } else if (cached) {
+        // Fetch başarısız ama cache zaten ekranda — tekrar render etmeye gerek
+        // yok. Sadece ufak bir "Bağlantı yok" işareti için cache + error karması:
+        safeRender(
+          props,
+          { ...cached, error: data.error ?? "Bağlantı yok" },
+          size,
+          options,
+          "stale",
+        );
+      } else {
+        // Ne cache var ne de fetch — gerçek hata göster.
+        safeRender(props, data, size, options, "error");
       }
-      safeRender(props, data, size, options, "data");
       break;
     }
     case "WIDGET_DELETED":
