@@ -1,0 +1,46 @@
+root@162-55-4-35:~# cd ~/carsi-pazar
+root@162-55-4-35:~/carsi-pazar# git pull origin main
+remote: Enumerating objects: 58, done.
+remote: Counting objects: 100% (58/58), done.
+remote: Compressing objects: 100% (10/10), done.
+remote: Total 42 (delta 31), reused 42 (delta 31), pack-reused 0 (from 0)
+Unpacking objects: 100% (42/42), 1.73 MiB | 7.41 MiB/s, done.
+From https://github.com/j1vetr/carsi-pazar
+ * branch            main       -> FETCH_HEAD
+   fca936f..8c95bce  main       -> origin/main
+Updating fca936f..8c95bce
+Fast-forward
+ artifacts/api-server/data/history-meta.json                                                      |     2 +-
+ artifacts/api-server/data/history.json                                                           |     2 +-
+ artifacts/doviz-altin/app.json                                                                   |     1 +
+ artifacts/doviz-altin/index.js                                                                   |    20 +-
+ artifacts/doviz-altin/lib/ongoingNotification.ts                                                 |    14 +-
+ artifacts/doviz-altin/plugins/withNotifeeFgsType.js                                              |    40 +
+ artifacts/doviz-altin/widgets/PriceWidget.tsx                                                    |    31 +-
+ artifacts/doviz-altin/widgets/widget-task.tsx                                                    |    10 +-
+ attached_assets/Pasted-ingAmount-0-0-04-23-02-28-42-086-D-KeyguardFace-1865-sh_1776900591424.txt |  1506 ++++++
+ attached_assets/Screenshot_20260422_212842_One_UI_Home_1776882627654.jpg                         |   Bin 0 -> 1086693 bytes
+ attached_assets/carsi-uzun_1776900772965.txt                                                     | 35911 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ replit.md                                                                                        |     2 +-
+ 12 files changed, 37527 insertions(+), 12 deletions(-)
+ create mode 100644 artifacts/doviz-altin/plugins/withNotifeeFgsType.js
+ create mode 100644 attached_assets/Pasted-ingAmount-0-0-04-23-02-28-42-086-D-KeyguardFace-1865-sh_1776900591424.txt
+ create mode 100644 attached_assets/Screenshot_20260422_212842_One_UI_Home_1776882627654.jpg
+ create mode 100644 attached_assets/carsi-uzun_1776900772965.txt
+root@162-55-4-35:~/carsi-pazar# pnpm install
+Scope: all 9 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+   ╭──────────────────────────────────────────╮
+   │                                          │
+   │   Update available! 10.32.1 → 10.33.1.   │
+   │   Changelog: https://pnpm.io/v/10.33.1   │
+   │     To update, run: pnpm add -g pnpm     │
+   │                                          │
+   ╰──────────────────────────────────────────╯
+
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+└─ Done in 11ms
+Done in 2s using pnpm v10.32.1
+root@162-55-4-35:~/carsi-pazar#
