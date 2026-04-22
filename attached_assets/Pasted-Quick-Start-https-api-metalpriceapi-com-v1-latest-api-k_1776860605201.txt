@@ -1,0 +1,642 @@
+Quick Start
+https://api.metalpriceapi.com/v1/latest?api_key=[API_KEY]Copy
+MetalpriceAPI
+MetalpriceAPI provides a simple to use JSON-based REST API for live and historical precious metals and foreign exchange (forex) rates in 150+ world currencies. We provide affordable pricing, which makes our API perfect for businesses of any size including startups, online businesses, to large companies in need of live and/or historical financial data.
+
+Our API can be deployed to power financial departments, mobile applications, and back-office systems around the world just to name a few use cases.
+
+List of supported symbols
+Video Tutorials
+Intro Tutorial
+Wordpress Tutorial
+Definitions
+Definition	Description
+API Key	Uniquely assigned key to each API account to authenticate interactions with the API.
+Symbol	Three-letter currency code or metal code of a given currency.
+Base Currency	The currency to which exchange rates are relative to.
+Quote Currency	The currency an amount is converted to.
+Metal Units
+All precious metal rates are expressed in per troy ounce. All other metals are expressed in per ounce. We offer carat, grams, kilograms responses for any paid plans.
+
+ See more
+Live Rate Delay
+Live rate data is delayed based on your subscription plan. Here are the delays for each plan:
+
+Subscription Plan	Delay from Live Market Price
+Free	Daily
+Essential	30 minutes
+Basic	10 minutes
+Basic Plus	60 seconds
+Professional	60 seconds
+Professional Plus	30 seconds
+Business	Up to 15 seconds
+API Key
+MetalpriceAPI uses API keys to authenticate requests. You can view and manage your API key in the dashboard.
+
+Please ensure to keep your API Key private as each request made with your API Key counts towards your account's plan limit.
+
+To make an successful request, you must pass in your API Key into every request
+
+We provide two ways to pass in your API Key for every request. Method one is to append your API Key to the request url. Method two is to pass in the API Key via the request header.
+
+Query Parameter:
+https://api.metalpriceapi.com/v1/latest?api_key=API_KEYCopy
+Request Headers:
+curl https://api.metalpriceapi.com/v1/latest \
+-H 'X-API-KEY: YOUR_API_KEY' \
+-H 'Content-Type: application/json'
+API Quota
+Monitor your API usage through response headers included with each API request. These headers provide real-time information about your quota consumption and limits. Additionally, you can check your quota using the usage endpoint.
+
+Response Headers
+
+Key	Description
+X-API-CURRENT	Number of requests consumed for the month.
+X-API-QUOTA	API quota limit for the month based on your account plan.
+API Endpoints
+We offer 10 customizable API endpoints, giving you access to different kinds of data. Below is a summary of all available endpoints, with detailed documentation for each in API Features.
+
+// "symbols" - get list of all supported currencies
+https://api.metalpriceapi.com/v1/symbols
+
+// "latest" - get real-time rate data for all available/specific currencies
+https://api.metalpriceapi.com/v1/latest
+
+// "historical" - get historical rates for a specific day
+https://api.metalpriceapi.com/v1/YYYY-MM-DD
+
+// "hourly" - get hourly rate data for a currency over a date range
+https://api.metalpriceapi.com/v1/hourly?currency=XAU&start_date=2025-11-03&end_date=2025-11-03
+
+// "ohlc" - get open, high, low, and close prices for a currency pair
+https://api.metalpriceapi.com/v1/ohlc?base=XAU¤cy=USD&date=2025-01-28
+
+// "convert" - convert one currency to another based on real-time or historic rate data
+https://api.metalpriceapi.com/v1/convert?from=USD&to=XAU&amount=100
+
+// "timeframe" - request rates for a specific period of time
+https://api.metalpriceapi.com/v1/timeframe?start_date=2021-01-01&end_date=2021-05-01
+
+// "change" - request any currency change parameters (margin, percentage)
+https://api.metalpriceapi.com/v1/change?base=XAU&start_date=2021-01-01&end_date=2021-05-01
+
+// "carat" - request gold prices by Carat
+https://api.metalpriceapi.com/v1/carat
+
+// "usage" - check your API usage and quota for the current month
+https://api.metalpriceapi.com/v1/usage
+Server Regions
+We offer two regional API endpoints to provide the best latency for your application. Choose the endpoint closest to your servers or users for optimal performance.
+
+Region	Endpoint
+United States	api.metalpriceapi.com
+Europe	api-eu.metalpriceapi.com
+
+Example Usage
+
+// US endpoint
+https://api.metalpriceapi.com/v1/latest?api_key=API_KEY
+
+// EU endpoint
+https://api-eu.metalpriceapi.com/v1/latest?api_key=API_KEY
+Test Latency
+
+You can test which endpoint provides the best latency for your location using the ping endpoint:
+
+# Test US endpoint latency
+curl -s -w "Time: %{time_total}s\n" https://api.metalpriceapi.com/v1/ping
+
+# Test EU endpoint latency
+curl -s -w "Time: %{time_total}s\n" https://api-eu.metalpriceapi.com/v1/ping
+For more details, see our EU Server announcement.
+
+API Error Codes
+If your query fails, the API will return a 3-digit error-code and a plain text "info" property.
+
+Example Error
+
+{
+  "success": false,
+  "error": {
+      "code": 104,
+      "info": "Your monthly usage limit has been reached. Please upgrade your subscription plan."
+  }
+}
+Common API Errors
+
+Error Code	Description
+404	User requested a non-existent API function
+101	User did not supply an API Key
+102	User did not supply an access key or supplied an invalid access key
+103	The user's account is not active. User will be prompted to get in touch with Customer Support
+104	Too Many Requests
+105	User has reached or exceeded his subscription plan's monthly API request allowance
+201	User entered an invalid Base Currency [ latest, historical, timeframe, change ]
+202	User entered an invalid from Currency [ convert ]
+203	User entered invalid to currency [ convert ]
+204	User entered invalid amount [ convert ]
+205	User entered invalid date [ historical, convert, timeframe, change ]
+206	Invalid timeframe [ timeframe, change ]
+207	Timeframe exceeded 365 days [ timeframe ]
+230	Hourly queries exceeding 2 days require a paid plan [ hourly ]
+231	Hourly queries cannot exceed 7 days [ hourly ]
+232	Cannot request hourly data for future dates [ hourly ]
+233	The DATE_TYPE parameter is only available with a paid plan [ hourly ]
+234	Hourly queries requires one currency [ hourly ]
+235	Hourly queries allows only one currency [ hourly ]
+300	The user's query did not return any results [ latest, historical, convert, timeframe, change ]
+CORS (Cross-Origin Resource Sharing)
+MetalpriceAPI supports Access-Control (CORS) headers. This means you will be able to use our API via Cross-Origin HTTPS Requests. Learn more.
+
+Additional Resources
+  MetalpriceAPI Postman API Project	See more
+Supported Symbols
+This endpoint is used to get the list of the most up-to-date supported symbols. Learn more here.
+Requests to this endpoint do not count towards your monthly API quota.
+
+Example API Request
+
+https://api.metalpriceapi.com/v1/symbols
+?api_key=[API_KEY]Copy
+Request Parameters
+
+Parameter	Description
+api_key	[Required] Your API Key. More details.
+
+Example API Response
+
+{
+  "success": true,
+  "symbols": {
+      "AED": "UAE Dirham",
+      "AFN": "Afghan Afghani",
+      "ALL": "Albanian Lek",
+      ...
+  }
+}
+Response Attributes
+
+Attribute	Description
+success	Returns true or false depending if the API Request succeeded. If false, refer to API Errors.
+symbols	Key is supported currency, value is description of currency.
+Live Rates
+This endpoint will return real-time exchange rate data (delayed) depending on your subscription plan.
+
+Example API Request
+
+https://api.metalpriceapi.com/v1/latest
+?api_key=[API_KEY]
+&base=USD
+&currencies=EUR,XAU,XAGCopy
+https://api.metalpriceapi.com/v1/latest
+?api_key=[API_KEY]
+&base=USD
+&currencies=XAU,XAG
+&math=add(multiply(value,1.1),10)Copy
+Request Parameters
+
+Parameter	Description
+api_key	[Required] Your API Key. More details.
+base	[optional] Specify a base currency. Base Currency will default to USD if this parameter is not defined.
+currencies	[optional] Specify a comma-separated list of currency codes to limit API responses to specified currencies. If this parameter is not defined, the API will return all forex currencies and precious metals.
+unit	[optional] (Paid plan) Specify troy_oz or gram or kilogram. If not defined, the API will return metals in troy ounce.
+math	[optional] Specify math operators to perform on the result. Use value to refer to the rates. Specify one or more of the mathematical operators add, subtract, multiply, and/or divide. Learn more.
+
+Example API Response
+
+{
+  "success": true,
+  "base": "USD",
+  "timestamp": 1625609377,
+  "rates": {
+      "EUR": 0.8255334,
+      "XAG": 0.03602543,
+      "XAU": 0.00053853,
+      "USDEUR": 1.211338027,
+      "USDXAG": 27.75816972,
+      "USDXAU": 1856.906765
+  }
+}
+In the example API response, that means:
+1 USD (Base) = 0.8255334 EUR (Quote)
+1 USD (Base) = 0.03602543 Ounce of XAG (Quote)
+1 USD (Base) = 0.00053853 Ounce of XAU (Quote)
+
+You can also express the reciprocal:
+1/0.8255334 EUR = 1.211 USD (Base) <=> €1 = $1.211
+1/0.03602543 XAG = 27.758 USD (Base) <=> 1 Ounce of XAU (Silver) = $27.758
+1/0.00053853 XAU = 1856.906 USD (Base) <=> 1 Ounce of XAU (Gold) = $1856.906
+
+Response Attributes
+
+Attribute	Description
+success	Returns true or false depending if the API Request succeeded. If false, refer to API Errors.
+base	Returns base currency used for the request.
+timestamp	Returns the UNIX timestamp the given exchange rates were collected.
+rates	Returns exchange rate data for the currencies requested.
+Historical Rates
+This endpoint will return historical exchange rate data. The previous day's historical rates become available each day at 00:05 AM GMT. Use format YYYY-MM-DD or yesterday for the base url.
+
+[Year-Month-Day]
+
+Example API Request
+
+https://api.metalpriceapi.com/v1/2021-03-24
+?api_key=[API_KEY]
+&base=USD
+&currencies=EUR,XAU,XAGCopy
+https://api.metalpriceapi.com/v1/yesterday
+?api_key=[API_KEY]
+&base=USD
+&currencies=EUR,XAU,XAGCopy
+Request Parameters
+
+Parameter	Description
+api_key	[Required] Your API Key. More details.
+base	[optional] Specify a base currency. Base Currency will default to USD if this parameter is not defined.
+currencies	[optional] Specify a comma-separated list of currency codes to limit API responses to specified currencies. If this parameter is not defined, the API will return all supported currencies.
+unit	[optional] (Paid plan) Specify troy_oz or gram or kilogram. If not defined, the API will return metals in troy ounce.
+
+Example API Response
+
+{
+  "success": true,
+  "base": "USD",
+  "timestamp": 1616558399,
+  "rates": {
+      "EUR": 0.8255334,
+      "XAG": 0.03602543,
+      "XAU": 0.00053853,
+      "USDEUR": 1.211338027,
+      "USDXAG": 27.75816972,
+      "USDXAU": 1856.906765
+  }
+}
+In the example API response, that means:
+1 USD (Base) = 0.8255334 EUR (Quote)
+1 USD (Base) = 0.03602543 Ounce of XAG (Quote)
+1 USD (Base) = 0.00053853 Ounce of XAU (Quote)
+
+You can also express the reciprocal:
+1/0.8255334 EUR = 1.211 USD (Base) <=> €1 = $1.211
+1/0.03602543 XAG = 27.758 USD (Base) <=> 1 Ounce of XAU (Silver) = $27.758
+1/0.00053853 XAU = 1856.906 USD (Base) <=> 1 Ounce of XAU (Gold) = $1856.906
+
+Response Attributes
+
+Attribute	Description
+success	Returns true or false depending if the API Request succeeded. If false, refer to API Errors.
+base	Returns base currency used for the request.
+timestamp	Returns the UNIX timestamp the given exchange rates were collected.
+rates	Returns exchange rate data for the currencies requested.
+Hourly Rates
+This endpoint returns hourly exchange rate data for a given currency over a specified date range. It provides 24 data points per day, one for each hour.
+
+Only one currency is allowed per request. Free users can query up to 2 days; paid users can query up to 7 days. Future dates are not allowed.
+
+Example API Request
+
+https://api.metalpriceapi.com/v1/hourly
+?api_key=[API_KEY]
+&base=USD
+&currency=XAU
+&start_date=2025-11-03
+&end_date=2025-11-03Copy
+Request Parameters
+
+Parameter	Description
+api_key	[Required] Your API Key. More details.
+base	[optional] Specify a base currency. Base Currency will default to USD if this parameter is not defined.
+currency	[Required] Specify a single currency code. Only one currency is allowed per request.
+start_date	[optional] Specify the start date in YYYY-MM-DD format. Defaults to today. Earliest available date is 2025-06-19.
+end_date	[optional] Specify the end date in YYYY-MM-DD format. Defaults to today.
+date_type	[optional] (Paid plan) Specify "today", "yesterday", or "week" as a shortcut. If provided, this parameter overrides "start_date" and "end_date".
+today: Using today's date
+yesterday: Using yesterday's date
+week: Using the last 7 days
+unit	[optional] (Paid plan) Specify troy_oz or gram or kilogram. If not defined, the API will return metals in troy ounce.
+math	[optional] (Paid plan) Specify math operators to perform on the result. Use value to refer to the rates. Specify one or more of the mathematical operators add, subtract, multiply, and/or divide. Learn more.
+
+Example API Response
+
+{
+  "success": true,
+  "base": "USD",
+  "start_date": "2025-11-03",
+  "end_date": "2025-11-03",
+  "rates": [
+    {
+      "timestamp": 1762128000,
+      "rates": {
+        "XAU": 0.0002512844,
+        "USDXAU": 3979.5546400811
+      }
+    },
+    {
+      "timestamp": 1762131600,
+      "rates": {
+        "XAU": 0.0002519176,
+        "USDXAU": 3969.5519487324
+      }
+    },
+    ...
+  ]
+}
+Response Attributes
+
+Attribute	Description
+success	Returns true or false depending if the API Request succeeded. If false, refer to API Errors.
+base	Returns base currency used for the request.
+start_date	Returns start date of the hourly query.
+end_date	Returns end date of the hourly query.
+rates -> timestamp	Returns the UNIX timestamp for the hourly data point.
+rates -> rates	Returns exchange rate data for the requested currency.
+Open/High/Low/Close (OHLC)
+This endpoint will return open, high, low, and close prices for a given currency pair.
+
+OHLC data uses a 00:00 to 23:59:59 GMT trading day. The open price is captured at midnight GMT (00:00), and the close price is captured at 23:59:59 GMT. The previous day's OHLC data becomes available at 00:05 AM GMT.
+
+Example API Request
+
+https://api.metalpriceapi.com/v1/ohlc
+?api_key=[API_KEY]
+&base=XAU
+&currency=USD
+&date=2025-01-28Copy
+Request Parameters
+
+Parameter	Description
+api_key	[Required] Your API Key. More details.
+base	[optional] Specify a base currency. Base Currency will default to USD if this parameter is not defined.
+currency	[Required] Specify a currency.
+date	[Required] Specify a date in the format YYYY-MM-DD to get the OHLC for specified date.
+unit	[optional] (Paid plan) Specify troy_oz or gram or kilogram. If not defined, the API will return metals in troy ounce.
+date_type	[optional] (Paid plan) Specify "yesterday", "week", "month", or "year" to retrieve the rate change for the corresponding time period. If provided, this parameter overrides "date".
+yesterday: Using the previous day's OHLC date
+week: Using the previous week's OHLC date
+month: Using the previous month's OHLC date
+year: Using the previous year's OHLC date
+
+Example API Response
+
+{
+  "success": true,
+  "base": "XAU",
+  "quote": "USD",
+  "timestamp": 1738108799,
+  "rate": {
+      "close": 2742.2233288617,
+      "high": 2764.9591200794,
+      "low": 2735.1078165826,
+      "open": 2741.9706872366
+  }
+}
+Response Attributes
+
+Attribute	Description
+success	Returns true or false depending if the API Request succeeded. If false, refer to API Errors.
+base	Returns base currency used for the request.
+quote	Returns quote currency used for the request.
+timestamp	Returns the UNIX timestamp for the OHLC data.
+rate -> close	Returns close price for the specified date.
+rate -> high	Returns high price for the specified date.
+rate -> low	Returns low price for the specified date.
+rate -> open	Returns open price for the specified date.
+Currency Convert
+This endpoint is used to convert any amount from one currency to another.
+
+Example API Request
+
+https://api.metalpriceapi.com/v1/convert
+?api_key=[API_KEY]
+&from=USD
+&to=XAU
+&amount=100
+&date=2021-04-23Copy
+Request Parameters
+
+Parameter	Description
+api_key	[Required] Your API Key. More details.
+from	[optional] Specify currency you would like to convert from. Base Currency will default to USD if this parameter is not defined.
+to	[Required] Specify currency you would like to convert to.
+amount	[Required] The amount to convert.
+date	[optional] Specify date to use historical midpoint value for conversion. Otherwise, it will use live exchange rate date with delay specified based on your subscription plan.
+unit	[optional] (Paid plan) Specify troy_oz or gram or kilogram. If not defined, the API will return metals in troy ounce.
+
+Example API Response
+
+{
+  "success": true,
+  "query": {
+      "from": "USD",
+      "to": "XAU",
+      "amount": 100
+  },
+  "info": {
+      "quote": 0.0005628,
+      "timestamp": 1619150400
+  },
+  "result": 0.05628031
+}
+Response Attributes
+
+Attribute	Description
+success	Returns true or false depending if the API Request succeeded. If false, refer to API Errors.
+query -> from	Returns currency converted from used for the request.
+query -> to	Returns currency converted to used for the request.
+query -> amount	Returns amount to convert.
+info -> quote	Returns the exchange rate used for the conversion.
+info -> timestamp	Returns the UNIX timestamp the given exchange rates were collected.
+result	Returns conversion result.
+Timeframe Query
+This endpoint is used to get historical rates for a specified time period (max range: 365 days).
+
+Example API Request
+
+https://api.metalpriceapi.com/v1/timeframe
+?api_key=[API_KEY]
+&start_date=2021-04-22
+&end_date=2021-04-23
+&base=USD
+&currencies=EUR,XAU,XAGCopy
+Request Parameters
+
+Parameter	Description
+api_key	[Required] Your API Key. More details.
+start_date	[Required] Specify the start date of your timeframe.
+end_date	[Required] Specify the end date of your timeframe.
+base	[optional] Specify a base currency. Base Currency will default to USD if this parameter is not defined.
+currencies	[optional] Specify a comma-separated list of currency codes to limit API responses to specified currencies. If this parameter is not defined, the API will return all supported currencies.
+unit	[optional] (Paid plan) Specify troy_oz or gram or kilogram. If not defined, the API will return metals in troy ounce.
+
+Example API Response
+
+{
+  "success": true,
+  "base": "USD",
+  "start_date": "2021-04-22",
+  "end_date": "2021-04-23",
+  "rates": {
+      "2021-04-22": {
+        "EUR": 0.83233837,
+        "XAG": 0.03825732,
+        "XAU": 0.00056078,
+        "USDEUR": 1.20143446,
+        "USDXAG": 26.1387886,
+        "USDXAU": 1783.2305
+      },
+      "2021-04-23": {
+        "EUR": 0.82657397,
+        "XAG": 0.03846131,
+        "XAU": 0.0005628,
+        "USDEUR": 1.209813079,
+        "USDXAG": 26.00015444,
+        "USDXAU": 1776.830135
+      },
+  }
+Response Attributes
+
+Attribute	Description
+success	Returns true or false depending if the API Request succeeded. If false, refer to API Errors.
+base	Returns base currency used for the request.
+start_date	Returns start date of your timeframe for the request.
+end_date	Returns end date of your timeframe for the request.
+rates	Returns exchange rate data for the currencies requested.
+Change Query
+This endpoint is used to request the change (percentage) of one of more currencies, relative to a base currency with a specific time-frame (optional).
+
+The API will return change values of the specified start_date and end_date.
+
+Example API Request
+
+https://api.metalpriceapi.com/v1/change
+?api_key=[API_KEY]
+&start_date=2021-04-22
+&end_date=2021-04-23
+&base=USD
+&currencies=XAUCopy
+Request Parameters
+
+Parameter	Description
+api_key	[Required] Your API Key. More details.
+start_date	[Required] Specify the start date of your timeframe.
+end_date	[Required] Specify the end date of your timeframe.
+base	[optional] Specify a base currency. Base Currency will default to USD if this parameter is not defined.
+currencies	[optional] Specify a comma-separated list of currency codes to limit API responses to specified currencies. If this parameter is not defined, the API will return all supported currencies.
+date_type	[optional] Specify "recent", "yesterday", "week", "month", or "year" to retrieve the rate change for the corresponding time period. If provided, this parameter overrides "start_date" and "end_date".
+recent: Calculates change from yesterday's closing rate to the current rate (subject to your plan's delay)
+yesterday: Calculates change from start of yesterday to end of yesterday
+week: Calculates change over the last 7 days
+month: Calculates change over the last month
+year: Calculates change over the last year
+
+Example API Response
+
+{
+  "success": true,
+  "base": "USD",
+  "start_date": "2021-04-20",
+  "end_date": "2021-04-21",
+  "rates": {
+      "XAU": {
+        "start_rate": 0.00059101,
+        "end_rate": 0.00059256,
+        "change": 0.00000155,
+        "change_pct": 0.2623
+      }
+  }
+Response Attributes
+
+Attribute	Description
+success	Returns true or false depending if the API Request succeeded. If false, refer to API Errors.
+base	Returns base currency used for the request.
+start_date	Returns start date of your timeframe for the request.
+end_date	Returns end date of your timeframe for the request.
+rates -> start_rate	Returns exchange rate for the start date.
+rates -> end_rate	Returns exchange rate for the end date.
+rates -> change	Returns change (decimal number) of the given currency rate between the start and end date.
+rates -> change_pct	Returns percent change of the given currency rate between your start and end date. Formula used is ((end_rate - start_rate) / start_rate) * 100
+Carat Query (Paid plan)
+This endpoint is used to request the gold rate by Carat.
+
+Example API Request
+
+https://api.metalpriceapi.com/v1/carat
+?api_key=[API_KEY]
+&base=USD
+&currency=XAU
+&date=2021-04-23Copy
+Request Parameters
+
+Parameter	Description
+api_key	[Required] Your API Key. More details.
+base	[optional] Specify a base currency. Base Currency will default to USD if this parameter is not defined.
+currency	[optional] Specify currency to get Carat. If not specified, uses XAU.
+date	[optional] Specify date to get Carat. If not specified, uses live rates.
+
+Example API Response
+
+{
+  "success": true,
+  "base": "USD",
+  "timestamp": 1650130340,
+  "data": {
+        "24k": 12.69083155,
+        "23k": 12.16204691,
+        "22k": 11.63326226,
+        "21.6k": 11.42174839,
+        "21k": 11.10447761,
+        "18k": 9.51812367,
+        "16k": 8.46055437,
+        "14k": 7.40298507,
+        "12k": 6.34541578,
+        "10k": 5.28784648,
+        "9k": 4.75906183,
+        "8k": 4.23027718,
+        "6k": 3.17270789
+      }
+  }
+One carat equals 0.200 grams or 1/5 gram.
+24k gold is 100% pure gold.
+In this sample response, 24k price of 12.69083155 USD
+1 gram of 24k gold is equal to 63.45 USD ($12.69 * 5)
+
+Response Attributes
+
+Attribute	Description
+success	Returns true or false depending if the API Request succeeded. If false, refer to API Errors.
+base	Returns base currency used for the request.
+timestamp	Returns the UNIX timestamp the given exchange rates were collected.
+data	Returns carat data.
+Usage
+This endpoint is used to check your API usage and quota for the current month.
+Requests to this endpoint do not count towards your monthly API quota.
+
+Example API Request
+
+https://api.metalpriceapi.com/v1/usage
+?api_key=[API_KEY]Copy
+Request Parameters
+
+Parameter	Description
+api_key	[Required] Your API Key. More details.
+
+Example API Response
+
+{
+  "success": true,
+  "result": {
+      "plan": "Business",
+      "used": 12,
+      "total": 100,
+      "remaining": 88
+  }
+}
+Response Attributes
+
+Attribute	Description
+success	Returns true or false depending if the API Request succeeded. If false, refer to API Errors.
+plan	Returns your current plan.
+used	Returns the number of requests used for the current month.
+total	Returns your total quota for the current month.
+remaining	Returns your remaining quota for the current month.
