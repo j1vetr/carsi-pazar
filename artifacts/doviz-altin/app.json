@@ -53,6 +53,7 @@
           "sounds": []
         }
       ],
+      "./plugins/withNotifeeFgsType",
       [
         "react-native-android-widget",
         {

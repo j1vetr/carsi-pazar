@@ -58,7 +58,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **DEVAM EDEN:** APK'da widget hâlâ tamamen şeffaf — root cause araştırması sürüyor
 
 ### Bildirim çubuğu (canlı / foreground service)
-- `lib/ongoingNotification.ts` — `@notifee/react-native` ile Android foreground service. Widget config'inden 4 sembolü okur, BIGTEXT stilinde 4 satır gösterir. ~90 sn'de bir refresh, AppState=active'de de tetiklenir. iOS no-op.
+- `lib/ongoingNotification.ts` — `@notifee/react-native` ile Android foreground service. Widget config'inden 4 sembolü okur, BIGTEXT stilinde 4 satır gösterir. ~90 sn'de bir refresh, AppState=active'de de tetiklenir. iOS no-op. Android 14+ "Short FGS procstate demoted" sorununa karşı `foregroundServiceTypes: [DATA_SYNC]` runtime'da set edilir; manifest tarafında `plugins/withNotifeeFgsType.js` config plugin'i notifee'nin `app.notifee.core.ForegroundService` tag'ine `android:foregroundServiceType="dataSync"` ekler. `index.js`'de `notifee.onBackgroundEvent` no-op handler register edilir (notifee uyarısını giderir).
 - `app/settings/widget.tsx` — "BİLDİRİM ÇUBUĞU · CANLI" bölümünde toggle (varsayılan KAPALI). Açıldığında runtime POST_NOTIFICATIONS izni istenir, kapatıldığında service durur.
 - `app/_layout.tsx` — `restoreOngoingNotificationIfEnabled` ile uygulama açılışında AsyncStorage flag'i true ise service yeniden bağlanır.
 - `app.json` android.permissions: POST_NOTIFICATIONS, FOREGROUND_SERVICE, FOREGROUND_SERVICE_DATA_SYNC, WAKE_LOCK eklendi.

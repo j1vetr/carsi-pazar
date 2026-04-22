@@ -230,6 +230,14 @@ async function displayWithData(
       color: "#0B3D91",
       colorized: true,
       asForegroundService: true,
+      // Android 14+ kritik: type belirtilmezse notifee SHORT_SERVICE olarak
+      // başlatır → 3 dk sonra "Short FGS procstate demoted" → JS thread donar
+      // → bildirim güncellenmez ve sonunda OS process'i öldürebilir.
+      // DATA_SYNC tipi, periyodik veri güncellemeleri için doğru semantik ve
+      // 3 dk timeout'u olmaz.
+      foregroundServiceTypes: [
+        notifee.AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
+      ],
       pressAction: { id: "default", launchActivity: "default" },
       style: {
         type: notifee.AndroidStyle.INBOX,
