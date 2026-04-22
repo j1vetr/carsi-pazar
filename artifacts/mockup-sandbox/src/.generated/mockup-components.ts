@@ -8,6 +8,7 @@ export const modules: ModuleMap = {
   "./components/mockups/carsi-notif/ProposalA.tsx": () => import("../components/mockups/carsi-notif/ProposalA.tsx"),
   "./components/mockups/carsi-notif/ProposalB.tsx": () => import("../components/mockups/carsi-notif/ProposalB.tsx"),
   "./components/mockups/carsi-onboarding/V2.tsx": () => import("../components/mockups/carsi-onboarding/V2.tsx"),
+  "./components/mockups/carsi-onboarding/V3.tsx": () => import("../components/mockups/carsi-onboarding/V3.tsx"),
   "./components/mockups/carsi-widget/CapsuleDark.tsx": () => import("../components/mockups/carsi-widget/CapsuleDark.tsx"),
   "./components/mockups/carsi-widget/CapsuleLight.tsx": () => import("../components/mockups/carsi-widget/CapsuleLight.tsx"),
   "./components/mockups/carsi-widget/CurrencyHome.tsx": () => import("../components/mockups/carsi-widget/CurrencyHome.tsx"),
