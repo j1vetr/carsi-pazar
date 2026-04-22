@@ -10,6 +10,7 @@ const RANGE_DAYS: Record<string, number> = {
   "1A": 31,
   "3A": 92,
   "1Y": 366,
+  "3Y": 366 * 3,
   "5Y": 366 * 5,
 };
 

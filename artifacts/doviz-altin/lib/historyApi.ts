@@ -41,7 +41,7 @@ const HISTORY_SYMBOL_MAP: Record<string, string> = {
   PALADYUM_USD: "XPDUSD",
 };
 
-export type HistoryRange = "1H" | "1A" | "3A" | "1Y" | "5Y";
+export type HistoryRange = "1H" | "1A" | "3A" | "1Y" | "3Y" | "5Y";
 
 export interface HistoryPoint {
   t: string;

@@ -1,64 +1,68 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  ArrowLeft,
-  Star,
-  Bell,
-  TrendingUp,
-  TrendingDown,
-} from "lucide-react";
+import { T, SANS, MONO, PhoneShell, type Theme } from "../../carsi-widget/_v2";
 
-type Range = "1H" | "1A" | "1Y" | "5Y";
+type Range = "1H" | "1A" | "1Y" | "3Y" | "5Y";
 type Point = { t: string; c: number };
 
-const RANGES: Range[] = ["1H", "1A", "1Y", "5Y"];
+const RANGES: { key: Range; label: string }[] = [
+  { key: "1H", label: "1 HAFTA" },
+  { key: "1A", label: "1 AY" },
+  { key: "1Y", label: "1 YIL" },
+  { key: "3Y", label: "3 YIL" },
+  { key: "5Y", label: "5 YIL" },
+];
+
+const RANGE_TITLE: Record<Range, string> = {
+  "1H": "Son 1 hafta",
+  "1A": "Son 1 ay",
+  "1Y": "Son 1 yıl",
+  "3Y": "Son 3 yıl",
+  "5Y": "Son 5 yıl",
+};
 
 export interface DetailScreenProps {
+  theme: Theme;
   symbol: string;
   nameTR: string;
   description: string;
   buy: number;
   sell: number;
-  change: number;
-  changePercent: number;
   prevClose: number;
   type: "currency" | "gold";
-  iconText: string;
-  iconBg: string;
+  todayChange: number;
+  todayChangePct: number;
 }
 
-const W = 360;
+const W = 354;
 const H = 200;
-const PAD = { top: 12, right: 8, bottom: 28, left: 56 };
+const PAD = { top: 14, right: 12, bottom: 26, left: 50 };
+
+function formatPrice(p: number) {
+  if (p >= 10000)
+    return p.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (p >= 100) return p.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return p.toLocaleString("tr-TR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+}
 
 function formatTick(v: number) {
-  if (v >= 10000) return v.toFixed(0);
-  if (v >= 100) return v.toFixed(1);
+  if (v >= 10000) return Math.round(v).toLocaleString("tr-TR");
+  if (v >= 100) return v.toFixed(0);
   if (v >= 10) return v.toFixed(2);
   return v.toFixed(4);
 }
 
 function formatXLabel(iso: string, range: Range) {
   const d = new Date(iso);
-  if (range === "5Y" || range === "1Y") {
-    return `${d.getMonth() + 1}/${String(d.getFullYear()).slice(2)}`;
+  const months = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
+  if (range === "5Y" || range === "3Y" || range === "1Y") {
+    return `${months[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`;
   }
-  return `${d.getDate()}/${d.getMonth() + 1}`;
+  return `${d.getDate()} ${months[d.getMonth()]}`;
 }
 
-function formatPrice(p: number) {
-  if (p >= 10000)
-    return p.toLocaleString("tr-TR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  return p.toFixed(4);
-}
-
-function PriceChart({ data, range }: { data: Point[]; range: Range }) {
+function ChartSvg({ data, range, t }: { data: Point[]; range: Range; t: typeof T.light }) {
   const chart = useMemo(() => {
-    if (!data || data.length < 2) {
-      return { path: "", fill: "", grid: [], xLabels: [], first: 0, last: 0, hi: 0, lo: 0 };
-    }
+    if (!data || data.length < 2) return null;
     const prices = data.map((d) => d.c);
     const minP = Math.min(...prices);
     const maxP = Math.max(...prices);
@@ -87,69 +91,70 @@ function PriceChart({ data, range }: { data: Point[]; range: Range }) {
       return { y: toY(p), label: formatTick(p) };
     });
 
-    const idxs = [0, Math.floor(prices.length / 4), Math.floor(prices.length / 2), Math.floor((3 * prices.length) / 4), prices.length - 1];
+    const idxs = [
+      0,
+      Math.floor(prices.length / 4),
+      Math.floor(prices.length / 2),
+      Math.floor((3 * prices.length) / 4),
+      prices.length - 1,
+    ];
     const xLabels = idxs.map((i) => ({ x: toX(i), label: formatXLabel(data[i]!.t, range) }));
 
-    return { path: pathD, fill: fillD, grid, xLabels, first: prices[0]!, last: prices[prices.length - 1]!, hi: maxP, lo: minP };
+    return {
+      path: pathD,
+      fill: fillD,
+      grid,
+      xLabels,
+      first: prices[0]!,
+      last: prices[prices.length - 1]!,
+      hi: maxP,
+      lo: minP,
+      lastX,
+      lastY: toY(prices[prices.length - 1]!),
+    };
   }, [data, range]);
 
-  const isPositive = chart.last >= chart.first;
-  const lineColor = isPositive ? "#16a34a" : "#dc2626";
-  const changePct = chart.first ? ((chart.last - chart.first) / chart.first) * 100 : 0;
+  if (!chart) return null;
 
-  if (data.length < 2) {
-    return (
-      <div className="flex items-center justify-center" style={{ height: H }}>
-        <span className="text-xs text-zinc-400">Veri yok</span>
-      </div>
-    );
-  }
+  const isPositive = chart.last >= chart.first;
+  const lineColor = isPositive ? t.up : t.down;
+  const fillId = `pcGrad-${isPositive ? "up" : "dn"}-${range}`;
 
   return (
-    <div>
-      <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="block mx-auto">
-        <defs>
-          <linearGradient id="pcGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={lineColor} stopOpacity={0.22} />
-            <stop offset="100%" stopColor={lineColor} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        {chart.grid.map((g, i) => (
-          <g key={i}>
-            <line x1={PAD.left} y1={g.y} x2={W - PAD.right} y2={g.y} stroke="#e4e4e7" strokeWidth={0.5} strokeDasharray="3,3" />
-            <text x={PAD.left - 4} y={g.y + 3} fontSize={9} fill="#a1a1aa" textAnchor="end">{g.label}</text>
-          </g>
-        ))}
-        {chart.xLabels.map((l, i) => (
-          <text key={i} x={l.x} y={H - 6} fontSize={9} fill="#a1a1aa" textAnchor="middle">{l.label}</text>
-        ))}
-        <path d={chart.fill} fill="url(#pcGrad)" />
-        <path d={chart.path} stroke={lineColor} strokeWidth={2} fill="none" />
-      </svg>
-      <div className="flex justify-around mt-3">
-        {[
-          { label: "BAŞLANGIÇ", value: formatTick(chart.first), color: "#0f172a" },
-          { label: "EN YÜKSEK", value: formatTick(chart.hi), color: "#16a34a" },
-          { label: "EN DÜŞÜK", value: formatTick(chart.lo), color: "#dc2626" },
-          { label: "DEĞİŞİM", value: `${isPositive ? "+" : ""}${changePct.toFixed(2)}%`, color: lineColor },
-        ].map((s) => (
-          <div key={s.label} className="flex flex-col items-center">
-            <span className="text-[9px] tracking-wider text-zinc-400 font-medium">{s.label}</span>
-            <span className="text-[13px] font-semibold mt-0.5" style={{ color: s.color }}>{s.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" style={{ display: "block" }}>
+      <defs>
+        <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={lineColor} stopOpacity={0.18} />
+          <stop offset="100%" stopColor={lineColor} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      {chart.grid.map((g, i) => (
+        <g key={i}>
+          <line x1={PAD.left} y1={g.y} x2={W - PAD.right} y2={g.y} stroke={t.hairline} strokeWidth={1} />
+          <text x={PAD.left - 6} y={g.y + 3} fontSize={9} fontFamily={MONO} fill={t.muted} textAnchor="end" style={{ fontVariantNumeric: "tabular-nums" }}>
+            {g.label}
+          </text>
+        </g>
+      ))}
+      {chart.xLabels.map((l, i) => (
+        <text key={i} x={l.x} y={H - 6} fontSize={9} fontFamily={SANS} fill={t.muted} textAnchor="middle">
+          {l.label}
+        </text>
+      ))}
+      <path d={chart.fill} fill={`url(#${fillId})`} />
+      <path d={chart.path} stroke={lineColor} strokeWidth={1.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={chart.lastX} cy={chart.lastY} r={3.5} fill={lineColor} stroke={t.surface} strokeWidth={1.5} />
+    </svg>
   );
 }
 
 export function DetailScreen(props: DetailScreenProps) {
-  const { symbol, nameTR, description, buy, sell, change, changePercent, prevClose, type, iconText, iconBg } = props;
+  const { theme, symbol, nameTR, description, buy, sell, prevClose, type, todayChange, todayChangePct } = props;
   const [range, setRange] = useState<Range>("1A");
   const [data, setData] = useState<Point[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const [fav, setFav] = useState(false);
+  const t = T[theme];
 
   useEffect(() => {
     let abort = false;
@@ -173,121 +178,296 @@ export function DetailScreen(props: DetailScreenProps) {
     };
   }, [symbol, range]);
 
-  const isPositive = changePercent >= 0;
-  const changeColor = isPositive ? "#16a34a" : "#dc2626";
-  const spread = sell - buy;
+  const isTodayUp = todayChangePct >= 0;
+  const todayColor = isTodayUp ? t.up : t.down;
+  const todayBg = isTodayUp ? t.upBg : t.downBg;
 
-  const goldHeader = type === "gold";
-  const headerStyle: React.CSSProperties = goldHeader
-    ? { background: "linear-gradient(180deg, #0B3D91 0%, #1E5BC6 100%)" }
-    : { background: "#fafafa", borderBottom: "1px solid #e4e4e7" };
-  const headerFg = goldHeader ? "#FFFFFF" : "#0f172a";
-  const headerMuted = goldHeader ? "rgba(255,255,255,0.7)" : "#71717a";
-  const pillBg = goldHeader ? "rgba(255,255,255,0.18)" : `${changeColor}15`;
-  const pillFg = goldHeader ? "#FFFFFF" : changeColor;
+  const rangeStats = useMemo(() => {
+    if (!data || data.length < 2) return null;
+    const first = data[0]!.c;
+    const last = data[data.length - 1]!.c;
+    const prices = data.map((d) => d.c);
+    const hi = Math.max(...prices);
+    const lo = Math.min(...prices);
+    const diff = last - first;
+    const pct = first ? (diff / first) * 100 : 0;
+    return { first, last, hi, lo, diff, pct };
+  }, [data]);
+
+  const rangeUp = rangeStats ? rangeStats.diff >= 0 : true;
+  const rangeColor = rangeUp ? t.up : t.down;
+
+  const symFmt = (v: number) =>
+    type === "gold"
+      ? `${formatPrice(v)} ₺`
+      : `₺${formatPrice(v)}`;
 
   return (
-    <div className="min-h-screen w-full bg-white font-['Inter']">
-      {/* Header */}
-      <div style={headerStyle} className="px-5 pt-3 pb-4">
-        <div className="flex items-center mb-5">
-          <button className="p-2 -ml-2"><ArrowLeft size={22} color={headerFg} /></button>
-          <div className="flex-1" />
-          <button onClick={() => setFav((f) => !f)} className="p-2">
-            <Star size={22} color={fav ? "#F59E0B" : headerFg} fill={fav ? "#F59E0B" : "none"} />
-          </button>
-          <button className="p-2"><Bell size={22} color={headerFg} /></button>
-        </div>
-        <div className="flex items-start gap-3">
-          <div
-            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
-            style={{ background: iconBg }}
-          >
-            {iconText}
+    <PhoneShell theme={theme}>
+      {/* Top bar */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          padding: "10px 18px 6px",
+          borderBottom: `1px solid ${t.hairline}`,
+        }}
+      >
+        <button
+          aria-label="Geri"
+          style={{
+            width: 36, height: 36, borderRadius: 12, background: t.pillBg,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            border: "none", cursor: "pointer", color: t.ink,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M9 2L3.5 7L9 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <div style={{ flex: 1, textAlign: "center" }}>
+          <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 1.4, color: t.muted }}>
+            {type === "gold" ? "ALTIN" : "DÖVİZ"}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[22px] font-bold leading-tight tracking-tight truncate" style={{ color: headerFg }}>{nameTR}</div>
-            <div className="text-[13px] mt-0.5" style={{ color: headerMuted }}>{description}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: t.ink, marginTop: 1, letterSpacing: -0.2 }}>
+            {symbol}
           </div>
         </div>
-        <div className="text-[38px] font-bold mt-4 tracking-tight leading-none" style={{ color: headerFg }}>
-          ₺{formatPrice(buy)}
+        <button
+          aria-label="Favori"
+          style={{
+            width: 36, height: 36, borderRadius: 12, background: t.pillBg,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            border: "none", cursor: "pointer", color: t.ink, marginRight: 6,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1.5l1.7 3.5 3.8.55-2.75 2.7.65 3.8L7 10.25 3.6 12.05l.65-3.8L1.5 5.55 5.3 5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <button
+          aria-label="Alarm"
+          style={{
+            width: 36, height: 36, borderRadius: 12, background: t.pillBg,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            border: "none", cursor: "pointer", color: t.ink,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1.5v1M3 11h8M3.5 11l.7-3.5a2.8 2.8 0 015.6 0l.7 3.5M5.7 12.5a1.4 1.4 0 002.6 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Hero */}
+      <div style={{ padding: "22px 18px 18px" }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: t.ink, letterSpacing: -0.4, lineHeight: 1.15 }}>
+          {nameTR}
         </div>
-        <div className="flex items-center gap-2 mt-2">
-          <div
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full"
-            style={{ background: pillBg }}
+        <div style={{ fontSize: 12, color: t.muted, marginTop: 4, letterSpacing: -0.05 }}>
+          {description}
+        </div>
+        <div
+          style={{
+            fontFamily: MONO,
+            fontSize: 38,
+            fontWeight: 700,
+            color: t.ink,
+            marginTop: 18,
+            letterSpacing: -1.2,
+            fontVariantNumeric: "tabular-nums",
+            lineHeight: 1,
+          }}
+        >
+          {symFmt(buy)}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+          <span
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 4,
+              fontSize: 11.5, fontWeight: 700, color: todayColor,
+              padding: "3px 8px", borderRadius: 6, background: todayBg,
+              fontFamily: MONO, fontVariantNumeric: "tabular-nums",
+              letterSpacing: -0.1,
+            }}
           >
-            {isPositive ? <TrendingUp size={14} color={pillFg} /> : <TrendingDown size={14} color={pillFg} />}
-            <span className="text-[13px] font-semibold" style={{ color: pillFg }}>
-              {isPositive ? "+" : ""}{changePercent.toFixed(2)}% ({isPositive ? "+" : ""}{change.toFixed(2)})
+            {isTodayUp ? "▲" : "▼"} {Math.abs(todayChangePct).toFixed(2)}%
+            <span style={{ opacity: 0.7, marginLeft: 2 }}>
+              ({isTodayUp ? "+" : "−"}{Math.abs(todayChange).toFixed(2)})
             </span>
-          </div>
-          <span className="text-[12px]" style={{ color: headerMuted }}>Bugün</span>
+          </span>
+          <span style={{ fontSize: 11, color: t.muted, letterSpacing: 0.2 }}>BUGÜN</span>
         </div>
       </div>
 
-      {/* Chart card */}
-      <div className="mx-4 mt-4 bg-white rounded-2xl p-4 border border-zinc-200">
-        <div className="text-[13px] font-semibold text-zinc-500 mb-3 tracking-wider">GEÇMİŞ FİYAT</div>
-        <div className="flex justify-center gap-1.5 mb-3">
-          {RANGES.map((p) => {
-            const active = range === p;
+      {/* Range picker */}
+      <div
+        style={{
+          display: "flex", padding: "0 18px 12px", gap: 0,
+          borderBottom: `1px solid ${t.hairline}`,
+        }}
+      >
+        <div
+          style={{
+            display: "flex", flex: 1,
+            background: t.chip, borderRadius: 10, padding: 3,
+          }}
+        >
+          {RANGES.map((r) => {
+            const on = range === r.key;
             return (
               <button
-                key={p}
-                onClick={() => setRange(p)}
-                className="px-4 py-1.5 rounded-full text-[13px] font-semibold transition-colors"
+                key={r.key}
+                onClick={() => setRange(r.key)}
                 style={{
-                  background: active ? `${changeColor}20` : "#f4f4f5",
-                  color: active ? changeColor : "#71717a",
+                  flex: 1, padding: "6px 0", border: "none",
+                  background: on ? t.surface : "transparent",
+                  borderRadius: 8, cursor: "pointer",
+                  fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6,
+                  color: on ? t.ink : t.muted,
+                  boxShadow: on
+                    ? theme === "light"
+                      ? "0 1px 3px rgba(15,23,42,0.10)"
+                      : "0 1px 3px rgba(0,0,0,0.5)"
+                    : "none",
+                  transition: "all 120ms ease",
+                  fontFamily: SANS,
                 }}
               >
-                {p}
+                {r.label}
               </button>
             );
           })}
         </div>
-        {loading ? (
-          <div className="flex items-center justify-center" style={{ height: H }}>
-            <div className="w-6 h-6 border-2 border-zinc-300 border-t-zinc-600 rounded-full animate-spin" />
-          </div>
-        ) : err ? (
-          <div className="flex items-center justify-center" style={{ height: H }}>
-            <span className="text-[13px] text-zinc-400">Veri yüklenemedi</span>
-          </div>
-        ) : (
-          <PriceChart data={data} range={range} />
-        )}
       </div>
 
-      {/* Price details card */}
-      <div className="mx-4 mt-4 bg-white rounded-2xl p-4 border border-zinc-200">
-        <div className="text-[13px] font-semibold text-zinc-500 mb-3 tracking-wider">FİYAT DETAYLARI</div>
+      {/* Range header + chart */}
+      <div style={{ padding: "16px 18px 6px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+          <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 1.4, color: t.muted }}>
+            {RANGE_TITLE[range].toUpperCase()}
+          </span>
+          {rangeStats ? (
+            <span
+              style={{
+                fontFamily: MONO,
+                fontSize: 12,
+                fontWeight: 700,
+                color: rangeColor,
+                fontVariantNumeric: "tabular-nums",
+                letterSpacing: -0.2,
+              }}
+            >
+              {rangeUp ? "+" : "−"}%{Math.abs(rangeStats.pct).toFixed(2)}
+              <span style={{ color: t.muted, fontWeight: 500, marginLeft: 6 }}>
+                ({rangeUp ? "+" : "−"}{formatTick(Math.abs(rangeStats.diff))})
+              </span>
+            </span>
+          ) : null}
+        </div>
+        <div style={{ minHeight: H, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {loading ? (
+            <div
+              style={{
+                width: 22, height: 22, borderRadius: "50%",
+                border: `2px solid ${t.hairlineStrong}`,
+                borderTopColor: t.ink, animation: "spin 0.8s linear infinite",
+              }}
+            />
+          ) : err ? (
+            <span style={{ fontSize: 12, color: t.muted }}>Veri yüklenemedi</span>
+          ) : (
+            <ChartSvg data={data} range={range} t={t} />
+          )}
+        </div>
+      </div>
+
+      {/* Range stats row */}
+      {rangeStats ? (
+        <div
+          style={{
+            display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+            padding: "10px 18px 18px",
+            borderBottom: `1px solid ${t.hairline}`,
+          }}
+        >
+          {[
+            { label: "BAŞLANGIÇ", value: formatTick(rangeStats.first), color: t.ink },
+            { label: "EN YÜKSEK", value: formatTick(rangeStats.hi), color: t.up },
+            { label: "EN DÜŞÜK", value: formatTick(rangeStats.lo), color: t.down },
+            { label: "DEĞİŞİM", value: `${rangeUp ? "+" : "−"}%${Math.abs(rangeStats.pct).toFixed(2)}`, color: rangeColor },
+          ].map((s) => (
+            <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.1, color: t.muted }}>
+                {s.label}
+              </span>
+              <span
+                style={{
+                  fontFamily: MONO, fontSize: 13, fontWeight: 700, color: s.color,
+                  fontVariantNumeric: "tabular-nums", letterSpacing: -0.3,
+                }}
+              >
+                {s.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {/* Price details */}
+      <div style={{ padding: "20px 18px 8px" }}>
+        <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 1.4, color: t.muted, marginBottom: 14 }}>
+          FİYAT DETAYLARI
+        </div>
         {[
-          { label: "Alış", value: formatPrice(buy), color: "#16a34a" },
-          { label: "Satış", value: formatPrice(sell), color: "#dc2626" },
-          { label: "Alış / Satış Farkı", value: formatPrice(spread), color: "#0f172a" },
-          { label: "Önceki Kapanış", value: formatPrice(prevClose), color: "#0f172a" },
-          { label: "Değişim (₺)", value: `${isPositive ? "+" : ""}${change.toFixed(2)}`, color: changeColor },
-          { label: "Değişim (%)", value: `${isPositive ? "+" : ""}${changePercent.toFixed(2)}%`, color: changeColor },
+          { label: "Alış", value: symFmt(buy), color: t.ink },
+          { label: "Satış", value: symFmt(sell), color: t.ink },
+          { label: "Alış / Satış Farkı", value: symFmt(sell - buy), color: t.inkSoft },
+          { label: "Önceki Kapanış", value: symFmt(prevClose), color: t.inkSoft },
+          { label: "Günlük Değişim", value: `${isTodayUp ? "+" : "−"}${Math.abs(todayChange).toFixed(2)}`, color: todayColor },
+          { label: "Günlük Değişim (%)", value: `${isTodayUp ? "+" : "−"}%${Math.abs(todayChangePct).toFixed(2)}`, color: todayColor },
         ].map((row, i, a) => (
           <div
             key={row.label}
-            className="flex justify-between py-2.5"
-            style={{ borderBottom: i === a.length - 1 ? "none" : "1px solid #e4e4e7" }}
+            style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              padding: "11px 0",
+              borderBottom: i === a.length - 1 ? "none" : `1px solid ${t.hairline}`,
+            }}
           >
-            <span className="text-[14px] text-zinc-500">{row.label}</span>
-            <span className="text-[14px] font-semibold" style={{ color: row.color }}>{row.value}</span>
+            <span style={{ fontSize: 13, color: t.muted, letterSpacing: -0.1 }}>{row.label}</span>
+            <span
+              style={{
+                fontFamily: MONO, fontSize: 13, fontWeight: 700, color: row.color,
+                fontVariantNumeric: "tabular-nums", letterSpacing: -0.2,
+              }}
+            >
+              {row.value}
+            </span>
           </div>
         ))}
       </div>
 
       {/* Alarm CTA */}
-      <button className="mx-4 mt-4 mb-6 w-[calc(100%-2rem)] bg-zinc-900 text-white rounded-2xl py-4 flex items-center justify-center gap-2 font-semibold text-[15px]">
-        <Bell size={20} />
-        Fiyat Alarmı Kur
-      </button>
-    </div>
+      <div style={{ padding: "16px 18px 24px" }}>
+        <button
+          style={{
+            width: "100%", padding: "14px 16px", border: "none",
+            background: t.chipActive, color: t.chipActiveText,
+            borderRadius: 14, cursor: "pointer",
+            fontSize: 13.5, fontWeight: 700, letterSpacing: 0.2,
+            fontFamily: SANS,
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1.5v1M3 11h8M3.5 11l.7-3.5a2.8 2.8 0 015.6 0l.7 3.5M5.7 12.5a1.4 1.4 0 002.6 0" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+          Fiyat Alarmı Kur
+        </button>
+      </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </PhoneShell>
   );
 }
