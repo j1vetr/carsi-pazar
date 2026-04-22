@@ -136,8 +136,10 @@ function NotifCard({
               marginTop: 8,
               display: "flex",
               alignItems: "center",
-              gap: 14,
-              flexWrap: "wrap",
+              justifyContent: "space-between",
+              gap: 6,
+              flexWrap: "nowrap",
+              whiteSpace: "nowrap",
             }}
           >
             {ROWS.slice(0, 4).map((r) => (
@@ -146,17 +148,18 @@ function NotifCard({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 5,
+                  gap: 4,
                   fontFamily: MONO,
+                  minWidth: 0,
                 }}
               >
-                <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>{r.code}</span>
-                <span style={{ fontSize: 12.5, color: C.ink, fontWeight: 700, letterSpacing: -0.2 }}>
+                <span style={{ fontSize: 10.5, color: C.muted, fontWeight: 600 }}>{r.code}</span>
+                <span style={{ fontSize: 12, color: C.ink, fontWeight: 700, letterSpacing: -0.3 }}>
                   {r.price}
                 </span>
                 <span
                   style={{
-                    fontSize: 11,
+                    fontSize: 10.5,
                     color: r.dir === "up" ? C.upText : C.downText,
                     fontWeight: 700,
                   }}
