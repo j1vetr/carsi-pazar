@@ -27,6 +27,8 @@ export interface PriceWidgetData {
   updatedAt: string;
   error?: string;
   loading?: boolean;
+  /** True while a refresh fetch is in flight; widget shows a "Yenileniyor…" hint. */
+  refreshing?: boolean;
 }
 
 export interface WidgetSize {
@@ -112,7 +114,13 @@ function fmtPercent(v: number): string {
 }
 
 function priceForField(row: WidgetRow, field: PriceField): string {
-  return field === "buy" ? row.buy : row.sell;
+  // Tercih edilen tarafı göster; o boş/"—" ise diğer tarafa düş.
+  // (HaremAPI bazen sadece bid VEYA ask döndürüyor — özellikle SARRAFIYE'de.)
+  const primary = field === "buy" ? row.buy : row.sell;
+  const secondary = field === "buy" ? row.sell : row.buy;
+  if (primary && primary !== "—") return primary;
+  if (secondary && secondary !== "—") return secondary;
+  return "—";
 }
 
 /* ─────────────────────────  PULSE LAYOUT  ───────────────────────── */
@@ -329,26 +337,37 @@ function PulseView({
               width: 36,
               height: 36,
               borderRadius: 18,
-              backgroundColor: theme.refreshBg,
+              backgroundColor: data.refreshing
+                ? theme.muted
+                : data.error
+                  ? theme.down
+                  : theme.refreshBg,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
             <TextWidget
-              text="↻"
+              text={data.refreshing ? "…" : data.error ? "!" : "↻"}
               style={{
-                fontSize: 18,
+                fontSize: data.refreshing ? 22 : 18,
                 fontWeight: "700",
                 color: theme.refreshFg,
               }}
             />
           </FlexWidget>
           <TextWidget
-            text={data.updatedAt}
+            text={
+              data.refreshing
+                ? "Yenileniyor…"
+                : data.error
+                  ? "Tekrar dene"
+                  : data.updatedAt
+            }
+            maxLines={1}
             style={{
               fontSize: 8,
               fontWeight: "700",
-              color: theme.muted,
+              color: data.error && !data.refreshing ? theme.down : theme.muted,
               fontFamily: "monospace",
               marginTop: 3,
             }}

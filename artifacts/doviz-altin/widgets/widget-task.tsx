@@ -94,9 +94,17 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps): Promise<
       // 1) Cache varsa HER ZAMAN önce onu render et (refresh tıklamasında bile).
       //    Böylece kullanıcı asla boş "Yükleniyor..." görmez; en kötü ihtimalle
       //    eski veri görür ama yenisi gelince üstüne yazılır.
+      //    Refresh tıklamasında "Yenileniyor…" işareti basılır ki kullanıcı
+      //    butona bastığını görsel olarak hissetsin.
       const cached = await readWidgetCache();
       if (cached) {
-        safeRender(props, cached, size, options, "cache");
+        safeRender(
+          props,
+          isRefreshClick ? { ...cached, refreshing: true } : cached,
+          size,
+          options,
+          isRefreshClick ? "cache+refreshing" : "cache",
+        );
       } else {
         // İlk kurulumda cache yoksa zorunlu olarak loading göster.
         safeRender(props, loadingData(), size, options, "loading");
