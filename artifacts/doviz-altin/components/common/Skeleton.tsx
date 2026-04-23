@@ -55,11 +55,9 @@ export function Skeleton({ width = "100%", height = 14, radius = 8, style }: Pro
   const base = colors.secondary;
   const highlight = colors.background === "#ffffff" ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.08)";
 
-  // Çoklu iskelet satırları için ekran okuyucuda spam olmaması adına tek tek
-  // satırlar sessiz kalır; duyuru, üstteki <SkeletonGroup> konteynerinden gelir.
-  // Tek başına kullanımda (grup dışında) importCeyizdeSkeletonStandalone bileşeni
-  // tercih edilmelidir — bu tercih ek karmaşa getirmesin diye bu temel bileşen
-  // varsayılan olarak accessible={false} bırakıldı.
+  // Çoklu iskelet satırlarında ekran okuyucu spam'ini önlemek için tekil satır
+  // sessizdir; "Yükleniyor" duyurusu üstteki <SkeletonGroup> konteynerinden
+  // tek seferlik yapılır.
   return (
     <View
       accessible={false}

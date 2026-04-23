@@ -17,6 +17,7 @@ import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { hasHistorySupport, type HistoryRange } from "@/lib/historyApi";
 import { AddAlertModal } from "@/components/alerts/AddAlertModal";
 import { DetailSkeleton } from "@/components/common/skeletons/DetailSkeleton";
+import { ErrorState } from "@/components/common/ErrorState";
 
 const MONO_FONT = Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" });
 
@@ -49,7 +50,7 @@ export default function DetailScreen() {
   const { code, type } = useLocalSearchParams<{ code: string; type: "currency" | "gold" }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { findRateByCode, favorites, toggleFavorite } = useApp();
+  const { findRateByCode, favorites, toggleFavorite, hydrated, lastUpdated } = useApp();
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [chartRange, setChartRange] = useState<HistoryRange>("1A");
   const showChart = !!code && hasHistorySupport(code);
@@ -61,6 +62,9 @@ export default function DetailScreen() {
   const item = code ? (findRateByCode(code) as any) : undefined;
 
   if (!item) {
+    // Veri hâlâ hidrasyonda ya da hiç fiyat çekilmemiş → yükleme (iskelet)
+    // Aksi takdirde sembol geçersiz/bilinmiyor → kullanıcıya net hata göster.
+    const stillLoading = !hydrated || lastUpdated === null;
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <View
@@ -90,7 +94,18 @@ export default function DetailScreen() {
           </View>
           <View style={{ width: 36 }} />
         </View>
-        <DetailSkeleton />
+        {stillLoading ? (
+          <DetailSkeleton />
+        ) : (
+          <ErrorState
+            title="Sembol Bulunamadı"
+            description="Bu varlık artık takip edilmiyor ya da geçersiz bir bağlantıdan geldi. Ana sayfadan tekrar seçebilirsin."
+            icon="alert-circle"
+            onRetry={() => router.back()}
+            retryLabel="Geri Dön"
+            technicalDetail={code ? `code="${code}"` : undefined}
+          />
+        )}
       </View>
     );
   }

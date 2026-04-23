@@ -21,6 +21,7 @@ import type { SmartAlert, AlertGroup } from "@/lib/alertTypes";
 import { alertKindBadge, alertKindLabel, alertKindShort, isPermanentMute, PERMANENT_MUTE_UNTIL } from "@/lib/alertTypes";
 import { formatAlertRule } from "@/lib/alertFormat";
 import { EmptyState } from "@/components/common/EmptyState";
+import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
 
 function mutedStatusLabel(mutedUntil?: number): string | null {
   if (!mutedUntil) return null;
@@ -226,6 +227,7 @@ export default function AlertsScreen() {
   const {
     alerts, removeAlert, updateAlert,
     alertGroups, createAlertGroup, renameAlertGroup, deleteAlertGroup, toggleAlertGroupMute,
+    hydrated,
   } = useApp();
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const bottomPadding = Platform.OS === "web" ? 34 : insets.bottom;
@@ -375,7 +377,7 @@ export default function AlertsScreen() {
               onDelete={() => confirmDelete(item.id)}
             />
           )}
-          ListEmptyComponent={<EmptyAlerts colors={colors} />}
+          ListEmptyComponent={hydrated ? <EmptyAlerts colors={colors} /> : <PriceRowSkeleton count={4} withIcon={false} />}
           contentContainerStyle={[styles.listContent, alerts.length === 0 && { flex: 1 }]}
           showsVerticalScrollIndicator={false}
         />
@@ -393,7 +395,7 @@ export default function AlertsScreen() {
               onDelete={() => confirmDeleteGroup(item)}
             />
           )}
-          ListEmptyComponent={<EmptyGroups colors={colors} onCreate={openCreateGroup} />}
+          ListEmptyComponent={hydrated ? <EmptyGroups colors={colors} onCreate={openCreateGroup} /> : <PriceRowSkeleton count={3} withIcon={false} />}
           ListFooterComponent={
             alertGroups.length > 0 ? (
               <Pressable

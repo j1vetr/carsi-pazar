@@ -168,6 +168,7 @@ interface AppContextType {
   isStale: boolean;
   lastUpdated: Date | null;
   lastRefreshFailed: boolean;
+  hydrated: boolean;
   favorites: string[];
   addToPortfolio: (item: Omit<PortfolioItem, "id">) => Promise<void>;
   sellFromPortfolio: (input: {
@@ -314,6 +315,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const lastSnapshotPersistRef = useRef<number>(0);
   const isFetching = useRef<boolean>(false);
   const isHydrated = useRef<boolean>(false);
+  const [hydrated, setHydrated] = useState<boolean>(false);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const newsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deviceIdRef = useRef<string | null>(null);
@@ -428,6 +430,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       await loadStoredData();
       isHydrated.current = true;
       if (!mounted) return;
+      setHydrated(true);
       await refreshData();
 
       // Push + alarm sync (non-blocking).
@@ -1523,6 +1526,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         isStale,
         lastUpdated,
         lastRefreshFailed,
+        hydrated,
         favorites,
         addToPortfolio,
         removeFromPortfolio,
