@@ -574,10 +574,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
 
       // Foreground'da gelen bildirimleri inbox'a yaz (widget_refresh hariç).
+      // Smart alarm inbox kaydı zaten evaluator tarafında yapıldığı için
+      // listener'da tekrar yazmıyoruz — aksi hâlde her akıllı alarm
+      // tetiklemesi ön planda çift kayıt oluşturur.
       foregroundSub = Notifications.addNotificationReceivedListener((notif) => {
         const c = notif.request.content;
         const data = (c.data ?? {}) as { type?: string };
         if (data.type === "widget_refresh") return;
+        if (data.type === "smart_alert") return;
         void addInboxItem({
           id: notif.request.identifier ?? `${data.type ?? "push"}-${Date.now()}`,
           title: c.title ?? "",
