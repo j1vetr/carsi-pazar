@@ -20,6 +20,7 @@ import { useApp } from "@/contexts/AppContext";
 import type { SmartAlert, AlertGroup } from "@/lib/alertTypes";
 import { alertKindBadge, alertKindLabel, alertKindShort, isPermanentMute, PERMANENT_MUTE_UNTIL } from "@/lib/alertTypes";
 import { formatAlertRule } from "@/lib/alertFormat";
+import { EmptyState } from "@/components/common/EmptyState";
 
 function mutedStatusLabel(mutedUntil?: number): string | null {
   if (!mutedUntil) return null;
@@ -184,47 +185,25 @@ function GroupCard({
   );
 }
 
-function EmptyAlerts({ colors }: { colors: any }) {
+function EmptyAlerts(_: { colors: any }) {
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 }}>
-      <Icon name="notifications-off-outline" size={64} color={colors.mutedForeground} />
-      <Text style={{ fontSize: 18, fontFamily: "Inter_600SemiBold", color: colors.foreground, marginTop: 20, textAlign: "center" }}>
-        Aktif Alarm Yok
-      </Text>
-      <Text style={{ fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 8, textAlign: "center", lineHeight: 20 }}>
-        Döviz veya altın fiyatlarını takip etmek için alarm kurun. Detay ekranından yeni alarm ekleyebilirsiniz.
-      </Text>
-      <Pressable
-        onPress={() => router.back()}
-        style={{ marginTop: 24, backgroundColor: colors.primary, paddingHorizontal: 28, paddingVertical: 13, borderRadius: 25 }}
-      >
-        <Text style={{ fontSize: 15, fontFamily: "Inter_600SemiBold", color: colors.primaryForeground }}>
-          Fiyatlara Dön
-        </Text>
-      </Pressable>
-    </View>
+    <EmptyState
+      icon="notifications-off-outline"
+      title="Aktif Alarm Yok"
+      description="Döviz veya altın fiyatlarını takip etmek için alarm kurun. Detay ekranından yeni alarm ekleyebilirsiniz."
+      action={{ label: "Fiyatlara Dön", onPress: () => router.back() }}
+    />
   );
 }
 
-function EmptyGroups({ colors, onCreate }: { colors: any; onCreate: () => void }) {
+function EmptyGroups({ onCreate }: { colors: any; onCreate: () => void }) {
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 }}>
-      <Icon name="apps-outline" size={56} color={colors.mutedForeground} />
-      <Text style={{ fontSize: 17, fontFamily: "Inter_600SemiBold", color: colors.foreground, marginTop: 18, textAlign: "center" }}>
-        Henüz Grup Yok
-      </Text>
-      <Text style={{ fontSize: 13.5, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 6, textAlign: "center", lineHeight: 19 }}>
-        Benzer alarmları bir grup altında toplayın, tek dokunuşla hepsini susturun.
-      </Text>
-      <Pressable
-        onPress={onCreate}
-        style={{ marginTop: 20, backgroundColor: colors.foreground, paddingHorizontal: 22, paddingVertical: 12, borderRadius: 22 }}
-      >
-        <Text style={{ fontSize: 14, fontFamily: "Inter_600SemiBold", color: colors.background }}>
-          Yeni Grup Oluştur
-        </Text>
-      </Pressable>
-    </View>
+    <EmptyState
+      icon="apps-outline"
+      title="Henüz Grup Yok"
+      description="Benzer alarmları bir grup altında toplayın, tek dokunuşla hepsini susturun."
+      action={{ label: "Yeni Grup Oluştur", icon: "add", onPress: onCreate, variant: "subtle" }}
+    />
   );
 }
 

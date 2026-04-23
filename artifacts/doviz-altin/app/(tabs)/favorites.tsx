@@ -20,6 +20,7 @@ import { Icon } from "@/components/Icon";
 import { PriceCard } from "@/components/PriceCard";
 import { useColors } from "@/hooks/useColors";
 import { useApp, CurrencyRate, GoldRate } from "@/contexts/AppContext";
+import { EmptyState } from "@/components/common/EmptyState";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type FavRow =
@@ -27,39 +28,21 @@ type FavRow =
   | { kind: "card"; key: string; type: "currency" | "gold"; item: CurrencyRate | GoldRate };
 
 // ── Empty state ────────────────────────────────────────────────────────────
-function EmptyFavorites({ colors }: { colors: any }) {
+function EmptyFavorites(_: { colors: any }) {
   return (
-    <Animated.View entering={FadeIn.duration(400)} style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 36 }}>
-      <View style={{
-        width: 104, height: 104, borderRadius: 52,
-        backgroundColor: colors.gold + "18",
-        alignItems: "center", justifyContent: "center",
-        borderWidth: 1, borderColor: colors.gold + "30",
-      }}>
-        <Icon name="star-outline" size={46} color={colors.gold} />
-      </View>
-      <Text style={{ fontSize: 22, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 24, textAlign: "center", letterSpacing: -0.5 }}>
-        Henüz Favorin Yok
-      </Text>
-      <Text style={{ fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 10, textAlign: "center", lineHeight: 21 }}>
-        Bir varlığın detay sayfasında sağ üstteki yıldız simgesine dokunarak favorilerine ekleyebilirsin.
-      </Text>
-      <Pressable
-        onPress={() => { Haptics.selectionAsync().catch(() => {}); router.push("/"); }}
-        style={({ pressed }) => [{
-          marginTop: 28,
-          backgroundColor: colors.primary,
-          paddingHorizontal: 28, paddingVertical: 13, borderRadius: 30,
-          flexDirection: "row", alignItems: "center", gap: 7,
-          opacity: pressed ? 0.85 : 1,
-        }]}
-      >
-        <Icon name="trending-up" size={15} color={colors.primaryForeground} />
-        <Text style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: colors.primaryForeground, letterSpacing: -0.2 }}>
-          Piyasayı Keşfet
-        </Text>
-      </Pressable>
-    </Animated.View>
+    <EmptyState
+      icon="star-outline"
+      title="Henüz Favorin Yok"
+      description="Bir varlığın detay sayfasında sağ üstteki yıldız simgesine dokunarak favorilerine ekleyebilirsin."
+      action={{
+        label: "Piyasayı Keşfet",
+        icon: "trending-up",
+        onPress: () => {
+          Haptics.selectionAsync().catch(() => {});
+          router.push("/");
+        },
+      }}
+    />
   );
 }
 

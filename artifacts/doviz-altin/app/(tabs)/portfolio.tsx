@@ -28,83 +28,22 @@ import { PortfolioTimeChart } from "@/components/portfolio/TimeSeriesChart";
 import { HoldingCard } from "@/components/portfolio/HoldingCard";
 import { TxModal } from "@/components/portfolio/TxModal";
 import { HoldingActionSheet } from "@/components/portfolio/HoldingActionSheet";
+import { EmptyState } from "@/components/common/EmptyState";
 
 function EmptyPortfolio({
-  colors,
   onAdd,
 }: {
   colors: ReturnType<typeof useColors>;
   onAdd: () => void;
 }) {
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        paddingHorizontal: 40,
-        paddingTop: 80,
-      }}
-    >
-      <View
-        style={{
-          width: 96,
-          height: 96,
-          borderRadius: 48,
-          backgroundColor: colors.secondary,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Icon name="briefcase-outline" size={42} color={colors.mutedForeground} />
-      </View>
-      <Text
-        style={{
-          fontSize: 22,
-          fontFamily: "Inter_700Bold",
-          color: colors.foreground,
-          marginTop: 24,
-          textAlign: "center",
-          letterSpacing: -0.5,
-        }}
-      >
-        Portföyün Boş
-      </Text>
-      <Text
-        style={{
-          fontSize: 14,
-          fontFamily: "Inter_400Regular",
-          color: colors.mutedForeground,
-          marginTop: 10,
-          textAlign: "center",
-          lineHeight: 21,
-        }}
-      >
-        Döviz ve altın yatırımlarını ekleyerek toplam değerini canlı kurla takip et.
-      </Text>
-      <Pressable
-        onPress={onAdd}
-        style={({ pressed }) => ({
-          marginTop: 28,
-          backgroundColor: colors.primary,
-          paddingHorizontal: 32,
-          paddingVertical: 14,
-          borderRadius: 30,
-          opacity: pressed ? 0.85 : 1,
-        })}
-      >
-        <Text
-          style={{
-            fontSize: 15,
-            fontFamily: "Inter_700Bold",
-            color: colors.primaryForeground,
-            letterSpacing: -0.2,
-          }}
-        >
-          İlk Varlığını Ekle
-        </Text>
-      </Pressable>
-    </View>
+    <EmptyState
+      icon="briefcase-outline"
+      title="Portföyün Boş"
+      description="Döviz ve altın yatırımlarını ekleyerek toplam değerini canlı kurla takip et."
+      action={{ label: "İlk Varlığı Ekle", icon: "add", onPress: onAdd }}
+      style={{ paddingTop: 40 }}
+    />
   );
 }
 

@@ -13,6 +13,13 @@ type Props = {
   icon?: IconName;
   style?: StyleProp<ViewStyle>;
   compact?: boolean;
+  /**
+   * Geliştiricilere yönelik, sessiz teknik detay (örn. HTTP 503, "ECONNRESET", vb).
+   * Production'da __DEV__ false ise de görünür ama çok soluk renkte ve küçük
+   * yazı ile render edilir; kullanıcı metni ile karışmaması için monospace
+   * tercih edilir. Boş/undefined verilirse hiç render edilmez.
+   */
+  technicalDetail?: string;
 };
 
 export function ErrorState({
@@ -23,6 +30,7 @@ export function ErrorState({
   icon = "alert-circle",
   style,
   compact = false,
+  technicalDetail,
 }: Props) {
   const colors = useColors();
   const circleSize = compact ? 56 : 80;
@@ -77,6 +85,24 @@ export function ErrorState({
       >
         {description}
       </Text>
+      {technicalDetail ? (
+        <Text
+          selectable
+          numberOfLines={3}
+          style={{
+            fontFamily: "monospace",
+            fontSize: 10.5,
+            color: colors.mutedForeground,
+            opacity: 0.55,
+            marginTop: 10,
+            textAlign: "center",
+            maxWidth: 320,
+            letterSpacing: 0,
+          }}
+        >
+          {technicalDetail}
+        </Text>
+      ) : null}
       {onRetry ? (
         <Pressable
           onPress={onRetry}

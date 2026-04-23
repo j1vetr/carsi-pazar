@@ -7,16 +7,31 @@ import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 
+function formatTime(d: Date | null): string | null {
+  if (!d) return null;
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  return `${h}.${m}`;
+}
+
 /**
  * Fiyat verisi alınamıyorsa ekranın üstünde ince bir şerit gösterir.
- * Tıklanınca manuel yeniden deneme yapar. Veri başarıyla gelince otomatik kaybolur.
+ * "Son güncelleme HH.MM · Tekrar dene" formatında.
+ * Tıklanınca manuel yeniden deneme yapar; veri gelince otomatik kaybolur.
  */
 export function OfflineBanner() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { lastRefreshFailed, refreshData, isLoading } = useApp();
+  const { lastRefreshFailed, refreshData, isLoading, lastUpdated } = useApp();
 
   if (!lastRefreshFailed) return null;
+
+  const time = formatTime(lastUpdated);
+  const leftText = time ? `Son güncelleme ${time}` : "Bağlantı Yok";
+  const rightText = isLoading ? "Yeniden deneniyor…" : "Tekrar dene";
+  const a11y = time
+    ? `Bağlantı yok. Son güncelleme saat ${time}. Yeniden denemek için dokun.`
+    : "Bağlantı yok. Yeniden denemek için dokun.";
 
   return (
     <Animated.View
@@ -39,7 +54,7 @@ export function OfflineBanner() {
           if (!isLoading) void refreshData();
         }}
         accessibilityRole="button"
-        accessibilityLabel="Bağlantı yok. Yeniden denemek için dokun."
+        accessibilityLabel={a11y}
         accessibilityLiveRegion="polite"
         style={({ pressed }) => ({
           flexDirection: "row",
@@ -55,10 +70,12 @@ export function OfflineBanner() {
           shadowRadius: 6,
           elevation: 4,
           opacity: pressed ? 0.85 : 1,
+          maxWidth: "100%",
         })}
       >
         <Icon name="cloud-offline-outline" size={14} color="#fff" />
         <Text
+          numberOfLines={1}
           style={{
             fontSize: 12.5,
             fontFamily: "Inter_700Bold",
@@ -66,10 +83,11 @@ export function OfflineBanner() {
             letterSpacing: -0.1,
           }}
         >
-          Bağlantı Yok
+          {leftText}
         </Text>
         <View style={{ width: StyleSheet.hairlineWidth, height: 12, backgroundColor: "rgba(255,255,255,0.5)" }} />
         <Text
+          numberOfLines={1}
           style={{
             fontSize: 12,
             fontFamily: "Inter_600SemiBold",
@@ -77,7 +95,7 @@ export function OfflineBanner() {
             letterSpacing: -0.1,
           }}
         >
-          {isLoading ? "Yeniden deneniyor…" : "Tekrar Dene"}
+          {rightText}
         </Text>
       </Pressable>
     </Animated.View>
