@@ -194,7 +194,7 @@ interface AppContextType {
   deleteAlertGroup: (id: string) => Promise<void>;
   toggleAlertGroupMute: (id: string) => Promise<void>;
   toggleFavorite: (code: string) => Promise<void>;
-  refreshData: () => Promise<void>;
+  refreshData: () => Promise<{ ok: boolean }>;
   getHistoricalData: (
     code: string,
     period: "1D" | "1W" | "1M" | "3M" | "1Y"
@@ -399,11 +399,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const lastFetchAt = useRef(0);
   const REFRESH_THROTTLE_MS = 3000;
-  const refreshData = useCallback(async () => {
-    if (isFetching.current) return;
+  const refreshData = useCallback(async (): Promise<{ ok: boolean }> => {
+    // Eş zamanlı/throttle çağrılarda mevcut state'i koru — eski başarı
+    // durumu hala geçerli sayılır, callerlar haptik için bunu kullanır.
+    if (isFetching.current) return { ok: !lastRefreshFailed };
     const now = Date.now();
     if (now - lastFetchAt.current < REFRESH_THROTTLE_MS) {
-      return;
+      return { ok: !lastRefreshFailed };
     }
     lastFetchAt.current = now;
     isFetching.current = true;
@@ -412,14 +414,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const data = await fetchAllPrices();
       applyPrices(data);
       setLastRefreshFailed(false);
+      return { ok: true };
     } catch (err) {
       console.warn("Fiyatlar alınamadı:", err);
       setLastRefreshFailed(true);
+      return { ok: false };
     } finally {
       isFetching.current = false;
       setIsLoading(false);
     }
-  }, [applyPrices]);
+  }, [applyPrices, lastRefreshFailed]);
 
   useEffect(() => {
     let mounted = true;

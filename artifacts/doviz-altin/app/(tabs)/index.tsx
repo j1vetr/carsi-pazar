@@ -34,8 +34,9 @@ export default function MarketScreen() {
     haptics.tap();
     setManualRefreshing(true);
     try {
-      await refreshData();
-      haptics.success();
+      const r = await refreshData();
+      if (r.ok) haptics.success();
+      else haptics.error();
     } catch {
       haptics.error();
     } finally {
