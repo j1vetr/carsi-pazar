@@ -46,14 +46,44 @@ export function TxModal({
   const [selectedType, setSelectedType] = useState<"currency" | "gold">(lockedType ?? "currency");
   const [amount, setAmount] = useState("");
   const [price, setPrice] = useState("");
+  const [datePreset, setDatePreset] = useState<"today" | "yesterday" | "custom">("today");
+  const [customDate, setCustomDate] = useState("");
 
   useEffect(() => {
     if (visible) {
       setSide(initialSide);
       if (lockedCode) setSelectedCode(lockedCode);
       if (lockedType) setSelectedType(lockedType);
+      setDatePreset("today");
+      setCustomDate("");
     }
   }, [visible, initialSide, lockedCode, lockedType]);
+
+  const resolvedDate = useMemo(() => {
+    if (datePreset === "today") return new Date();
+    if (datePreset === "yesterday") {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      return d;
+    }
+    const m = customDate.trim().match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
+    if (!m) return null;
+    const day = Number(m[1]);
+    const month = Number(m[2]);
+    const year = Number(m[3]);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+    const d = new Date(year, month - 1, day, 12, 0, 0);
+    if (d.getTime() > Date.now() + 86_400_000) return null;
+    return d;
+  }, [datePreset, customDate]);
+
+  const dateLabel = useMemo(() => {
+    if (!resolvedDate) return "Geçersiz tarih";
+    const dd = String(resolvedDate.getDate()).padStart(2, "0");
+    const mm = String(resolvedDate.getMonth() + 1).padStart(2, "0");
+    const yy = resolvedDate.getFullYear();
+    return `${dd}.${mm}.${yy}`;
+  }, [resolvedDate]);
 
   const allAssets = useMemo(
     () => [
@@ -83,6 +113,12 @@ export function TxModal({
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
       return;
     }
+    if (!resolvedDate) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+      Alert.alert("Tarih hatalı", "Lütfen tarihi GG.AA.YYYY formatında ve bugünden ileri olmayacak şekilde gir.");
+      return;
+    }
+    const iso = resolvedDate.toISOString();
     if (side === "sell") {
       const res = await sellFromPortfolio({
         code: selectedCode,
@@ -91,6 +127,7 @@ export function TxModal({
         nameTR: selectedAsset.nameTR,
         amount: amt,
         price: pr,
+        date: iso,
       });
       if (!res.ok) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
@@ -108,7 +145,7 @@ export function TxModal({
         nameTR: selectedAsset.nameTR,
         amount: amt,
         purchasePrice: pr,
-        purchaseDate: new Date().toISOString(),
+        purchaseDate: iso,
         side: "buy",
       };
       await addToPortfolio(payload);
@@ -500,6 +537,99 @@ export function TxModal({
                 color: colors.foreground,
               }}
             />
+          </View>
+
+          <View>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 8,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontFamily: "Inter_700Bold",
+                  color: colors.mutedForeground,
+                  letterSpacing: 0.6,
+                }}
+              >
+                İŞLEM TARİHİ
+              </Text>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontFamily: "Inter_600SemiBold",
+                  color: resolvedDate ? colors.primary : colors.fall,
+                  letterSpacing: -0.1,
+                }}
+              >
+                {dateLabel}
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", gap: 6 }}>
+              {(
+                [
+                  { k: "today", label: "Bugün" },
+                  { k: "yesterday", label: "Dün" },
+                  { k: "custom", label: "Özel" },
+                ] as const
+              ).map((opt) => {
+                const active = datePreset === opt.k;
+                return (
+                  <Pressable
+                    key={opt.k}
+                    onPress={() => {
+                      Haptics.selectionAsync().catch(() => {});
+                      setDatePreset(opt.k);
+                    }}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 11,
+                      borderRadius: 10,
+                      alignItems: "center",
+                      backgroundColor: active ? colors.primary : colors.card,
+                      borderWidth: StyleSheet.hairlineWidth,
+                      borderColor: active ? colors.primary : colors.border,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontFamily: "Inter_700Bold",
+                        color: active ? colors.primaryForeground : colors.foreground,
+                        letterSpacing: -0.1,
+                      }}
+                    >
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            {datePreset === "custom" ? (
+              <TextInput
+                value={customDate}
+                onChangeText={setCustomDate}
+                placeholder="GG.AA.YYYY (örn: 15.03.2026)"
+                placeholderTextColor={colors.mutedForeground}
+                keyboardType="numbers-and-punctuation"
+                autoCorrect={false}
+                style={{
+                  marginTop: 8,
+                  backgroundColor: colors.card,
+                  borderRadius: 12,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderColor: colors.border,
+                  padding: 14,
+                  fontSize: 15,
+                  fontFamily: "Inter_600SemiBold",
+                  color: colors.foreground,
+                }}
+              />
+            ) : null}
           </View>
         </ScrollView>
 

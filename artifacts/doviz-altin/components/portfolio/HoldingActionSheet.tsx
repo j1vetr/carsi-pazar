@@ -2,7 +2,7 @@ import React from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
-import { Icon } from "@/components/Icon";
+import { Icon, type IconName } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { formatSymbolName } from "@/lib/symbolDescriptions";
 
@@ -30,7 +30,7 @@ export function HoldingActionSheet({
   const actions: {
     key: string;
     label: string;
-    icon: string;
+    icon: IconName;
     color: string;
     onPress: () => void;
     disabled?: boolean;
@@ -39,7 +39,7 @@ export function HoldingActionSheet({
     {
       key: "buy",
       label: "Alım Ekle",
-      icon: "add-circle",
+      icon: "add",
       color: colors.rise,
       onPress: onBuy,
       subtitle: "Yeni lot ekle, ortalama maliyet güncellensin",
@@ -47,7 +47,7 @@ export function HoldingActionSheet({
     {
       key: "sell",
       label: "Satış Kaydet",
-      icon: "remove-circle",
+      icon: "swap-vertical",
       color: colors.fall,
       onPress: onSell,
       disabled: !canSell,
@@ -58,7 +58,7 @@ export function HoldingActionSheet({
     {
       key: "delete",
       label: "Varlığı Temizle",
-      icon: "trash",
+      icon: "trash-outline",
       color: colors.mutedForeground,
       onPress: onDeleteAll,
       subtitle: "Bu varlığa ait tüm işlemleri sil",
@@ -145,7 +145,7 @@ export function HoldingActionSheet({
                     justifyContent: "center",
                   }}
                 >
-                  <Icon name={a.icon as any} size={20} color={a.color} />
+                  <Icon name={a.icon} size={20} color={a.color} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text

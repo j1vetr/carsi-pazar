@@ -304,7 +304,7 @@ export default function PortfolioScreen() {
           }}
           showsVerticalScrollIndicator={false}
         >
-          <PortfolioHero stats={stats} />
+          <PortfolioHero stats={stats} snapshots={portfolioSnapshots} />
           <PortfolioTimeChart
             snapshots={portfolioSnapshots}
             range={range}

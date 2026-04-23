@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,7 +7,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { Icon } from "@/components/Icon";
 import { AssetIcon } from "@/components/AssetIcon";
 import { useColors } from "@/hooks/useColors";
-import { useApp } from "@/contexts/AppContext";
+import { useApp, type PortfolioItem } from "@/contexts/AppContext";
 import { formatSymbolName } from "@/lib/symbolDescriptions";
 
 const fmtTL = (v: number) =>
@@ -20,6 +20,8 @@ const fmtAmount = (v: number) =>
   Number.isInteger(v) ? v.toString() : v.toLocaleString("tr-TR", { maximumFractionDigits: 4 });
 
 const MONTHS_TR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+
+type SideFilter = "all" | "buy" | "sell";
 
 function groupByMonth<T extends { date: string }>(items: T[]): { key: string; label: string; items: T[] }[] {
   const map = new Map<string, { key: string; label: string; items: T[] }>();
@@ -39,11 +41,30 @@ export default function TransactionsScreen() {
   const insets = useSafeAreaInsets();
   const { portfolio, removeFromPortfolio } = useApp();
 
-  const sorted = useMemo(
-    () => [...portfolio].sort((a, b) => new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime()),
-    [portfolio],
+  const [sideFilter, setSideFilter] = useState<SideFilter>("all");
+  const [codeFilter, setCodeFilter] = useState<string | null>(null);
+
+  const uniqueCodes = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of portfolio) set.add(p.code);
+    return Array.from(set).sort();
+  }, [portfolio]);
+
+  const filtered = useMemo<PortfolioItem[]>(() => {
+    return portfolio
+      .filter((p) => {
+        if (sideFilter === "buy" && p.side === "sell") return false;
+        if (sideFilter === "sell" && p.side !== "sell") return false;
+        if (codeFilter && p.code !== codeFilter) return false;
+        return true;
+      })
+      .sort((a, b) => new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime());
+  }, [portfolio, sideFilter, codeFilter]);
+
+  const grouped = useMemo(
+    () => groupByMonth(filtered.map((p) => ({ ...p, date: p.purchaseDate }))),
+    [filtered],
   );
-  const grouped = useMemo(() => groupByMonth(sorted.map((p) => ({ ...p, date: p.purchaseDate }))), [sorted]);
 
   const handleDelete = (id: string) => {
     Alert.alert("İşlemi Sil", "Bu işlemi portföyden kaldırmak istiyor musun?", [
@@ -62,13 +83,19 @@ export default function TransactionsScreen() {
   const totals = useMemo(() => {
     let buys = 0;
     let sells = 0;
-    for (const p of portfolio) {
+    for (const p of filtered) {
       const v = p.amount * p.purchasePrice;
       if (p.side === "sell") sells += v;
       else buys += v;
     }
-    return { buys, sells, count: portfolio.length };
-  }, [portfolio]);
+    return { buys, sells, count: filtered.length };
+  }, [filtered]);
+
+  const sideChips: { k: SideFilter; label: string }[] = [
+    { k: "all", label: "Tümü" },
+    { k: "buy", label: "Alım" },
+    { k: "sell", label: "Satış" },
+  ];
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -133,7 +160,7 @@ export default function TransactionsScreen() {
           style={{
             flexDirection: "row",
             gap: 10,
-            marginBottom: 20,
+            marginBottom: 14,
             marginTop: 4,
           }}
         >
@@ -141,6 +168,114 @@ export default function TransactionsScreen() {
           <SummaryCell label="ALIM TUTARI" value={`₺${fmtTL(totals.buys)}`} color={colors.rise} />
           <SummaryCell label="SATIŞ TUTARI" value={`₺${fmtTL(totals.sells)}`} color={colors.fall} />
         </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 6,
+            padding: 4,
+            backgroundColor: colors.secondary,
+            borderRadius: 12,
+            marginBottom: 10,
+          }}
+        >
+          {sideChips.map((c) => {
+            const active = sideFilter === c.k;
+            return (
+              <Pressable
+                key={c.k}
+                style={{
+                  flex: 1,
+                  paddingVertical: 9,
+                  borderRadius: 9,
+                  backgroundColor: active ? colors.card : "transparent",
+                  alignItems: "center",
+                }}
+                onPress={() => {
+                  Haptics.selectionAsync().catch(() => {});
+                  setSideFilter(c.k);
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontFamily: "Inter_700Bold",
+                    color: active ? colors.foreground : colors.mutedForeground,
+                    letterSpacing: -0.1,
+                  }}
+                >
+                  {c.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {uniqueCodes.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 6, paddingRight: 10, paddingBottom: 2 }}
+            style={{ marginBottom: 16 }}
+          >
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync().catch(() => {});
+                setCodeFilter(null);
+              }}
+              style={{
+                paddingHorizontal: 13,
+                paddingVertical: 7,
+                borderRadius: 999,
+                backgroundColor: codeFilter === null ? colors.primary : colors.card,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: codeFilter === null ? colors.primary : colors.border,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontFamily: "Inter_700Bold",
+                  color: codeFilter === null ? colors.primaryForeground : colors.foreground,
+                  letterSpacing: -0.1,
+                }}
+              >
+                Tüm Varlıklar
+              </Text>
+            </Pressable>
+            {uniqueCodes.map((code) => {
+              const active = codeFilter === code;
+              return (
+                <Pressable
+                  key={code}
+                  onPress={() => {
+                    Haptics.selectionAsync().catch(() => {});
+                    setCodeFilter(active ? null : code);
+                  }}
+                  style={{
+                    paddingHorizontal: 13,
+                    paddingVertical: 7,
+                    borderRadius: 999,
+                    backgroundColor: active ? colors.primary : colors.card,
+                    borderWidth: StyleSheet.hairlineWidth,
+                    borderColor: active ? colors.primary : colors.border,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontFamily: "Inter_700Bold",
+                      color: active ? colors.primaryForeground : colors.foreground,
+                      letterSpacing: -0.1,
+                    }}
+                  >
+                    {formatSymbolName(code)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        ) : null}
 
         {grouped.length === 0 ? (
           <View style={{ paddingVertical: 60, alignItems: "center" }}>
@@ -153,7 +288,9 @@ export default function TransactionsScreen() {
                 marginTop: 12,
               }}
             >
-              Henüz hiç işlem yok.
+              {portfolio.length === 0
+                ? "Henüz hiç işlem yok."
+                : "Bu filtreyle eşleşen işlem yok."}
             </Text>
           </View>
         ) : (

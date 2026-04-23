@@ -1,17 +1,105 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import type { PortfolioStats } from "@/lib/portfolioCalc";
+import type { DailySnapshot } from "@/lib/portfolioSnapshots";
 
 const fmtTL = (v: number) =>
   v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export function PortfolioHero({ stats }: { stats: PortfolioStats }) {
+function useCountUp(target: number, duration = 700) {
+  const [value, setValue] = useState(target);
+  const prevRef = useRef(target);
+  const startTimeRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const from = prevRef.current;
+    const to = target;
+    if (Math.abs(from - to) < 0.01) {
+      setValue(to);
+      prevRef.current = to;
+      return;
+    }
+    startTimeRef.current = Date.now();
+    const tick = () => {
+      const elapsed = Date.now() - startTimeRef.current;
+      const t = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const v = from + (to - from) * eased;
+      setValue(v);
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        prevRef.current = to;
+        rafRef.current = null;
+      }
+    };
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [target, duration]);
+
+  return value;
+}
+
+function MiniSparkline({
+  snapshots,
+  color,
+  width = 90,
+  height = 30,
+}: {
+  snapshots: DailySnapshot[];
+  color: string;
+  width?: number;
+  height?: number;
+}) {
+  if (!snapshots || snapshots.length < 2) return null;
+  const vals = snapshots.slice(-30).map((s) => s.v);
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const range = max - min || 1;
+  const step = width / (vals.length - 1);
+  const points = vals.map((v, i) => ({
+    x: i * step,
+    y: height - ((v - min) / range) * (height - 2) - 1,
+  }));
+  const d = points
+    .map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`))
+    .join(" ");
+  const area = `${d} L ${width} ${height} L 0 ${height} Z`;
+  const gradId = "heroSparkGrad";
+  return (
+    <Svg width={width} height={height}>
+      <Defs>
+        <LinearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={color} stopOpacity={0.35} />
+          <Stop offset="1" stopColor={color} stopOpacity={0} />
+        </LinearGradient>
+      </Defs>
+      <Path d={area} fill={`url(#${gradId})`} />
+      <Path d={d} stroke={color} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function PortfolioHero({
+  stats,
+  snapshots = [],
+}: {
+  stats: PortfolioStats;
+  snapshots?: DailySnapshot[];
+}) {
   const colors = useColors();
   const totalPos = stats.totalReturn >= 0;
   const dayPos = stats.dayChange >= 0;
+  const animated = useCountUp(stats.totalValue);
+  const sparkColor = dayPos ? colors.rise : colors.fall;
 
   return (
     <View style={{ paddingHorizontal: 20, paddingBottom: 24 }}>
@@ -29,12 +117,16 @@ export function PortfolioHero({ stats }: { stats: PortfolioStats }) {
         </Text>
       </View>
 
-      <Animated.View entering={FadeInUp.duration(360)}>
+      <Animated.View
+        entering={FadeInUp.duration(360)}
+        style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 10 }}
+      >
         <Text
           adjustsFontSizeToFit
           numberOfLines={1}
           minimumFontScale={0.4}
           style={{
+            flex: 1,
             fontSize: 54,
             fontFamily: "Inter_700Bold",
             color: colors.foreground,
@@ -43,8 +135,13 @@ export function PortfolioHero({ stats }: { stats: PortfolioStats }) {
             includeFontPadding: false,
           }}
         >
-          ₺{fmtTL(stats.totalValue)}
+          ₺{fmtTL(animated)}
         </Text>
+        {snapshots.length >= 2 ? (
+          <View style={{ paddingBottom: 8 }}>
+            <MiniSparkline snapshots={snapshots} color={sparkColor} />
+          </View>
+        ) : null}
       </Animated.View>
 
       <Animated.View
