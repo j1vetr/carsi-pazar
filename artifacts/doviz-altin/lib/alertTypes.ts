@@ -5,7 +5,7 @@ export interface AlertWindow {
   end: string;
 }
 
-interface AlertBase {
+export interface AlertBase {
   id: string;
   type: "currency" | "gold";
   code: string;
@@ -17,6 +17,29 @@ interface AlertBase {
   groupId?: string;
   mutedUntil?: number;
   window?: AlertWindow;
+}
+
+/** Far-future sentinel (>> reasonable time) → used for "permanent mute". */
+export const PERMANENT_MUTE_UNTIL = 4102444800000; // 2100-01-01
+
+export function isPermanentMute(mutedUntil: number | undefined): boolean {
+  return !!mutedUntil && mutedUntil >= PERMANENT_MUTE_UNTIL;
+}
+
+/**
+ * Patch shape allowed for updateAlert. Only shared (kind-agnostic) fields can
+ * be changed post-creation — kind-specific rule params are immutable by design.
+ */
+export type AlertPatch = Partial<
+  Pick<
+    AlertBase,
+    "active" | "triggered" | "lastTriggeredAt" | "groupId" | "mutedUntil" | "window"
+  >
+>;
+
+/** Apply a shared-field patch to any SmartAlert variant preserving its kind. */
+export function applyAlertPatch<T extends { kind: string }>(alert: T, patch: AlertPatch): T {
+  return { ...alert, ...patch };
 }
 
 export interface PriceAlertRule extends AlertBase {

@@ -17,6 +17,7 @@ import type {
   AlertKind,
   AlertWindow,
   NewAlertInput,
+  SmartAlert,
 } from "@/lib/alertTypes";
 import { alertKindLabel, alertKindBadge } from "@/lib/alertTypes";
 import { formatAlertPreview } from "@/lib/alertFormat";
@@ -89,11 +90,17 @@ export function AddAlertModal({ visible, onClose, code, nameTR, currentPrice, ty
     if (!visible) return "";
     const draft = buildAlert();
     if (!draft) return "";
-    return formatAlertPreview(
-      { ...draft, id: "preview" } as any,
-      currentPrice,
-      history,
-    );
+    // Rebuild the exact variant with a placeholder id so the formatter
+    // receives a discriminated SmartAlert (no any-cast).
+    const full: SmartAlert = (() => {
+      switch (draft.kind) {
+        case "price": return { ...draft, id: "preview" };
+        case "percent": return { ...draft, id: "preview" };
+        case "trend": return { ...draft, id: "preview" };
+        case "volatility": return { ...draft, id: "preview" };
+      }
+    })();
+    return formatAlertPreview(full, currentPrice, history);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     visible, kind, priceDir, targetPrice, pctDir, pctThreshold, pctWindow,
@@ -253,12 +260,17 @@ export function AddAlertModal({ visible, onClose, code, nameTR, currentPrice, ty
               <View>
                 <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, marginBottom: 8 }}>YÖN</Text>
                 <View style={{ flexDirection: "row", gap: 10 }}>
-                  {([["above", "Üzerine Çıkınca", "trending-up", colors.rise], ["below", "Altına Düşünce", "trending-down", colors.fall]] as const).map(([d, lbl, ic, clr]) => {
-                    const on = priceDir === d;
+                  {(
+                    [
+                      { dir: "above" as const, lbl: "Üzerine Çıkınca", icon: "trending-up" as const, clr: colors.rise },
+                      { dir: "below" as const, lbl: "Altına Düşünce", icon: "trending-down" as const, clr: colors.fall },
+                    ]
+                  ).map(({ dir, lbl, icon, clr }) => {
+                    const on = priceDir === dir;
                     return (
                       <Pressable
-                        key={d}
-                        onPress={() => setPriceDir(d)}
+                        key={dir}
+                        onPress={() => setPriceDir(dir)}
                         style={{
                           flex: 1, paddingVertical: 12, borderRadius: 10,
                           backgroundColor: on ? clr + "20" : colors.secondary,
@@ -267,7 +279,7 @@ export function AddAlertModal({ visible, onClose, code, nameTR, currentPrice, ty
                         }}
                         accessibilityRole="button"
                       >
-                        <Icon name={ic as any} size={16} color={on ? clr : colors.mutedForeground} />
+                        <Icon name={icon} size={16} color={on ? clr : colors.mutedForeground} />
                         <Text style={{ fontSize: 14, fontFamily: "Inter_600SemiBold", color: on ? clr : colors.mutedForeground }}>{lbl}</Text>
                       </Pressable>
                     );

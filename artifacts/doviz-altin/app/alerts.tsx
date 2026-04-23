@@ -18,15 +18,16 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import type { SmartAlert, AlertGroup } from "@/lib/alertTypes";
-import { alertKindBadge, alertKindLabel, alertKindShort } from "@/lib/alertTypes";
+import { alertKindBadge, alertKindLabel, alertKindShort, isPermanentMute, PERMANENT_MUTE_UNTIL } from "@/lib/alertTypes";
 import { formatAlertRule } from "@/lib/alertFormat";
 
 function mutedStatusLabel(mutedUntil?: number): string | null {
   if (!mutedUntil) return null;
   const now = Date.now();
   if (mutedUntil <= now) return null;
+  if (isPermanentMute(mutedUntil)) return "Tamamen susturuldu";
   const diffMin = Math.round((mutedUntil - now) / 60000);
-  if (diffMin < 60) return `${diffMin} dk sustur.`;
+  if (diffMin < 60) return `${diffMin} dk susturuldu`;
   const diffH = Math.round(diffMin / 60);
   if (diffH < 24) return `${diffH} saat susturuldu`;
   const diffD = Math.round(diffH / 24);
@@ -285,16 +286,11 @@ export default function AlertsScreen() {
       { label: "1 Saat Sustur", until: Date.now() + 60 * 60 * 1000 },
       { label: "Bugün Sustur", until: endOfToday() },
       { label: "Yarına Kadar Sustur", until: nextMorningNine() },
+      { label: "Tamamen Sustur", until: PERMANENT_MUTE_UNTIL },
     ];
     if (alert.mutedUntil) muteOptions.push({ label: "Susturmayı Kaldır", reset: true });
 
-    const groupButtons = alertGroups.map((g) => ({
-      text: alert.groupId === g.id ? `✓ ${g.name}` : g.name,
-      onPress: () => updateAlert(alert.id, { groupId: alert.groupId === g.id ? undefined : g.id } as any),
-    }));
-    if (alert.groupId) {
-      groupButtons.unshift({ text: "Gruptan Çıkar", onPress: () => updateAlert(alert.id, { groupId: undefined } as any) });
-    }
+    const hasGroups = alertGroups.length > 0 || !!alert.groupId;
 
     Alert.alert(
       alert.nameTR,
@@ -303,14 +299,14 @@ export default function AlertsScreen() {
         ...muteOptions.map((o) => ({
           text: o.label,
           onPress: () => {
-            if (o.reset) updateAlert(alert.id, { mutedUntil: undefined } as any);
-            else updateAlert(alert.id, { mutedUntil: o.until } as any);
+            if (o.reset) updateAlert(alert.id, { mutedUntil: undefined });
+            else updateAlert(alert.id, { mutedUntil: o.until });
           },
         })),
-        ...(groupButtons.length > 0 ? [{ text: "Gruba Taşı…", onPress: () => openGroupPicker(alert) }] : []),
+        ...(hasGroups ? [{ text: "Gruba Taşı…", onPress: () => openGroupPicker(alert) }] : []),
         {
           text: alert.active ? "Alarmı Durdur" : "Alarmı Etkinleştir",
-          onPress: () => updateAlert(alert.id, { active: !alert.active } as any),
+          onPress: () => updateAlert(alert.id, { active: !alert.active }),
         },
         { text: "Alarmı Sil", style: "destructive", onPress: () => confirmDelete(alert.id) },
         { text: "İptal", style: "cancel" },
@@ -322,12 +318,12 @@ export default function AlertsScreen() {
   const openGroupPicker = (alert: SmartAlert) => {
     const opts: { text: string; onPress?: () => void; style?: "cancel" | "destructive" }[] = [];
     if (alert.groupId) {
-      opts.push({ text: "Gruptan Çıkar", onPress: () => updateAlert(alert.id, { groupId: undefined } as any) });
+      opts.push({ text: "Gruptan Çıkar", onPress: () => updateAlert(alert.id, { groupId: undefined }) });
     }
     for (const g of alertGroups) {
       opts.push({
         text: alert.groupId === g.id ? `✓ ${g.name}` : g.name,
-        onPress: () => updateAlert(alert.id, { groupId: g.id } as any),
+        onPress: () => updateAlert(alert.id, { groupId: g.id }),
       });
     }
     opts.push({ text: "İptal", style: "cancel" });
@@ -396,7 +392,7 @@ export default function AlertsScreen() {
               group={groupOf(item.groupId)}
               colors={colors}
               onLongPress={() => openAlertActions(item)}
-              onToggleActive={() => updateAlert(item.id, { active: !item.active } as any)}
+              onToggleActive={() => updateAlert(item.id, { active: !item.active })}
               onDelete={() => confirmDelete(item.id)}
             />
           )}

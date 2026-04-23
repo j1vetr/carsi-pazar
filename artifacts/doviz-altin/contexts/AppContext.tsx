@@ -53,6 +53,7 @@ import {
 import type {
   AlertGroup,
   AlertKind,
+  AlertPatch,
   AlertWindow,
   NewAlertInput,
   PercentAlertRule,
@@ -61,6 +62,8 @@ import type {
   TrendAlertRule,
   VolatilityAlertRule,
 } from "@/lib/alertTypes";
+import { applyAlertPatch } from "@/lib/alertTypes";
+import { fetchHistory, hasHistorySupport } from "@/lib/historyApi";
 import {
   loadAlertGroups,
   newGroupId,
@@ -182,7 +185,7 @@ interface AppContextType {
   availableAmount: (code: string, type: "currency" | "gold") => number;
   addAlert: (alert: NewAlertInput) => Promise<void>;
   removeAlert: (id: string) => Promise<void>;
-  updateAlert: (id: string, patch: Partial<SmartAlert>) => Promise<void>;
+  updateAlert: (id: string, patch: AlertPatch) => Promise<void>;
   alertGroups: AlertGroup[];
   createAlertGroup: (name: string) => Promise<AlertGroup>;
   renameAlertGroup: (id: string, name: string) => Promise<void>;
@@ -725,6 +728,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               .map(migrateAlertShape)
               .filter((x): x is SmartAlert => x !== null);
             setAlerts(migrated);
+            // Smart alarmlı semboller için uzak geçmişi tohumla — böylece
+            // oturum henüz yeniyken bile percent/trend/volatility kuralları
+            // daily-close'lar üzerinden anlamlı karar verebilir.
+            const smartCodes = migrated
+              .filter((a) => a.kind !== "price")
+              .map((a) => a.code);
+            if (smartCodes.length > 0) {
+              void hydrateSmartAlertHistory(smartCodes);
+            }
           }
         } catch {}
       }
@@ -1052,6 +1064,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [removeManyFromPortfolio],
   );
 
+  // Smart alarmlar (percent / trend / volatility) ilk tetiklemelerinde anlamlı
+  // kararlar verebilsin diye, yerel fiyat geçmişini backend history API'den
+  // tohumlarız. Eksik sembolleri (hasHistorySupport === false) sessizce atlar.
+  const hydrateSmartAlertHistory = useCallback(async (codes: string[]) => {
+    const uniq = Array.from(new Set(codes)).filter(hasHistorySupport);
+    if (uniq.length === 0) return;
+    await Promise.all(
+      uniq.map(async (code) => {
+        try {
+          const points = await fetchHistory(code, "1A");
+          if (!points || points.length === 0) return;
+          const existing = priceHistoryRef.current[code] ?? [];
+          const byT = new Map<number, { t: number; buy: number; sell: number }>();
+          for (const p of existing) byT.set(p.t, p);
+          for (const p of points) {
+            const t = new Date(p.t).getTime();
+            if (!Number.isFinite(t)) continue;
+            if (!byT.has(t)) byT.set(t, { t, buy: p.c, sell: p.c });
+          }
+          const merged = Array.from(byT.values()).sort((a, b) => a.t - b.t);
+          priceHistoryRef.current[code] = merged;
+        } catch (err) {
+          console.warn("[alerts] geçmiş tohumlaması başarısız:", code, err);
+        }
+      })
+    );
+    // Tohumlanan geçmiş AsyncStorage'a yazılsın ki tekrar açılışta korunsun.
+    try {
+      await AsyncStorage.setItem(
+        "priceHistory_v1",
+        JSON.stringify(priceHistoryRef.current)
+      );
+    } catch {}
+  }, []);
+
   const addAlert = useCallback(
     async (alert: NewAlertInput) => {
       const deviceId = deviceIdRef.current;
@@ -1077,12 +1124,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (!id) {
         id = `local_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
       }
-      const full: SmartAlert = { ...alert, id } as SmartAlert;
+      // Discriminated union: rebuild the exact variant with the new id.
+      const full: SmartAlert = (() => {
+        switch (alert.kind) {
+          case "price": return { ...alert, id };
+          case "percent": return { ...alert, id };
+          case "trend": return { ...alert, id };
+          case "volatility": return { ...alert, id };
+        }
+      })();
       setAlerts((prev) => {
         const next = [...prev, full];
         void persistLocalAlerts(next);
         return next;
       });
+      // Smart alarmlar için geçmişi API'den tohumla (trend/volatility/percent).
+      if (alert.kind !== "price") {
+        void hydrateSmartAlertHistory([alert.code]);
+      }
     },
     []
   );
@@ -1110,9 +1169,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const updateAlert = useCallback(
-    async (id: string, patch: Partial<SmartAlert>) => {
+    async (id: string, patch: AlertPatch) => {
       setAlerts((prev) => {
-        const next = prev.map((a) => (a.id === id ? ({ ...a, ...patch } as SmartAlert) : a));
+        const next = prev.map((a) => (a.id === id ? applyAlertPatch(a, patch) : a));
         void persistLocalAlerts(next);
         return next;
       });
@@ -1156,8 +1215,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const upd = prev.map((a) => {
           if (a.groupId === id) {
             touched = true;
-            const { groupId: _omit, ...rest } = a;
-            return rest as SmartAlert;
+            return applyAlertPatch(a, { groupId: undefined });
           }
           return a;
         });
@@ -1271,13 +1329,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const now = Date.now();
     setAlerts((prev) => {
       let touched = false;
-      const next = prev.map((a) => {
+      const next = prev.map((a): SmartAlert => {
         const f = fired.find((x) => x.alert.id === a.id);
         if (!f) return a;
         touched = true;
-        const patch: Partial<SmartAlert> = { lastTriggeredAt: now };
-        if (a.kind === "price") patch.triggered = true;
-        return { ...a, ...patch } as SmartAlert;
+        // Price alarms are one-shot; smart alarms only bump lastTriggeredAt
+        // and rely on COOLDOWN_MS inside the evaluator for re-fire gating.
+        if (a.kind === "price") {
+          return applyAlertPatch(a, { lastTriggeredAt: now, triggered: true });
+        }
+        return applyAlertPatch(a, { lastTriggeredAt: now });
       });
       if (touched) void persistLocalAlerts(next);
       return next;
