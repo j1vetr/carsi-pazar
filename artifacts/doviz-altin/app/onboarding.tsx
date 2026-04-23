@@ -14,7 +14,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { setOnboardingSeen } from "@/lib/onboardingPref";
 
@@ -590,6 +590,7 @@ function Dots({ active }: { active: number }) {
 export default function Onboarding() {
   const [active, setActive] = useState(0);
   const listRef = useRef<FlatList>(null);
+  const insets = useSafeAreaInsets();
 
   const goTo = useCallback((i: number) => {
     listRef.current?.scrollToOffset({ offset: i * W, animated: true });
@@ -649,8 +650,21 @@ export default function Onboarding() {
           decelerationRate="fast"
         />
 
-        {/* Footer */}
-        <View style={styles.footer} pointerEvents="box-none">
+        {/* Footer — Android navigation bar (3-buton veya gesture) için
+            useSafeAreaInsets ile gerçek inset.bottom değerini ekliyoruz.
+            position:absolute olduğundan SafeAreaView padding'i çocuklara
+            uygulanmıyor; manuel ekleme şart. */}
+        <View
+          style={[
+            styles.footer,
+            {
+              paddingBottom:
+                (Platform.OS === "ios" ? 30 : 22) +
+                Math.max(insets.bottom - (Platform.OS === "ios" ? 18 : 0), 0),
+            },
+          ]}
+          pointerEvents="box-none"
+        >
           <Dots active={active} />
           <Pressable
             onPress={onPrimary}
