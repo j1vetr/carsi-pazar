@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,700&display=swap');
+
+.pf2 {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-feature-settings: 'cv11', 'ss01', 'tnum';
+}
+.pf2 * { box-sizing: border-box; }
+.pf2 .num { font-variant-numeric: tabular-nums; }
+.pf2 .serif { font-family: 'Playfair Display', 'Times New Roman', serif; font-style: italic; font-weight: 700; }
+
+.pf2.dark {
+  --bg: #0A1628;
+  --fg: #E8EEF7;
+  --muted: #8597B3;
+  --card: #0F1E36;
+  --secondary: #152844;
+  --border: #1F3556;
+  --primary: #5B8DEF;
+  --primary-fg: #FFFFFF;
+  --gold: #E8C752;
+  --gold-soft: #3A2E14;
+  --rise: #22C55E;
+  --rise-soft: rgba(34,197,94,0.14);
+  --fall: #EF4444;
+  --fall-soft: rgba(239,68,68,0.14);
+  --currency-soft: #152844;
+  --currency-fg: #84A8F4;
+}
+
+.pf2.light {
+  --bg: #FFFFFF;
+  --fg: #0B1F3A;
+  --muted: #6B7B95;
+  --card: #FFFFFF;
+  --secondary: #EEF3FA;
+  --border: #E2E8F2;
+  --primary: #0B3D91;
+  --primary-fg: #FFFFFF;
+  --gold: #C9A227;
+  --gold-soft: #FBF3D5;
+  --rise: #0E9F6E;
+  --rise-soft: #E5F4EE;
+  --fall: #D43A3A;
+  --fall-soft: #FBEAEA;
+  --currency-soft: #EEF3FA;
+  --currency-fg: #0B3D91;
+}

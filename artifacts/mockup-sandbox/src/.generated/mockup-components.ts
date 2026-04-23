@@ -11,6 +11,8 @@ export const modules: ModuleMap = {
   "./components/mockups/carsi-notif/ProposalB.tsx": () => import("../components/mockups/carsi-notif/ProposalB.tsx"),
   "./components/mockups/carsi-onboarding/V2.tsx": () => import("../components/mockups/carsi-onboarding/V2.tsx"),
   "./components/mockups/carsi-onboarding/V3.tsx": () => import("../components/mockups/carsi-onboarding/V3.tsx"),
+  "./components/mockups/portfolio-v2/Dark.tsx": () => import("../components/mockups/portfolio-v2/Dark.tsx"),
+  "./components/mockups/portfolio-v2/Light.tsx": () => import("../components/mockups/portfolio-v2/Light.tsx"),
   "./components/mockups/carsi-widget/CapsuleDark.tsx": () => import("../components/mockups/carsi-widget/CapsuleDark.tsx"),
   "./components/mockups/carsi-widget/CapsuleLight.tsx": () => import("../components/mockups/carsi-widget/CapsuleLight.tsx"),
   "./components/mockups/carsi-widget/CurrencyHome.tsx": () => import("../components/mockups/carsi-widget/CurrencyHome.tsx"),
@@ -27,6 +29,5 @@ export const modules: ModuleMap = {
   "./components/mockups/carsi-widget/PulseLight.tsx": () => import("../components/mockups/carsi-widget/PulseLight.tsx"),
   "./components/mockups/carsi-widget/SettingsScreen.tsx": () => import("../components/mockups/carsi-widget/SettingsScreen.tsx"),
   "./components/mockups/carsi-widget/WidgetList.tsx": () => import("../components/mockups/carsi-widget/WidgetList.tsx"),
-  "./components/mockups/carsi-widget/WidgetStrip.tsx": () => import("../components/mockups/carsi-widget/WidgetStrip.tsx"),
-  "./components/mockups/portfolio-current/Current.tsx": () => import("../components/mockups/portfolio-current/Current.tsx")
+  "./components/mockups/carsi-widget/WidgetStrip.tsx": () => import("../components/mockups/carsi-widget/WidgetStrip.tsx")
 };
