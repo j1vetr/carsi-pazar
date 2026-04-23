@@ -10,7 +10,9 @@ import {
   BarChart3,
   Bell,
   BellOff,
+  CloudOff,
   Mail,
+  Sparkles,
   Menu,
   ShieldCheck,
   Briefcase,
@@ -90,6 +92,8 @@ export type IconName =
   | "refresh"
   | "menu"
   | "shield-outline"
+  | "cloud-offline-outline"
+  | "sparkles-outline"
   | "x";
 
 const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
@@ -140,6 +144,8 @@ const MAP: Record<IconName, React.ComponentType<LucideProps>> = {
   "bar-chart-outline": BarChart3,
   "apps-outline": AppWindow,
   "checkmark": Check,
+  "cloud-offline-outline": CloudOff,
+  "sparkles-outline": Sparkles,
   "x": X,
 };
 

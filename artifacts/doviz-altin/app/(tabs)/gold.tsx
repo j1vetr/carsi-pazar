@@ -17,6 +17,9 @@ import { useColors } from "@/hooks/useColors";
 import { useApp, GoldRate } from "@/contexts/AppContext";
 import { MinimalTopBar } from "@/components/MinimalTopBar";
 import { ModernPriceRow, ModernTableHeader } from "@/components/ModernPriceRow";
+import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ErrorState } from "@/components/common/ErrorState";
 
 interface Section {
   title: string;
@@ -30,7 +33,7 @@ export default function GoldScreen() {
   const {
     goldGram, goldCoinsYeni, goldCoinsEski, goldBars, goldBracelets,
     metals, silvers, goldParities, ratios, favorites, toggleFavorite,
-    refreshData, lastUpdated,
+    refreshData, lastUpdated, lastRefreshFailed,
   } = useApp();
   const [emission, setEmission] = useState<"yeni" | "eski">("yeni");
   const [manualRefreshing, setManualRefreshing] = useState(false);
@@ -265,16 +268,22 @@ export default function GoldScreen() {
         }}
         ListEmptyComponent={
           viewMode === "favorites" ? (
-            <View style={styles.emptyWrap}>
-              <Icon name="star-outline" size={32} color={colors.mutedForeground} />
-              <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 12, textAlign: "center" }}>
-                Henüz favori altın yok
-              </Text>
-              <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 6, textAlign: "center", lineHeight: 18 }}>
-                Bir altın satırının yıldızına dokunarak favorilerine ekleyebilirsin.
-              </Text>
-            </View>
-          ) : null
+            <EmptyState
+              icon="star-outline"
+              title="Henüz Favori Altın Yok"
+              description="Bir altın satırının yıldızına dokunarak favorilerine ekleyebilirsin."
+              compact
+            />
+          ) : lastRefreshFailed ? (
+            <ErrorState
+              title="Altın Fiyatları Yüklenemedi"
+              description="Bağlantını kontrol edip tekrar dene."
+              onRetry={() => void refreshData()}
+              compact
+            />
+          ) : (
+            <PriceRowSkeleton count={10} withIcon={false} />
+          )
         }
         onScrollToIndexFailed={({ index, averageItemLength }) => {
           const offset = index * (averageItemLength || 80);

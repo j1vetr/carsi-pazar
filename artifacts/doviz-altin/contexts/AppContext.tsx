@@ -167,6 +167,7 @@ interface AppContextType {
   isLoading: boolean;
   isStale: boolean;
   lastUpdated: Date | null;
+  lastRefreshFailed: boolean;
   favorites: string[];
   addToPortfolio: (item: Omit<PortfolioItem, "id">) => Promise<void>;
   sellFromPortfolio: (input: {
@@ -293,6 +294,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isStale, setIsStale] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [lastRefreshFailed, setLastRefreshFailed] = useState<boolean>(false);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
   const [prefs, setPrefs] = useState<UserPrefs>({
@@ -407,8 +409,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       const data = await fetchAllPrices();
       applyPrices(data);
+      setLastRefreshFailed(false);
     } catch (err) {
       console.warn("Fiyatlar alınamadı:", err);
+      setLastRefreshFailed(true);
     } finally {
       isFetching.current = false;
       setIsLoading(false);
@@ -1518,6 +1522,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isStale,
         lastUpdated,
+        lastRefreshFailed,
         favorites,
         addToPortfolio,
         removeFromPortfolio,

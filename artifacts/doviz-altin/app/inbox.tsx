@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon, type IconName } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import { EmptyState } from "@/components/common/EmptyState";
 import {
   type InboxItem,
   clearInbox,
@@ -144,23 +145,11 @@ export default function InboxScreen() {
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.foreground} />}
         ListEmptyComponent={
-          <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 64 }}>
-            <View
-              style={{
-                width: 72, height: 72, borderRadius: 36,
-                backgroundColor: colors.secondary,
-                alignItems: "center", justifyContent: "center", marginBottom: 14,
-              }}
-            >
-              <Icon name="notifications-outline" size={32} color={colors.mutedForeground} />
-            </View>
-            <Text style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: colors.foreground, marginBottom: 6 }}>
-              Henüz bildirim yok
-            </Text>
-            <Text style={{ fontSize: 13, fontFamily: "Inter_400Regular", color: colors.mutedForeground, textAlign: "center", paddingHorizontal: 32 }}>
-              Açılış/kapanış brifingleri, önemli fiyat hareketleri ve haftalık portföy özetin burada görünecek.
-            </Text>
-          </View>
+          <EmptyState
+            icon="notifications-outline"
+            title="Henüz Bildirim Yok"
+            description="Açılış/kapanış brifingleri, önemli fiyat hareketleri ve haftalık portföy özetin burada görünecek."
+          />
         }
         renderItem={({ item }) => {
           const ico = iconForType(item.type);

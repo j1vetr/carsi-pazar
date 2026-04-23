@@ -15,11 +15,14 @@ import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import { MinimalTopBar } from "@/components/MinimalTopBar";
 import { ModernPriceRow, ModernTableHeader } from "@/components/ModernPriceRow";
+import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ErrorState } from "@/components/common/ErrorState";
 
 export default function MarketScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { currencies, banks, favorites, toggleFavorite, refreshData, lastUpdated } = useApp();
+  const { currencies, banks, favorites, toggleFavorite, refreshData, lastUpdated, lastRefreshFailed } = useApp();
   const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
   const [manualRefreshing, setManualRefreshing] = useState(false);
 
@@ -180,14 +183,22 @@ export default function MarketScreen() {
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
           activeTab === "favorites" ? (
-            <View style={styles.emptyWrap}>
-              <Icon name="star-outline" size={32} color={colors.mutedForeground} />
-              <Text style={styles.emptyTitle}>Henüz favori döviz yok</Text>
-              <Text style={styles.emptyText}>
-                Bir döviz satırının yıldızına dokunarak favorilerine ekleyebilirsin.
-              </Text>
-            </View>
-          ) : null
+            <EmptyState
+              icon="star-outline"
+              title="Henüz Favori Döviz Yok"
+              description="Bir döviz satırının yıldızına dokunarak favorilerine ekleyebilirsin."
+              compact
+            />
+          ) : lastRefreshFailed ? (
+            <ErrorState
+              title="Kurlar Yüklenemedi"
+              description="Bağlantını kontrol edip tekrar dene."
+              onRetry={() => void refreshData()}
+              compact
+            />
+          ) : (
+            <PriceRowSkeleton count={8} withIcon />
+          )
         }
         contentContainerStyle={styles.list}
         refreshControl={

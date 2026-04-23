@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
   Platform,
   Pressable,
   RefreshControl,
@@ -18,6 +17,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useApp, NewsItem } from "@/contexts/AppContext";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import { EmptyState } from "@/components/common/EmptyState";
+import {
+  NewsFeaturedSkeleton,
+  NewsListSkeleton,
+} from "@/components/common/skeletons/NewsRowSkeleton";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 function timeAgo(iso: string): string {
@@ -290,24 +294,20 @@ export default function NewsScreen() {
         }
       >
         {newsLoading && news.length === 0 ? (
-          <View style={{ paddingVertical: 60, alignItems: "center" }}>
-            <ActivityIndicator color={colors.primary} />
-            <Text style={{ marginTop: 12, fontSize: 13, fontFamily: "Inter_500Medium", color: colors.mutedForeground }}>
-              Haberler yükleniyor…
-            </Text>
+          <View style={{ gap: 16 }}>
+            <NewsFeaturedSkeleton />
+            <View style={{ marginTop: 10 }}>
+              <NewsListSkeleton count={5} />
+            </View>
           </View>
         ) : news.length === 0 ? (
-          <View style={{ paddingVertical: 50, paddingHorizontal: 20, alignItems: "center" }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-              <Icon name="newspaper-outline" size={26} color={colors.mutedForeground} />
-            </View>
-            <Text style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.2 }}>
-              Henüz haber yok
-            </Text>
-            <Text style={{ fontSize: 12, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 4, textAlign: "center" }}>
-              Şu an haber bulunmuyor.{"\n"}Aşağı çekerek yenile.
-            </Text>
-          </View>
+          <EmptyState
+            icon="newspaper-outline"
+            title="Henüz Haber Yok"
+            description="Şu an haber bulunmuyor. Aşağı çekerek yenileyebilirsin."
+            action={{ label: "Yenile", icon: "refresh", onPress: () => void onRefresh(), variant: "subtle" }}
+            compact
+          />
         ) : (
           <>
             {featured && <FeaturedNewsCard item={featured} colors={colors} />}

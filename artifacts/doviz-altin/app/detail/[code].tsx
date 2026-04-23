@@ -16,6 +16,7 @@ import { PriceChart } from "@/components/PriceChart";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { hasHistorySupport, type HistoryRange } from "@/lib/historyApi";
 import { AddAlertModal } from "@/components/alerts/AddAlertModal";
+import { DetailSkeleton } from "@/components/common/skeletons/DetailSkeleton";
 
 const MONO_FONT = Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" });
 
@@ -59,7 +60,40 @@ export default function DetailScreen() {
 
   const item = code ? (findRateByCode(code) as any) : undefined;
 
-  if (!item) return null;
+  if (!item) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <View
+          style={{
+            paddingTop: topPadding + 6,
+            paddingHorizontal: 16,
+            paddingBottom: 10,
+            flexDirection: "row",
+            alignItems: "center",
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+            gap: 8,
+          }}
+        >
+          <Pressable
+            onPress={() => router.back()}
+            style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}
+            accessibilityRole="button"
+            accessibilityLabel="Geri dön"
+          >
+            <Icon name="chevron-back" size={20} color={colors.foreground} />
+          </Pressable>
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.2 }}>
+              {code ?? ""}
+            </Text>
+          </View>
+          <View style={{ width: 36 }} />
+        </View>
+        <DetailSkeleton />
+      </View>
+    );
+  }
 
   const isPositive = item.changePercent >= 0;
   const changeColor = isPositive ? colors.rise : colors.fall;

@@ -24,6 +24,7 @@ import * as Notifications from "expo-notifications";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { MenuDrawer } from "@/components/MenuDrawer";
+import { OfflineBanner } from "@/components/common/OfflineBanner";
 import { AppProvider } from "@/contexts/AppContext";
 import { DrawerProvider } from "@/contexts/DrawerContext";
 import { ThemeProvider, ThemedTreeRemount } from "@/contexts/ThemeContext";
@@ -155,6 +156,7 @@ export default function RootLayout() {
                   <ThemedTreeRemount>
                     <RootLayoutNav />
                     <MenuDrawer />
+                    <OfflineBanner />
                   </ThemedTreeRemount>
                   {!lottieDone && (
                     <View style={styles.splash} pointerEvents="none">

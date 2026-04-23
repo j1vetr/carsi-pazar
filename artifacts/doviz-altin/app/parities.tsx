@@ -1,18 +1,20 @@
 import React, { useMemo } from "react";
-import { ActivityIndicator, Platform, SectionList, StyleSheet, Text, View } from "react-native";
+import { Platform, SectionList, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useApp, CurrencyRate } from "@/contexts/AppContext";
 import { PriceCard } from "@/components/PriceCard";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import { PriceCardSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
+import { ErrorState } from "@/components/common/ErrorState";
 
 interface PaSection { title: string; subtitle?: string; data: CurrencyRate[]; }
 
 export default function ParitiesScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { parities, currencyParities, favorites, toggleFavorite } = useApp();
+  const { parities, currencyParities, favorites, toggleFavorite, lastRefreshFailed, refreshData } = useApp();
 
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 40 : (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom) + 24;
@@ -53,12 +55,15 @@ export default function ParitiesScreen() {
         ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
         contentContainerStyle={{ paddingTop: 4, paddingBottom: bottomPadding }}
         ListEmptyComponent={
-          <View style={{ padding: 50, alignItems: "center" }}>
-            <ActivityIndicator color={colors.primary} />
-            <Text style={{ marginTop: 12, color: colors.mutedForeground, fontFamily: "Inter_500Medium", fontSize: 13 }}>
-              Parite verisi bekleniyor…
-            </Text>
-          </View>
+          lastRefreshFailed ? (
+            <ErrorState
+              title="Parite Verisi Alınamadı"
+              description="Bağlantını kontrol edip tekrar dene."
+              onRetry={() => void refreshData()}
+            />
+          ) : (
+            <PriceCardSkeleton count={6} />
+          )
         }
       />
     </View>
