@@ -1,5 +1,4 @@
 import { router } from "expo-router";
-import * as Notifications from "expo-notifications";
 import { useRef, useState, useCallback } from "react";
 import {
   View,
@@ -45,7 +44,6 @@ const ICON = require("../assets/images/icon.png");
 const SLIDES = [
   { kind: "hero", eyebrow: null, title: "Çarşı Piyasa", body: "Anlık piyasa, cebinizde.", cta: "Başla" },
   { kind: "widget", eyebrow: "WIDGET", title: "Ana ekranda.", body: "Tek bakışta gör.", cta: "Devam" },
-  { kind: "notif", eyebrow: "BİLDİRİM", title: "Hep elinin altında.", body: "Ekranı açmadan.", cta: "Bildirimleri Aç", requestNotif: true, secondary: "Şimdi değil" },
   { kind: "alarm", eyebrow: "ALARM", title: "Hedefini söyle.", body: "Sen seyret.", cta: "Hadi başlayalım" },
 ] as const;
 
@@ -311,98 +309,7 @@ function WidgetVisual() {
   );
 }
 
-/* ---------------- Page 3 notification ---------------- */
-function NotifVisual() {
-  const rows = [
-    { c: "USD", p: "44,93", up: true },
-    { c: "EUR", p: "52,72", up: false },
-    { c: "ALTIN", p: "6.877", up: false },
-    { c: "GBP", p: "60,61", up: false },
-  ];
-  return (
-    <View style={{ alignItems: "center", width: "100%" }}>
-      <Text style={{ fontFamily: "Inter_700Bold", fontSize: 13, color: C.muted }}>
-        Çarşamba, 9 Nisan
-      </Text>
-      <Text
-        style={{
-          fontFamily: "Inter_300Light",
-          fontSize: 64,
-          letterSpacing: -3,
-          color: C.ink,
-          marginTop: 2,
-          marginBottom: 18,
-        }}
-      >
-        9:41
-      </Text>
-
-      <View
-        style={{
-          alignSelf: "stretch",
-          marginHorizontal: 24,
-          backgroundColor: C.paper,
-          borderRadius: 18,
-          paddingHorizontal: 14,
-          paddingVertical: 12,
-          borderWidth: 1,
-          borderColor: C.hairlineSoft,
-          shadowColor: C.ink,
-          shadowOpacity: 0.12,
-          shadowRadius: 18,
-          shadowOffset: { width: 0, height: 8 },
-          elevation: 4,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 9 }}>
-          <Image source={ICON} style={{ width: 22, height: 22, borderRadius: 5.5 }} />
-          <Text style={{ fontFamily: "Inter_700Bold", fontSize: 11, color: C.ink }}>
-            Çarşı Piyasa
-          </Text>
-          <Text
-            style={{
-              marginLeft: "auto",
-              fontFamily: "Inter_700Bold",
-              fontSize: 9.5,
-              color: C.muted,
-            }}
-          >
-            şimdi
-          </Text>
-        </View>
-        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-          {rows.map((r) => (
-            <View
-              key={r.c}
-              style={{
-                width: "50%",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingRight: 10,
-                paddingVertical: 4,
-              }}
-            >
-              <Text style={{ fontFamily: "Inter_700Bold", fontSize: 10.5, color: C.inkSoft }}>
-                {r.c}
-              </Text>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                <Text style={{ fontFamily: "Inter_700Bold", fontSize: 11, color: C.ink, letterSpacing: -0.2 }}>
-                  {r.p}
-                </Text>
-                <Text style={{ fontFamily: "Inter_700Bold", fontSize: 11, color: r.up ? C.rise : C.fall }}>
-                  {r.up ? "▲" : "▼"}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-/* ---------------- Page 4 alarm ---------------- */
+/* ---------------- Page 3 alarm ---------------- */
 function AlarmVisual() {
   const alerts = [
     { d: "≥", v: "45,50", state: "AKTİF", color: C.rise, bg: C.riseSoft },
@@ -541,7 +448,6 @@ function AlarmVisual() {
 function VisualFor({ kind }: { kind: Slide["kind"] }) {
   if (kind === "hero") return <HeroVisual />;
   if (kind === "widget") return <WidgetVisual />;
-  if (kind === "notif") return <NotifVisual />;
   return <AlarmVisual />;
 }
 
@@ -602,20 +508,6 @@ export default function Onboarding() {
   }, []);
 
   const onPrimary = useCallback(async () => {
-    const slide = SLIDES[active];
-    if ("requestNotif" in slide && slide.requestNotif) {
-      try {
-        await Notifications.requestPermissionsAsync();
-      } catch {}
-    }
-    if (active >= SLIDES.length - 1) {
-      void finish();
-    } else {
-      goTo(active + 1);
-    }
-  }, [active, goTo, finish]);
-
-  const onSecondary = useCallback(() => {
     if (active >= SLIDES.length - 1) {
       void finish();
     } else {
@@ -673,22 +565,10 @@ export default function Onboarding() {
               { opacity: pressed ? 0.85 : 1 },
             ]}
           >
-            {"requestNotif" in slide && slide.requestNotif && (
-              <Text style={styles.ctaIcon}>🔔</Text>
-            )}
             <Text style={styles.ctaText}>{slide.cta}</Text>
-            {!("requestNotif" in slide && slide.requestNotif) && (
-              <Text style={styles.ctaArrow}>{slide.cta === "Hadi başlayalım" ? "✓" : "→"}</Text>
-            )}
+            <Text style={styles.ctaArrow}>{slide.cta === "Hadi başlayalım" ? "✓" : "→"}</Text>
           </Pressable>
-
-          {"secondary" in slide && slide.secondary ? (
-            <Pressable onPress={onSecondary} hitSlop={12} style={styles.secondaryWrap}>
-              <Text style={styles.secondary}>{slide.secondary}</Text>
-            </Pressable>
-          ) : (
-            <View style={{ height: 12 }} />
-          )}
+          <View style={{ height: 12 }} />
         </View>
       </SafeAreaView>
     </View>
@@ -772,18 +652,5 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     fontSize: 17,
     color: "#FFFFFF",
-  },
-  ctaIcon: {
-    fontSize: 16,
-  },
-  secondaryWrap: {
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  secondary: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 13,
-    color: C.muted,
-    letterSpacing: -0.1,
   },
 });

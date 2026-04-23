@@ -57,15 +57,14 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `app.json` splash + bildirim ikonları renkli `icon.png`'ye taşındı (yeni APK gerekiyor)
 - **DEVAM EDEN:** APK'da widget hâlâ tamamen şeffaf — root cause araştırması sürüyor
 
-### Bildirim çubuğu (canlı / foreground service)
-- `lib/ongoingNotification.ts` — `@notifee/react-native` ile Android foreground service. Widget config'inden 4 sembolü okur, BIGTEXT stilinde 4 satır gösterir. ~90 sn'de bir refresh, AppState=active'de de tetiklenir. iOS no-op. Android 14+ "Short FGS procstate demoted" sorununa karşı `foregroundServiceTypes: [DATA_SYNC]` runtime'da set edilir; manifest tarafında `plugins/withNotifeeFgsType.js` config plugin'i notifee'nin `app.notifee.core.ForegroundService` tag'ine `android:foregroundServiceType="dataSync"` ekler. `index.js`'de `notifee.onBackgroundEvent` no-op handler register edilir (notifee uyarısını giderir).
-- `app/settings/widget.tsx` — "BİLDİRİM ÇUBUĞU · CANLI" bölümünde toggle (varsayılan KAPALI). Açıldığında runtime POST_NOTIFICATIONS izni istenir, kapatıldığında service durur.
-- `app/_layout.tsx` — `restoreOngoingNotificationIfEnabled` ile uygulama açılışında AsyncStorage flag'i true ise service yeniden bağlanır.
-- `app.json` android.permissions: POST_NOTIFICATIONS, FOREGROUND_SERVICE, FOREGROUND_SERVICE_DATA_SYNC, WAKE_LOCK eklendi.
-- Native modül; Expo Go çalışmaz, dev client/EAS build gerekir.
+### Bildirim çubuğu (canlı / foreground service) — KALDIRILDI
+- Daha önce notifee tabanlı ongoing foreground-service notification widget'ı vardı; kullanıcı isteğiyle tamamen kaldırıldı.
+- Silinen: `lib/ongoingNotification.ts`, `plugins/withNotifeeFgsType.js`, `index.js`'deki notifee handler, widget.tsx'teki "BİLDİRİM ÇUBUĞU · CANLI" toggle, `_layout.tsx`'teki `restoreOngoingNotificationIfEnabled` çağrısı, onboarding'deki "BİLDİRİM" slide'ı.
+- `app.json` permissions'tan FOREGROUND_SERVICE + FOREGROUND_SERVICE_DATA_SYNC çıkarıldı; `withNotifeeFgsType` plugin kaydı silindi; `@notifee/react-native` package.json'dan kaldırıldı.
+- Ana ekran (home-screen) widget'ı (react-native-android-widget) AYNEN korunuyor.
 
 ### Onboarding (ilk açılış)
-- `app/onboarding.tsx` — 4 sayfa swipeable (FlatList horizontal pagingEnabled). Sayfa 1 (light, hero), Sayfa 2 (light, widget), Sayfa 3 (dark, notif — CTA `Notifications.requestPermissionsAsync()`), Sayfa 4 (navy, portföy). Renk tokenleri `constants/colors.ts` ile birebir uyumlu. icon.png koyu zeminlerde beyaz çip içinde.
+- `app/onboarding.tsx` — 3 sayfa swipeable (FlatList horizontal pagingEnabled). Sayfa 1 hero, Sayfa 2 widget, Sayfa 3 alarm. (Eski "BİLDİRİM" slide'ı notification widget özelliğiyle birlikte kaldırıldı.) Renk tokenleri `constants/colors.ts` ile birebir uyumlu. icon.png koyu zeminlerde beyaz çip içinde.
 - `lib/onboardingPref.ts` — AsyncStorage flag `onboarding-seen-v1` (`isOnboardingSeen`, `setOnboardingSeen`, `resetOnboardingSeen`).
 - `app/_layout.tsx` — startup tab redirect'inden ÖNCE `isOnboardingSeen()` kontrol edilir; false ise `/onboarding`'e replace, true ise startup tercihi uygulanır.
 - Stack.Screen `onboarding` `gestureEnabled: false`, `animation: "fade"`. Mockup referansı: `mockup-sandbox/src/components/mockups/carsi-widget/OnboardingFlow.tsx`.

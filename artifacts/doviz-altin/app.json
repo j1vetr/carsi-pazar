@@ -27,8 +27,6 @@
       },
       "permissions": [
         "POST_NOTIFICATIONS",
-        "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_DATA_SYNC",
         "WAKE_LOCK"
       ]
     },
@@ -53,7 +51,6 @@
           "sounds": []
         }
       ],
-      "./plugins/withNotifeeFgsType",
       [
         "react-native-android-widget",
         {

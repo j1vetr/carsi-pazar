@@ -26,12 +26,6 @@ import {
   type WidgetTheme,
 } from "@/widgets/config";
 import { refreshPriceWidget } from "@/widgets/refresh";
-import {
-  isOngoingEnabled,
-  refreshOngoingNotificationIfEnabled,
-  startOngoingNotification,
-  stopOngoingNotification,
-} from "@/lib/ongoingNotification";
 
 const LOGO_DARK = require("@/assets/images/logo-dark.png");
 const LOGO_LIGHT = require("@/assets/images/logo-light.png");
@@ -683,36 +677,11 @@ export default function WidgetSettingsScreen() {
     void readWidgetConfig().then(setConfig);
   }, []);
 
-  const [ongoingOn, setOngoingOn] = useState(false);
-  const [ongoingBusy, setOngoingBusy] = useState(false);
-
-  useEffect(() => {
-    void isOngoingEnabled().then(setOngoingOn);
-  }, []);
-
   const apply = (next: WidgetConfig) => {
     setConfig(next);
     void writeWidgetConfig(next).then(() => {
       void refreshPriceWidget({ force: true });
-      void refreshOngoingNotificationIfEnabled();
     });
-  };
-
-  const toggleOngoing = async (next: boolean) => {
-    if (ongoingBusy) return;
-    setOngoingBusy(true);
-    Haptics.selectionAsync().catch(() => {});
-    try {
-      if (next) {
-        await startOngoingNotification();
-        setOngoingOn(await isOngoingEnabled());
-      } else {
-        await stopOngoingNotification();
-        setOngoingOn(false);
-      }
-    } finally {
-      setOngoingBusy(false);
-    }
   };
 
   const setPriceField = (priceField: PriceField) => apply({ ...config, priceField });
@@ -850,77 +819,6 @@ export default function WidgetSettingsScreen() {
             }}
           >
             Açık temada koyu logo, koyu temada açık logo gösterilir.
-          </Text>
-        </Card>
-
-        {/* ONGOING NOTIFICATION */}
-        <View style={{ height: 22 }} />
-        <SectionLabel colors={colors}>BİLDİRİM ÇUBUĞU · CANLI</SectionLabel>
-        <Card colors={colors}>
-          <Pressable
-            onPress={() => toggleOngoing(!ongoingOn)}
-            disabled={!isAndroid || ongoingBusy}
-            style={({ pressed }) => ({
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 12,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontFamily: "Inter_600SemiBold",
-                  color: colors.foreground,
-                  letterSpacing: -0.2,
-                }}
-              >
-                Bildirim çubuğunda göster
-              </Text>
-              <Text
-                style={{
-                  marginTop: 4,
-                  fontSize: 11.5,
-                  fontFamily: "Inter_500Medium",
-                  color: colors.mutedForeground,
-                  lineHeight: 16,
-                }}
-              >
-                Widget ile aynı 4 sembol Android bildirim çubuğunda kalıcı görünür. Yaklaşık 1–2 dakikada bir yenilenir.
-              </Text>
-            </View>
-            <View
-              style={{
-                width: 46,
-                height: 28,
-                borderRadius: 14,
-                backgroundColor: ongoingOn ? "#0B3D91" : colors.secondary,
-                padding: 3,
-                justifyContent: "center",
-              }}
-            >
-              <View
-                style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: 11,
-                  backgroundColor: "#fff",
-                  transform: [{ translateX: ongoingOn ? 18 : 0 }],
-                }}
-              />
-            </View>
-          </Pressable>
-          <Text
-            style={{
-              marginTop: 12,
-              fontSize: 11,
-              fontFamily: "Inter_500Medium",
-              color: colors.mutedForeground,
-              lineHeight: 16,
-            }}
-          >
-            Pil tüketimi orta düzeydedir. Kapattığında bildirim hemen kaldırılır. Yalnızca Android'de çalışır.
           </Text>
         </Card>
 

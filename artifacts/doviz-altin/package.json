@@ -57,7 +57,6 @@
   "dependencies": {
     "@expo/config-plugins": "^55.0.8",
     "@lottiefiles/dotlottie-react": "^0.13.5",
-    "@notifee/react-native": "^9.1.8",
     "expo-application": "^55.0.14",
     "expo-device": "^55.0.15",
     "expo-notifications": "^55.0.19",
