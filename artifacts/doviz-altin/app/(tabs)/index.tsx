@@ -15,6 +15,8 @@ import { useColors } from "@/hooks/useColors";
 import { useApp, type CurrencyRate, type GoldRate } from "@/contexts/AppContext";
 import { haptics } from "@/lib/haptics";
 import { PriceRowMenu } from "@/components/common/PriceRowMenu";
+import { SwipeableRow } from "@/components/common/SwipeableRow";
+import { symbolLeftActions } from "@/lib/swipeActions";
 import { MinimalTopBar } from "@/components/MinimalTopBar";
 import { ModernPriceRow, ModernTableHeader } from "@/components/ModernPriceRow";
 import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
@@ -162,19 +164,30 @@ export default function MarketScreen() {
         <ModernTableHeader />
         {banks.map((b) => {
           const isGold = b.code === "BANKA_ALTIN";
+          const t = isGold ? "gold" : "currency";
           return (
-            <ModernPriceRow
+            <SwipeableRow
               key={b.code}
-              item={b}
-              type={isGold ? "gold" : "currency"}
-              isFavorite={favorites.includes(b.code)}
-              onFavoriteToggle={() => toggleFavorite(b.code)}
-              onLongPress={() => openMenu(b, isGold ? "gold" : "currency")}
-              onPress={() => router.push({
-                pathname: "/detail/[code]",
-                params: { code: b.code, type: isGold ? "gold" : "currency" },
+              leftActions={symbolLeftActions({
+                item: b,
+                type: t,
+                isFavorite: favorites.includes(b.code),
+                toggleFavorite,
+                colors,
               })}
-            />
+            >
+              <ModernPriceRow
+                item={b}
+                type={t}
+                isFavorite={favorites.includes(b.code)}
+                onFavoriteToggle={() => toggleFavorite(b.code)}
+                onLongPress={() => openMenu(b, t)}
+                onPress={() => router.push({
+                  pathname: "/detail/[code]",
+                  params: { code: b.code, type: t },
+                })}
+              />
+            </SwipeableRow>
           );
         })}
       </View>
@@ -187,16 +200,26 @@ export default function MarketScreen() {
         data={displayCurrencies}
         keyExtractor={(item) => item.code}
         renderItem={({ item }) => (
-          <ModernPriceRow
-            item={item}
-            type="currency"
-            isFavorite={favorites.includes(item.code)}
-            onFavoriteToggle={() => toggleFavorite(item.code)}
-            onLongPress={() => openMenu(item, "currency")}
-            onPress={() =>
-              router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "currency" } })
-            }
-          />
+          <SwipeableRow
+            leftActions={symbolLeftActions({
+              item,
+              type: "currency",
+              isFavorite: favorites.includes(item.code),
+              toggleFavorite,
+              colors,
+            })}
+          >
+            <ModernPriceRow
+              item={item}
+              type="currency"
+              isFavorite={favorites.includes(item.code)}
+              onFavoriteToggle={() => toggleFavorite(item.code)}
+              onLongPress={() => openMenu(item, "currency")}
+              onPress={() =>
+                router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "currency" } })
+              }
+            />
+          </SwipeableRow>
         )}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}

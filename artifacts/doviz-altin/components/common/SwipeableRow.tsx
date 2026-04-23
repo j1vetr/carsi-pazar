@@ -1,15 +1,14 @@
 import React, { useRef } from "react";
-import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import { Icon, type IconName } from "@/components/Icon";
-import { useColors } from "@/hooks/useColors";
 import { haptics } from "@/lib/haptics";
 
 export interface SwipeAction {
   label: string;
   icon: IconName;
-  color: string;        // background
-  textColor?: string;   // foreground (default white)
+  color: string;
+  textColor?: string;
   onPress: () => void;
   destructive?: boolean;
 }
@@ -22,31 +21,37 @@ interface Props {
 
 /**
  * react-native-gesture-handler Swipeable üstüne ince bir wrapper.
- * Sağ/sol kaydırmada eylem çubukları çıkar; eylem dokunulduğunda
- * haptic verilir, satır tekrar kapanır.
+ * Sağ/sol kaydırmada eylem çubukları çıkar. Eylemler `accessibilityActions`
+ * olarak Pressable'a da yansır → ekran okuyucu kullanıcıları VoiceOver/
+ * TalkBack üzerinden de tetikleyebilir.
  */
 export function SwipeableRow({ children, rightActions, leftActions }: Props) {
   const ref = useRef<Swipeable>(null);
+
+  const trigger = (a: SwipeAction) => {
+    if (a.destructive) haptics.warning();
+    else haptics.tap();
+    ref.current?.close();
+    a.onPress();
+  };
 
   const renderActions = (actions: SwipeAction[] | undefined, side: "left" | "right") => {
     if (!actions || actions.length === 0) return undefined;
     return () => (
       <View style={[styles.actionRow, side === "left" ? styles.leftRow : styles.rightRow]}>
         {actions.map((a) => (
-          <ActionButton
-            key={a.label}
-            action={a}
-            onTrigger={() => {
-              if (a.destructive) haptics.warning();
-              else haptics.tap();
-              ref.current?.close();
-              a.onPress();
-            }}
-          />
+          <ActionButton key={a.label} action={a} onTrigger={() => trigger(a)} />
         ))}
       </View>
     );
   };
+
+  // Erişilebilirlik için tüm aksiyonları tek listede topla; ekran
+  // okuyucu kullanıcısı kaydırma gestürünü yapamayabilir.
+  const a11yActions = [...(leftActions ?? []), ...(rightActions ?? [])].map((a) => ({
+    name: a.label,
+    label: a.label,
+  }));
 
   return (
     <Swipeable
@@ -57,16 +62,26 @@ export function SwipeableRow({ children, rightActions, leftActions }: Props) {
       renderRightActions={renderActions(rightActions, "right")}
       renderLeftActions={renderActions(leftActions, "left")}
     >
-      {children}
+      <View
+        accessible
+        accessibilityRole="button"
+        accessibilityActions={a11yActions}
+        onAccessibilityAction={(e) => {
+          const all = [...(leftActions ?? []), ...(rightActions ?? [])];
+          const target = all.find((a) => a.label === e.nativeEvent.actionName);
+          if (target) trigger(target);
+        }}
+      >
+        {children}
+      </View>
     </Swipeable>
   );
 }
 
-function ActionButton({ action, onTrigger }: { action: SwipeAction; onTrigger: (e: GestureResponderEvent) => void }) {
-  const colors = useColors();
+function ActionButton({ action, onTrigger }: { action: SwipeAction; onTrigger: () => void }) {
   return (
     <RectButton
-      onPress={onTrigger as any}
+      onPress={onTrigger}
       style={[styles.action, { backgroundColor: action.color }]}
       accessibilityLabel={action.label}
     >
@@ -77,10 +92,6 @@ function ActionButton({ action, onTrigger }: { action: SwipeAction; onTrigger: (
     </RectButton>
   );
 }
-
-// Web fallback — gesture-handler RectButton mevcut, ancak eski cihazlarda
-// android_ripple çalışmaz. Pressable koşulsuz import ediliyor sadece tipler için.
-void Pressable; void useColors;
 
 const styles = StyleSheet.create({
   actionRow: { flexDirection: "row" },

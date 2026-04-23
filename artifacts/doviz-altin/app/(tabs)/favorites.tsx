@@ -381,10 +381,19 @@ export default function FavoritesScreen() {
                   {
                     label: "Alarm",
                     icon: "notifications-outline",
-                    color: colors.gold,
+                    color: colors.primary,
                     onPress: () => router.push({
                       pathname: "/alerts",
                       params: { code: item.item.code, type: item.type },
+                    }),
+                  },
+                  {
+                    label: "Portföye Ekle",
+                    icon: "briefcase-outline",
+                    color: colors.rise,
+                    onPress: () => router.push({
+                      pathname: "/(tabs)/portfolio",
+                      params: { addCode: item.item.code, addType: item.type },
                     }),
                   },
                 ]}

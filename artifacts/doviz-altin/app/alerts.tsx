@@ -18,6 +18,7 @@ import { haptics } from "@/lib/haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import type { SmartAlert, AlertGroup } from "@/lib/alertTypes";
+import { SwipeableRow } from "@/components/common/SwipeableRow";
 import { alertKindBadge, alertKindLabel, alertKindShort, isPermanentMute, PERMANENT_MUTE_UNTIL } from "@/lib/alertTypes";
 import { formatAlertRule } from "@/lib/alertFormat";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -368,14 +369,26 @@ export default function AlertsScreen() {
           data={alerts}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <AlertCard
-              alert={item}
-              group={groupOf(item.groupId)}
-              colors={colors}
-              onLongPress={() => openAlertActions(item)}
-              onToggleActive={() => updateAlert(item.id, { active: !item.active })}
-              onDelete={() => confirmDelete(item.id)}
-            />
+            <SwipeableRow
+              rightActions={[
+                {
+                  label: "Sil",
+                  icon: "trash-outline",
+                  color: colors.fall,
+                  destructive: true,
+                  onPress: () => confirmDelete(item.id),
+                },
+              ]}
+            >
+              <AlertCard
+                alert={item}
+                group={groupOf(item.groupId)}
+                colors={colors}
+                onLongPress={() => openAlertActions(item)}
+                onToggleActive={() => updateAlert(item.id, { active: !item.active })}
+                onDelete={() => confirmDelete(item.id)}
+              />
+            </SwipeableRow>
           )}
           ListEmptyComponent={hydrated ? <EmptyAlerts colors={colors} /> : <PriceRowSkeleton count={4} withIcon={false} />}
           contentContainerStyle={[styles.listContent, alerts.length === 0 && { flex: 1 }]}
@@ -386,14 +399,26 @@ export default function AlertsScreen() {
           data={alertGroups}
           keyExtractor={(g) => g.id}
           renderItem={({ item }) => (
-            <GroupCard
-              group={item}
-              alertCount={alertCountByGroup.get(item.id) ?? 0}
-              colors={colors}
-              onToggleMute={() => toggleAlertGroupMute(item.id)}
-              onRename={() => openRenameGroup(item)}
-              onDelete={() => confirmDeleteGroup(item)}
-            />
+            <SwipeableRow
+              rightActions={[
+                {
+                  label: "Sil",
+                  icon: "trash-outline",
+                  color: colors.fall,
+                  destructive: true,
+                  onPress: () => confirmDeleteGroup(item),
+                },
+              ]}
+            >
+              <GroupCard
+                group={item}
+                alertCount={alertCountByGroup.get(item.id) ?? 0}
+                colors={colors}
+                onToggleMute={() => toggleAlertGroupMute(item.id)}
+                onRename={() => openRenameGroup(item)}
+                onDelete={() => confirmDeleteGroup(item)}
+              />
+            </SwipeableRow>
           )}
           ListEmptyComponent={hydrated ? <EmptyGroups colors={colors} onCreate={openCreateGroup} /> : <PriceRowSkeleton count={3} withIcon={false} />}
           ListFooterComponent={

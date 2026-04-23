@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { TextInput, type TextStyle, type StyleProp } from "react-native";
+import { TextInput, type TextStyle, type StyleProp, type TextInputProps } from "react-native";
 import Animated, {
   Easing,
   useAnimatedProps,
@@ -10,6 +10,7 @@ import Animated, {
 // Reanimated pattern: Animated.Text yerine Animated.TextInput kullanılır,
 // çünkü TextInput'un `text` prop'u native tarafta güncellenebilir;
 // Text componentinin böyle bir prop'u yoktur. editable=false ile salt okunur.
+type AnimatedTextProps = TextInputProps & { text?: string };
 const AnimInput = Animated.createAnimatedComponent(TextInput);
 
 interface Props {
@@ -47,9 +48,9 @@ export function AnimatedNumber({
     });
   }, [value, duration, v]);
 
-  const animatedProps = useAnimatedProps(() => {
+  const animatedProps = useAnimatedProps<AnimatedTextProps>(() => {
     const n = v.value;
-    return { text: `${prefix}${formatter(n)}${suffix}`, defaultValue: "" } as unknown as object;
+    return { text: `${prefix}${formatter(n)}${suffix}`, defaultValue: "" };
   });
 
   return (

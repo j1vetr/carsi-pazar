@@ -90,9 +90,16 @@ export default function InboxScreen() {
   }, [reload]);
 
   const onRefresh = useCallback(async () => {
+    haptics.tap();
     setRefreshing(true);
-    await reload();
-    setRefreshing(false);
+    try {
+      await reload();
+      haptics.success();
+    } catch {
+      haptics.error();
+    } finally {
+      setRefreshing(false);
+    }
   }, [reload]);
 
   const onItemPress = useCallback((item: InboxItem) => {

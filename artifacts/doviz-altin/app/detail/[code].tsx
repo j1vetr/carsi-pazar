@@ -18,6 +18,7 @@ import { hasHistorySupport, type HistoryRange } from "@/lib/historyApi";
 import { AddAlertModal } from "@/components/alerts/AddAlertModal";
 import { DetailSkeleton } from "@/components/common/skeletons/DetailSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
+import { AnimatedNumber } from "@/components/common/AnimatedNumber";
 
 const MONO_FONT = Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" });
 
@@ -232,7 +233,9 @@ export default function DetailScreen() {
           >
             {description}
           </Text>
-          <Text
+          <AnimatedNumber
+            value={item.buy}
+            formatter={(n) => symFmt(n)}
             style={{
               fontFamily: MONO_FONT,
               fontSize: 38,
@@ -241,10 +244,9 @@ export default function DetailScreen() {
               marginTop: 18,
               letterSpacing: -1.2,
               lineHeight: 40,
+              padding: 0,
             }}
-          >
-            {symFmt(item.buy)}
-          </Text>
+          />
           <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10, gap: 8 }}>
             <View
               style={{

@@ -76,9 +76,11 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `lib/haptics.ts` — semantik wrapper (`tap`/`select`/`longPress`/`heavy`/`success`/`warning`/`error`); iOS+Android'de aktif, web'de no-op. Doğrudan `expo-haptics` çağrısı yerine bu helper kullanılmalı.
 - `components/common/AnimatedNumber.tsx` — Reanimated count-up; `Animated.TextInput` (editable=false) + `useAnimatedProps({text})` pattern'i. 600ms cubic-out default. Portföy hero'sunda toplam değer için kullanılıyor.
 - `components/common/ActionSheet.tsx` — alttan kayan eylem listesi; FadeIn overlay + SlideInDown sheet, item array (icon/destructive/disabled/hint), 60ms gecikmeli onPress + unmount cleanup.
-- `components/common/PriceRowMenu.tsx` — `ActionSheet` üstüne kurulu satır bağlam menüsü; eylemler: **Favorile/Çıkar · Alarm Kur · Detayı Aç · Karşılaştır · Paylaş** (`Share` API). `(tabs)/index`, `(tabs)/gold`, `(tabs)/favorites` ekranlarına bağlı. Long-press: `ModernPriceRow` ve `PriceCard`'a `onLongPress` prop'u eklendi (350ms delay).
-- `components/common/SwipeableRow.tsx` — `react-native-gesture-handler` Swipeable üzerine wrapper; `leftActions`/`rightActions` (label/icon/color/destructive). Favorites ekranında: sağa kaydır = Çıkar (kırmızı, destructive haptic), sola kaydır = Alarm (gold).
-- Pull-to-refresh: `(tabs)/index`, `(tabs)/gold`, `(tabs)/favorites` — başlangıç `tap`, başarılı `success`, hata `error` haptic. Favorites'e ilk kez RefreshControl eklendi.
+- `components/common/PriceRowMenu.tsx` — `ActionSheet` üstüne kurulu satır bağlam menüsü; eylemler: **Favorile/Çıkar · Alarm Kur · Detayı Aç · Karşılaştırmaya Ekle · Paylaş** (`Share` API). `(tabs)/index`, `(tabs)/gold`, `(tabs)/favorites` ekranlarına bağlı. Long-press: `ModernPriceRow` ve `PriceCard`'a `onLongPress` prop'u eklendi (350ms delay).
+- `components/common/SwipeableRow.tsx` — `react-native-gesture-handler` Swipeable üzerine wrapper; `leftActions`/`rightActions` (label/icon/color/destructive). Tüm aksiyonlar `accessibilityActions` olarak da expose edilir (TalkBack/VoiceOver). Kullanım: index/gold satırları → 3 sol-aksiyon (Favori/Alarm/Portföye Ekle) `lib/swipeActions.ts:symbolLeftActions` helper ile. Favorites → sağ Çıkar + sol Alarm/Portföye Ekle. Alerts ve Portfolio holdings → sağ Sil (destructive, confirm).
+- `lib/swipeActions.ts` — symbol satırı için paylaşılan sol-swipe action factory; "Portföye Ekle" → `/(tabs)/portfolio?addCode=X&addType=...` deep-link. Portfolio screen useEffect ile param'ları yakalayıp tx modal'ını kilitli kod ile açar.
+- Pull-to-refresh: `(tabs)/index`, `(tabs)/gold`, `(tabs)/favorites`, `inbox` — başlangıç `tap`, başarılı `success`, hata `error` haptic.
+- `app/detail/[code].tsx` — başlık fiyatı `AnimatedNumber` ile count-up.
 - Fiyat flash (`ModernPriceRow` + `PriceCard`): 140ms ramp 0.12 opacity + 660ms decay = 800ms toplam (önceki 720ms × 0.06-0.07'den güçlendi).
 
 **Backend haberler:**

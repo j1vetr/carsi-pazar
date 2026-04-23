@@ -63,7 +63,7 @@ export function PriceRowMenu({ item, type, visible, onClose }: Props) {
       },
       {
         key: "compare",
-        label: "Karşılaştır",
+        label: "Karşılaştırmaya Ekle",
         icon: "swap-horizontal",
         onPress: () => {
           router.push({

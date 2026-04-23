@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Platform,
@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
 import { Modal } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { SwipeableRow } from "@/components/common/SwipeableRow";
 import { haptics } from "@/lib/haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/components/Icon";
@@ -81,6 +82,19 @@ export default function PortfolioScreen() {
     type: "currency" | "gold";
   } | null>(null);
   const [addMenuVisible, setAddMenuVisible] = useState(false);
+
+  // Symbol satırından "Portföye Ekle" swipe → /(tabs)/portfolio?addCode=USD&addType=currency
+  // ile gelen request'i yakalar, tx modal'ını kilitli kod ile açar.
+  const params = useLocalSearchParams<{ addCode?: string; addType?: string }>();
+  useEffect(() => {
+    const code = typeof params.addCode === "string" ? params.addCode : undefined;
+    const t = typeof params.addType === "string" ? params.addType : undefined;
+    if (code && (t === "currency" || t === "gold")) {
+      setTxInitial({ side: "buy", code, type: t });
+      setTxVisible(true);
+      router.setParams({ addCode: undefined, addType: undefined } as never);
+    }
+  }, [params.addCode, params.addType]);
 
   const allRates = useMemo(() => {
     const out: Record<string, { buy: number; prevClose?: number; group?: string }> = {};
@@ -297,20 +311,44 @@ export default function PortfolioScreen() {
               </Text>
             </View>
             {holdings.map((h, i) => (
-              <HoldingCard
+              <SwipeableRow
                 key={`${h.type}:${h.code}`}
-                holding={h}
-                index={i}
-                expanded={expanded === `${h.type}:${h.code}`}
-                onToggle={() =>
-                  setExpanded((cur) =>
-                    cur === `${h.type}:${h.code}` ? null : `${h.type}:${h.code}`,
-                  )
-                }
-                onLongPress={() => openSheet(h.code, h.type)}
-                onRemoveTx={handleRemoveTx}
-                sparklineData={getPriceHistory(h.code)}
-              />
+                rightActions={[
+                  {
+                    label: "Sil",
+                    icon: "trash-outline",
+                    color: colors.fall,
+                    destructive: true,
+                    onPress: () =>
+                      Alert.alert(
+                        "Varlığı Sil",
+                        `${h.code} için tüm işlemler silinsin mi?`,
+                        [
+                          { text: "Vazgeç", style: "cancel" },
+                          {
+                            text: "Sil",
+                            style: "destructive",
+                            onPress: () => void removeAllByAsset(h.code, h.type),
+                          },
+                        ],
+                      ),
+                  },
+                ]}
+              >
+                <HoldingCard
+                  holding={h}
+                  index={i}
+                  expanded={expanded === `${h.type}:${h.code}`}
+                  onToggle={() =>
+                    setExpanded((cur) =>
+                      cur === `${h.type}:${h.code}` ? null : `${h.type}:${h.code}`,
+                    )
+                  }
+                  onLongPress={() => openSheet(h.code, h.type)}
+                  onRemoveTx={handleRemoveTx}
+                  sparklineData={getPriceHistory(h.code)}
+                />
+              </SwipeableRow>
             ))}
           </View>
         </Animated.ScrollView>

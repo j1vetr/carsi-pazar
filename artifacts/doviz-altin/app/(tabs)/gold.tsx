@@ -18,6 +18,8 @@ import { useApp, GoldRate } from "@/contexts/AppContext";
 import { PriceRowMenu } from "@/components/common/PriceRowMenu";
 import { MinimalTopBar } from "@/components/MinimalTopBar";
 import { ModernPriceRow, ModernTableHeader } from "@/components/ModernPriceRow";
+import { SwipeableRow } from "@/components/common/SwipeableRow";
+import { symbolLeftActions } from "@/lib/swipeActions";
 import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -266,16 +268,26 @@ export default function GoldScreen() {
           const isSarrafiye = section.title === "Sarrafiye Altın";
           const badge = isSarrafiye ? (emission === "yeni" ? "YENİ" : "ESKİ") : undefined;
           return (
-            <ModernPriceRow
-              item={item}
-              type="gold"
-              badge={badge}
-              nameFirst
-              isFavorite={favorites.includes(item.code)}
-              onFavoriteToggle={() => toggleFavorite(item.code)}
-              onLongPress={() => setMenuItem(item)}
-              onPress={() => router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "gold" } })}
-            />
+            <SwipeableRow
+              leftActions={symbolLeftActions({
+                item,
+                type: "gold",
+                isFavorite: favorites.includes(item.code),
+                toggleFavorite,
+                colors,
+              })}
+            >
+              <ModernPriceRow
+                item={item}
+                type="gold"
+                badge={badge}
+                nameFirst
+                isFavorite={favorites.includes(item.code)}
+                onFavoriteToggle={() => toggleFavorite(item.code)}
+                onLongPress={() => setMenuItem(item)}
+                onPress={() => router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "gold" } })}
+              />
+            </SwipeableRow>
           );
         }}
         ListEmptyComponent={
