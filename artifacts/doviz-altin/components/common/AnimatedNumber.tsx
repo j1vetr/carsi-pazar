@@ -1,17 +1,5 @@
-import React, { useEffect } from "react";
-import { TextInput, type TextStyle, type StyleProp, type TextInputProps } from "react-native";
-import Animated, {
-  Easing,
-  useAnimatedProps,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
-
-// Reanimated pattern: Animated.Text yerine Animated.TextInput kullanılır,
-// çünkü TextInput'un `text` prop'u native tarafta güncellenebilir;
-// Text componentinin böyle bir prop'u yoktur. editable=false ile salt okunur.
-type AnimatedTextProps = TextInputProps & { text?: string };
-const AnimInput = Animated.createAnimatedComponent(TextInput);
+import React, { useEffect, useRef, useState } from "react";
+import { Text, type TextStyle, type StyleProp } from "react-native";
 
 interface Props {
   value: number;
@@ -26,9 +14,14 @@ interface Props {
 const defaultFmt = (n: number) =>
   n.toLocaleString("tr-TR", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
 /**
  * Sayıyı eski değerden yeniye yumuşak count-up ile geçirir.
- * Reanimated worklet üzerinde animasyon koşar; ana thread bloklamaz.
+ * JS thread üzerinde requestAnimationFrame ile çalışır; Reanimated worklet
+ * kullanmaz çünkü `toLocaleString` Hermes UI runtime'ında yok ve worklet
+ * içinden normal JS fonksiyonu çağrısı (formatter) "Object is not a function"
+ * hatasına yol açar.
  */
 export function AnimatedNumber({
   value,
@@ -39,30 +32,50 @@ export function AnimatedNumber({
   style,
   accessibilityLabel,
 }: Props) {
-  const v = useSharedValue(value);
+  const [display, setDisplay] = useState<number>(value);
+  const fromRef = useRef<number>(value);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    v.value = withTiming(value, {
-      duration,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, [value, duration, v]);
+    const from = fromRef.current;
+    const to = value;
+    if (from === to) return;
 
-  const animatedProps = useAnimatedProps<AnimatedTextProps>(() => {
-    const n = v.value;
-    return { text: `${prefix}${formatter(n)}${suffix}`, defaultValue: "" };
-  });
+    const start = Date.now();
+    const tick = () => {
+      const elapsed = Date.now() - start;
+      const t = Math.min(1, elapsed / Math.max(1, duration));
+      const eased = easeOutCubic(t);
+      const next = from + (to - from) * eased;
+      setDisplay(next);
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        fromRef.current = to;
+        rafRef.current = null;
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (rafRef.current != null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      fromRef.current = value;
+    };
+  }, [value, duration]);
+
+  let text: string;
+  try {
+    text = `${prefix}${formatter(display)}${suffix}`;
+  } catch {
+    text = `${prefix}${display}${suffix}`;
+  }
 
   return (
-    <AnimInput
-      editable={false}
-      pointerEvents="none"
-      underlineColorAndroid="transparent"
-      style={[{ padding: 0, margin: 0 }, style]}
-      // Fallback / ilk render
-      defaultValue={`${prefix}${formatter(value)}${suffix}`}
-      animatedProps={animatedProps}
-      accessibilityLabel={accessibilityLabel}
-    />
+    <Text style={style} accessibilityLabel={accessibilityLabel}>
+      {text}
+    </Text>
   );
 }

@@ -1,0 +1,66 @@
+C:\platform-tools>adb logcat *:S ReactNativeJS:V ReactNative:V AndroidRuntime:E "*:F" \
+--------- beginning of main
+04-24 00:25:53.090 30057 30092 I ReactNativeJS: [CARSI-WIDGET] handler registered at bundle boot
+04-24 00:25:53.112 30057 30092 I ReactNativeJS: Running "main"
+04-24 00:25:53.467 30057 30057 I ReactNative: [GESTURE HANDLER] Initialize gesture handler for root view com.facebook.react.runtime.ReactSurfaceView{e123ecf V.E...... ......ID 0,0-1080,2340 #1}
+04-24 00:25:53.926 30057 30092 I ReactNativeJS: [CARSI-WIDGET] refresh: no widgets on home screen
+04-24 00:25:53.926 30057 30092 I ReactNativeJS: [CARSI-WIDGET] refresh OK field=sell rows=4 err=-
+--------- beginning of crash
+04-24 00:25:57.482 30057 30057 E AndroidRuntime: FATAL EXCEPTION: main
+04-24 00:25:57.482 30057 30057 E AndroidRuntime: Process: com.toov1.dovizaltin, PID: 30057
+04-24 00:25:57.482 30057 30057 E AndroidRuntime: com.facebook.jni.CppException: Object is not a function
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:
+04-24 00:25:57.482 30057 30057 E AndroidRuntime: TypeError: Object is not a function
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:     at AnimatedNumberTsx1 (:1:127)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:     at styleUpdater_Pnpm_useAnimatedStyleTs3 (:1:502)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:     at pnpm_useAnimatedStyleTs7 (:1:179)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:     at mapperRun (:1:1060)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:     at anonymous (:1:402)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:     at callMicrotasksOnUIThread_Pnpm_threadsTs2 (:1:77)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:     at pnpm_threadsTs10 (:1:252)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at com.swmansion.worklets.AndroidUIScheduler.triggerUI(Native Method)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at com.swmansion.worklets.AndroidUIScheduler.lambda$new$0(AndroidUIScheduler.java:27)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at com.swmansion.worklets.AndroidUIScheduler.$r8$lambda$Owjjhl033zNSHsU6ZfWQNbZEGbI(Unknown Source:0)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at com.swmansion.worklets.AndroidUIScheduler$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at com.swmansion.worklets.AndroidUIScheduler$1.runGuarded(AndroidUIScheduler.java:49)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at com.facebook.react.bridge.GuardedRunnable.run(GuardedRunnable.kt:19)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at android.os.Handler.handleCallback(Handler.java:995)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at android.os.Handler.dispatchMessage(Handler.java:103)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at android.os.Looper.loopOnce(Looper.java:273)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at android.os.Looper.loop(Looper.java:363)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at android.app.ActivityThread.main(ActivityThread.java:10060)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at java.lang.reflect.Method.invoke(Native Method)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:632)
+04-24 00:25:57.482 30057 30057 E AndroidRuntime:        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:975)
+04-24 00:25:59.799 30252 30292 I ReactNativeJS: [CARSI-WIDGET] handler registered at bundle boot
+04-24 00:25:59.819 30252 30292 I ReactNativeJS: Running "main"
+04-24 00:26:00.192 30252 30252 I ReactNative: [GESTURE HANDLER] Initialize gesture handler for root view com.facebook.react.runtime.ReactSurfaceView{e123ecf V.E...... ......ID 0,0-1080,2340 #1}
+04-24 00:26:00.449 30252 30292 I ReactNativeJS: [CARSI-WIDGET] refresh: no widgets on home screen
+04-24 00:26:00.449 30252 30292 I ReactNativeJS: [CARSI-WIDGET] refresh OK field=sell rows=4 err=-
+04-24 00:26:03.350 30252 30252 E AndroidRuntime: FATAL EXCEPTION: main
+04-24 00:26:03.350 30252 30252 E AndroidRuntime: Process: com.toov1.dovizaltin, PID: 30252
+04-24 00:26:03.350 30252 30252 E AndroidRuntime: com.facebook.jni.CppException: Object is not a function
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:
+04-24 00:26:03.350 30252 30252 E AndroidRuntime: TypeError: Object is not a function
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:     at AnimatedNumberTsx1 (:1:127)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:     at styleUpdater_Pnpm_useAnimatedStyleTs3 (:1:502)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:     at pnpm_useAnimatedStyleTs7 (:1:179)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:     at mapperRun (:1:1060)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:     at anonymous (:1:402)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:     at callMicrotasksOnUIThread_Pnpm_threadsTs2 (:1:77)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:     at pnpm_threadsTs10 (:1:252)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at com.swmansion.worklets.AndroidUIScheduler.triggerUI(Native Method)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at com.swmansion.worklets.AndroidUIScheduler.lambda$new$0(AndroidUIScheduler.java:27)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at com.swmansion.worklets.AndroidUIScheduler.$r8$lambda$Owjjhl033zNSHsU6ZfWQNbZEGbI(Unknown Source:0)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at com.swmansion.worklets.AndroidUIScheduler$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at com.swmansion.worklets.AndroidUIScheduler$1.runGuarded(AndroidUIScheduler.java:49)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at com.facebook.react.bridge.GuardedRunnable.run(GuardedRunnable.kt:19)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at android.os.Handler.handleCallback(Handler.java:995)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at android.os.Handler.dispatchMessage(Handler.java:103)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at android.os.Looper.loopOnce(Looper.java:273)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at android.os.Looper.loop(Looper.java:363)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at android.app.ActivityThread.main(ActivityThread.java:10060)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at java.lang.reflect.Method.invoke(Native Method)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:632)
+04-24 00:26:03.350 30252 30252 E AndroidRuntime:        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:975)
+^C
