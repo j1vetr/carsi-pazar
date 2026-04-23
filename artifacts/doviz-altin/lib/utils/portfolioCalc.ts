@@ -79,7 +79,7 @@ export function aggregateHoldings(
   const out: Holding[] = [];
   for (const [key, txs] of groups) {
     txs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const first = txs[0];
+    const first = txs[0]!;
 
     let amount = 0;
     let cost = 0;

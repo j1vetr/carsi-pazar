@@ -536,7 +536,7 @@ export default function Onboarding() {
     [active]
   );
 
-  const slide = SLIDES[active];
+  const slide = SLIDES[active]!;
 
   return (
     <View style={{ flex: 1, backgroundColor: C.paper }}>

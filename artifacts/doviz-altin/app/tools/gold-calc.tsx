@@ -63,7 +63,7 @@ export default function GoldCalcScreen() {
     return Number.isFinite(n) && n > 0 ? n : 0;
   }, [weightStr]);
 
-  const karat = KARATS[karatIdx];
+  const karat = KARATS[karatIdx] ?? KARATS[0]!;
 
   // Source prices
   const altinGram = goldGram.find((g) => g.code === "ALTIN");

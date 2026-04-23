@@ -23,6 +23,8 @@ describe("aggregateHoldings", () => {
     ];
     const rate = () => ({ buy: 45, prevClose: 44 });
     const [h] = aggregateHoldings(items, rate);
+    expect(h).toBeDefined();
+    if (!h) return;
     expect(h.amount).toBe(15);
     // ortalama maliyet 35; 5 birim 50'den satıldı → 75 realized
     expect(h.realized).toBeCloseTo(75, 5);
@@ -37,6 +39,8 @@ describe("aggregateHoldings", () => {
       item({ side: "sell", amount: 10, purchasePrice: 40, purchaseDate: "2025-02-01" }),
     ];
     const [h] = aggregateHoldings(items, () => ({ buy: 35 }));
+    expect(h).toBeDefined();
+    if (!h) return;
     expect(h.amount).toBe(0);
     expect(h.costBasis).toBe(0);
     // 5 birim 30 maliyetten 40'a satıldı → 50 realized

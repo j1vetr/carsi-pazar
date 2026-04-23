@@ -246,8 +246,8 @@ export default function CompareScreen() {
                   key={`${x}-${y}`}
                   onPress={() => {
                     Haptics.selectionAsync().catch(() => {});
-                    setACode(x);
-                    setBCode(y);
+                    setACode(x ?? null);
+                    setBCode(y ?? null);
                   }}
                   style={({ pressed }) => [{
                     paddingHorizontal: 12, paddingVertical: 8,

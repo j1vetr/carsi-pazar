@@ -46,7 +46,7 @@ export function PortfolioTimeChart({
   const series = useMemo(() => {
     const base = sliceForRange(snapshots, range);
     if (base.length === 0) return [];
-    const last = base[base.length - 1];
+    const last = base[base.length - 1]!;
     const today = new Date().toISOString().slice(0, 10);
     if (last.d !== today) {
       return [...base, { d: today, v: currentValue, c: last.c }];
@@ -66,12 +66,12 @@ export function PortfolioTimeChart({
     const toX = (i: number) => PAD.left + i * xStep;
     const toY = (p: number) => PAD.top + cH - ((p - minP) / spread) * cH;
 
-    let d = `M ${toX(0)} ${toY(values[0])}`;
+    let d = `M ${toX(0)} ${toY(values[0]!)}`;
     for (let i = 1; i < values.length; i++) {
       const x = toX(i);
-      const y = toY(values[i]);
+      const y = toY(values[i]!);
       const prevX = toX(i - 1);
-      const prevY = toY(values[i - 1]);
+      const prevY = toY(values[i - 1]!);
       const cpX = (prevX + x) / 2;
       d += ` C ${cpX} ${prevY} ${cpX} ${y} ${x} ${y}`;
     }
@@ -81,14 +81,14 @@ export function PortfolioTimeChart({
     return {
       path: d,
       fill: fillD,
-      first: values[0],
-      last: values[values.length - 1],
+      first: values[0]!,
+      last: values[values.length - 1]!,
       hi: maxP,
       lo: minP,
       lastX,
-      lastY: toY(values[values.length - 1]),
-      firstDate: series[0].d,
-      lastDate: series[series.length - 1].d,
+      lastY: toY(values[values.length - 1]!),
+      firstDate: series[0]!.d,
+      lastDate: series[series.length - 1]!.d,
     };
   }, [series]);
 

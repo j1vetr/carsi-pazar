@@ -23,6 +23,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as Notifications from "expo-notifications";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { initSentry, reportError } from "@/lib/monitoring/sentry";
 import { MenuDrawer } from "@/components/MenuDrawer";
 import { OfflineBanner } from "@/components/common/OfflineBanner";
 import { AppProvider } from "@/contexts/AppContext";
@@ -33,6 +34,8 @@ import { isOnboardingSeen } from "@/lib/storage/onboardingPref";
 import { loadStartupTab, routeForStartupTab } from "@/lib/storage/startupPref";
 import { registerWidgetBackgroundTask } from "@/lib/widget/widgetBackgroundTask";
 import { refreshPriceWidget } from "@/widgets/refresh";
+
+initSentry();
 
 SplashScreen.preventAutoHideAsync();
 
@@ -146,7 +149,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ErrorBoundary>
+      <ErrorBoundary onError={reportError}>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
           <AppProvider>

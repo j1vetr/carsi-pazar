@@ -288,7 +288,7 @@ function WidgetPreview({
 
   const rows: PreviewRow[] = codes.slice(0, 4).map((code, i) => {
     const meta = SYMBOL_REGISTRY.find((m) => m.code === code);
-    const sample = SAMPLE_ROWS[i] ?? SAMPLE_ROWS[0];
+    const sample = (SAMPLE_ROWS[i] ?? SAMPLE_ROWS[0])!;
     return { ...sample, label: meta?.code ?? code };
   });
 
@@ -328,7 +328,7 @@ function WidgetPreview({
             <PreviewCell
               key={`${row.label}-${i}`}
               row={row}
-              tint={pal.tints[i] ?? pal.tints[0]}
+              tint={(pal.tints[i] ?? pal.tints[0])!}
               pal={pal}
               isFirst={i === 0}
               priceField={priceField}

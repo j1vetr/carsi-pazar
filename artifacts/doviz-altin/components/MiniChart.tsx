@@ -25,12 +25,12 @@ export function MiniChart({ data, width = 80, height = 36, positive }: MiniChart
     const xStep = width / (prices.length - 1);
     const toY = (p: number) => height - ((p - minP) / range) * height * 0.85 - height * 0.075;
 
-    let d = `M 0 ${toY(prices[0])}`;
+    let d = `M 0 ${toY(prices[0]!)}`;
     for (let i = 1; i < prices.length; i++) {
       const x = i * xStep;
-      const y = toY(prices[i]);
+      const y = toY(prices[i]!);
       const prevX = (i - 1) * xStep;
-      const prevY = toY(prices[i - 1]);
+      const prevY = toY(prices[i - 1]!);
       const cpX = (prevX + x) / 2;
       d += ` C ${cpX} ${prevY} ${cpX} ${y} ${x} ${y}`;
     }
@@ -39,7 +39,7 @@ export function MiniChart({ data, width = 80, height = 36, positive }: MiniChart
     return { path: d, fillPath: fillD };
   }, [data, width, height]);
 
-  const isPositive = positive ?? (data.length > 1 && data[data.length - 1].close >= data[0].close);
+  const isPositive = positive ?? (data.length > 1 && data[data.length - 1]!.close >= data[0]!.close);
   const color = isPositive ? colors.rise : colors.fall;
   const gradientId = `grad_${Math.random().toString(36).substr(2, 6)}`;
 

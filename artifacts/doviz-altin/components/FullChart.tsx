@@ -33,12 +33,12 @@ export function FullChart({ data, period, onPeriodChange, currentPrice }: FullCh
     const toX = (i: number) => PAD.left + i * xStep;
     const toY = (p: number) => PAD.top + cH - ((p - minP) / range) * cH;
 
-    let pathD = `M ${toX(0)} ${toY(prices[0])}`;
+    let pathD = `M ${toX(0)} ${toY(prices[0]!)}`;
     for (let i = 1; i < prices.length; i++) {
       const x = toX(i);
-      const y = toY(prices[i]);
+      const y = toY(prices[i]!);
       const prevX = toX(i - 1);
-      const prevY = toY(prices[i - 1]);
+      const prevY = toY(prices[i - 1]!);
       const cpX = (prevX + x) / 2;
       pathD += ` C ${cpX} ${prevY} ${cpX} ${y} ${x} ${y}`;
     }
@@ -57,11 +57,11 @@ export function FullChart({ data, period, onPeriodChange, currentPrice }: FullCh
 
     const labelIndices = [0, Math.floor(prices.length / 4), Math.floor(prices.length / 2), Math.floor((3 * prices.length) / 4), prices.length - 1];
     const labels = labelIndices.map((idx) => {
-      const d = data[idx];
+      const d = data[idx]!;
       const date = new Date(d.time);
       let label = "";
       if (period === "1D") label = date.getHours() + ":00";
-      else if (period === "1W") label = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"][date.getDay()];
+      else if (period === "1W") label = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"][date.getDay()] ?? "";
       else label = date.getDate() + "/" + (date.getMonth() + 1);
       return { x: toX(idx), label };
     });
@@ -69,11 +69,11 @@ export function FullChart({ data, period, onPeriodChange, currentPrice }: FullCh
     return { path: pathD, fillPath: fillPathD, gridLines, labels };
   }, [data, period]);
 
-  const isPositive = data.length > 1 && data[data.length - 1].close >= data[0].close;
+  const isPositive = data.length > 1 && data[data.length - 1]!.close >= data[0]!.close;
   const color = isPositive ? colors.rise : colors.fall;
   const changePercent =
     data.length > 1
-      ? ((data[data.length - 1].close - data[0].close) / data[0].close) * 100
+      ? ((data[data.length - 1]!.close - data[0]!.close) / data[0]!.close) * 100
       : 0;
 
   const styles = StyleSheet.create({
@@ -196,11 +196,11 @@ export function FullChart({ data, period, onPeriodChange, currentPrice }: FullCh
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>AÇILIŞ</Text>
               <Text style={styles.statValue}>
-                {data[0].close >= 1000
-                  ? data[0].close.toFixed(0)
-                  : data[0].close >= 10
-                  ? data[0].close.toFixed(2)
-                  : data[0].close.toFixed(4)}
+                {data[0]!.close >= 1000
+                  ? data[0]!.close.toFixed(0)
+                  : data[0]!.close >= 10
+                  ? data[0]!.close.toFixed(2)
+                  : data[0]!.close.toFixed(4)}
               </Text>
             </View>
             <View style={styles.statItem}>

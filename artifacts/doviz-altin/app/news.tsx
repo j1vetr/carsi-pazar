@@ -58,7 +58,7 @@ const SOURCE_PALETTE = [
 function colorForSource(src: string): string {
   let h = 0;
   for (let i = 0; i < src.length; i++) h = (h * 31 + src.charCodeAt(i)) | 0;
-  return SOURCE_PALETTE[Math.abs(h) % SOURCE_PALETTE.length];
+  return SOURCE_PALETTE[Math.abs(h) % SOURCE_PALETTE.length] ?? SOURCE_PALETTE[0]!;
 }
 
 function openUrl(url: string) {

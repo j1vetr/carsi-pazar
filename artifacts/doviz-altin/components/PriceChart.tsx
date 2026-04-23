@@ -69,12 +69,12 @@ export function PriceChart({ data, range, loading, error }: PriceChartProps) {
     const toX = (i: number) => PAD.left + i * xStep;
     const toY = (p: number) => PAD.top + cH - ((p - minP) / range_) * cH;
 
-    let pathD = `M ${toX(0)} ${toY(prices[0])}`;
+    let pathD = `M ${toX(0)} ${toY(prices[0]!)}`;
     for (let i = 1; i < prices.length; i++) {
       const x = toX(i);
-      const y = toY(prices[i]);
+      const y = toY(prices[i]!);
       const prevX = toX(i - 1);
-      const prevY = toY(prices[i - 1]);
+      const prevY = toY(prices[i - 1]!);
       const cpX = (prevX + x) / 2;
       pathD += ` C ${cpX} ${prevY} ${cpX} ${y} ${x} ${y}`;
     }

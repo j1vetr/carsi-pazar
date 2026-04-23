@@ -48,12 +48,12 @@ function Sparkline({
     const range = maxP - minP || 1;
     const xStep = width / (prices.length - 1);
     const toY = (p: number) => height - ((p - minP) / range) * height * 0.88 - height * 0.06;
-    let d = `M 0 ${toY(prices[0])}`;
+    let d = `M 0 ${toY(prices[0]!)}`;
     for (let i = 1; i < prices.length; i++) {
       const x = i * xStep;
-      const y = toY(prices[i]);
+      const y = toY(prices[i]!);
       const prevX = (i - 1) * xStep;
-      const prevY = toY(prices[i - 1]);
+      const prevY = toY(prices[i - 1]!);
       const cpX = (prevX + x) / 2;
       d += ` C ${cpX} ${prevY} ${cpX} ${y} ${x} ${y}`;
     }

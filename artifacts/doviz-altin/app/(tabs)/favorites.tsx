@@ -118,8 +118,8 @@ export default function FavoritesScreen() {
       return { avgChange: 0, topGainer: null as (CurrencyRate | GoldRate) | null, topLoser: null as (CurrencyRate | GoldRate) | null };
     }
     let sum = 0;
-    let topGainer = all[0];
-    let topLoser = all[0];
+    let topGainer = all[0]!;
+    let topLoser = all[0]!;
     for (const r of all) {
       sum += r.changePercent;
       if (r.changePercent > topGainer.changePercent) topGainer = r;

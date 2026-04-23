@@ -384,7 +384,7 @@ export default function TransactionsScreen() {
                               letterSpacing: -0.1,
                             }}
                           >
-                            {fmtAmount(tx.amount)} · ₺{fmtPrice(tx.purchasePrice)} · {d.getDate()} {MONTHS_TR[d.getMonth()].slice(0, 3)}
+                            {fmtAmount(tx.amount)} · ₺{fmtPrice(tx.purchasePrice)} · {d.getDate()} {(MONTHS_TR[d.getMonth()] ?? "").slice(0, 3)}
                           </Text>
                         </View>
                         <Text

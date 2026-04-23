@@ -83,7 +83,7 @@ export function formatAlertPreview(alert: SmartAlert, currentPrice: number, hist
     case "percent": {
       if (history.length === 0) return "Yeterli geçmiş veri toplanınca değerlendirilecek.";
       const target = Date.now() - alert.windowHours * 60 * 60 * 1000;
-      let best = history[0];
+      let best = history[0]!;
       let bestDist = Math.abs(best.t - target);
       for (const p of history) {
         const d = Math.abs(p.t - target);

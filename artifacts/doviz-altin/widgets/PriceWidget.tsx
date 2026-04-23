@@ -316,7 +316,7 @@ function PulseView({
               width={cellW}
               height={innerH}
               isFirst={i === 0}
-              tint={theme.tints[i] ?? theme.tints[0]}
+              tint={(theme.tints[i] ?? theme.tints[0])!}
               priceField={priceField}
             />
           ))}

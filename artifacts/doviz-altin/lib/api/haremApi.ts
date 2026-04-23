@@ -287,8 +287,8 @@ export function groupByCategory(rates: AssetRate[]): Record<AssetCategory, Asset
 export function groupByGroup(rates: AssetRate[]): Record<AssetGroup, AssetRate[]> {
   const result: Record<string, AssetRate[]> = {};
   rates.forEach((r) => {
-    if (!result[r.meta.group]) result[r.meta.group] = [];
-    result[r.meta.group].push(r);
+    const list = result[r.meta.group] ?? (result[r.meta.group] = []);
+    list.push(r);
   });
   return result as Record<AssetGroup, AssetRate[]>;
 }

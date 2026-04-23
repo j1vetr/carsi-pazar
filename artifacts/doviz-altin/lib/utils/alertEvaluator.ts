@@ -30,8 +30,8 @@ function isInWindow(win: AlertWindow | undefined, now: number): boolean {
   if (!win) return true;
   const d = new Date(now);
   const mins = d.getHours() * 60 + d.getMinutes();
-  const [sh, sm] = win.start.split(":").map(Number);
-  const [eh, em] = win.end.split(":").map(Number);
+  const [sh = NaN, sm = NaN] = win.start.split(":").map(Number);
+  const [eh = NaN, em = NaN] = win.end.split(":").map(Number);
   if ([sh, sm, eh, em].some((n) => !Number.isFinite(n))) return true;
   const startM = sh * 60 + sm;
   const endM = eh * 60 + em;
@@ -43,12 +43,13 @@ function isInWindow(win: AlertWindow | undefined, now: number): boolean {
 function findPointNearAge(history: PricePoint[], ageMs: number, now: number): PricePoint | null {
   if (!history || history.length === 0) return null;
   const target = now - ageMs;
-  let best = history[0];
+  let best = history[0]!;
   let bestDist = Math.abs(best.t - target);
   for (let i = 1; i < history.length; i++) {
-    const d = Math.abs(history[i].t - target);
+    const cur = history[i]!;
+    const d = Math.abs(cur.t - target);
     if (d < bestDist) {
-      best = history[i];
+      best = cur;
       bestDist = d;
     }
   }
@@ -105,8 +106,8 @@ export function evaluateTrendAlert(
   let up = 0;
   let down = 0;
   for (let i = 1; i < closes.length; i++) {
-    const prev = closes[i - 1];
-    const cur = closes[i];
+    const prev = closes[i - 1]!;
+    const cur = closes[i]!;
     if (cur > prev) up++;
     else if (cur < prev) down++;
   }
@@ -129,8 +130,8 @@ export function evaluateVolatilityAlert(
   if (closes.length < 3) return { trigger: false };
   const absMoves: number[] = [];
   for (let i = 1; i < closes.length - 1; i++) {
-    const prev = closes[i - 1];
-    const cur = closes[i];
+    const prev = closes[i - 1]!;
+    const cur = closes[i]!;
     if (prev > 0) absMoves.push(Math.abs((cur - prev) / prev) * 100);
   }
   if (absMoves.length === 0) return { trigger: false };

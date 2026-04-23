@@ -234,7 +234,7 @@ function generateHistoricalData(
     price = close;
   }
 
-  if (data.length > 0) data[data.length - 1].close = basePrice;
+  if (data.length > 0) data[data.length - 1]!.close = basePrice;
   return data;
 }
 
@@ -338,12 +338,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const target = now - TARGET_AGE_MS;
     for (const [code, arr] of Object.entries(priceHistoryRef.current)) {
       if (!arr || arr.length === 0) continue;
-      let best = arr[0];
+      let best = arr[0]!;
       let bestDist = Math.abs(best.t - target);
       for (let i = 1; i < arr.length; i++) {
-        const d = Math.abs(arr[i].t - target);
+        const cur = arr[i]!;
+        const d = Math.abs(cur.t - target);
         if (d < bestDist) {
-          best = arr[i];
+          best = cur;
           bestDist = d;
         }
       }
@@ -376,14 +377,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     let snapshotAdded = false;
     newRates.forEach((r) => {
       const arr = priceHistoryRef.current[r.meta.code] ?? [];
-      const lastT = arr.length > 0 ? arr[arr.length - 1].t : 0;
+      const lastT = arr.length > 0 ? arr[arr.length - 1]!.t : 0;
       if (now - lastT >= SNAPSHOT_INTERVAL_MS) {
         arr.push({ t: now, buy: r.buy, sell: r.sell });
         snapshotAdded = true;
       }
       const cutoff = now - HISTORY_MAX_AGE_MS;
       const trimmed = arr.filter((s) => s.t >= cutoff);
-      priceHistoryRef.current[r.meta.code] = trimmed.length > 0 ? trimmed : [arr[arr.length - 1]];
+      const fallback = arr[arr.length - 1];
+      priceHistoryRef.current[r.meta.code] = trimmed.length > 0 ? trimmed : (fallback ? [fallback] : []);
     });
 
     if (snapshotAdded && now - lastSnapshotPersistRef.current > PERSIST_THROTTLE_MS) {
