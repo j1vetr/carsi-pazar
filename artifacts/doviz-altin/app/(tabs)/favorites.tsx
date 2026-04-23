@@ -21,6 +21,7 @@ import { PriceCard } from "@/components/PriceCard";
 import { useColors } from "@/hooks/useColors";
 import { useApp, CurrencyRate, GoldRate } from "@/contexts/AppContext";
 import { EmptyState } from "@/components/common/EmptyState";
+import { PriceCardSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type FavRow =
@@ -53,6 +54,7 @@ export default function FavoritesScreen() {
   const {
     favorites, toggleFavorite,
     currencies, parities, currencyParities, goldRates, banks,
+    lastUpdated,
   } = useApp();
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
@@ -369,7 +371,13 @@ export default function FavoritesScreen() {
             </>
           ) : null
         }
-        ListEmptyComponent={favorites.length === 0 ? <EmptyFavorites colors={colors} /> : null}
+        ListEmptyComponent={
+          favorites.length === 0
+            ? <EmptyFavorites colors={colors} />
+            : (currencies.length === 0 && goldRates.length === 0 && lastUpdated === null)
+              ? <View style={{ paddingTop: 8 }}><PriceCardSkeleton count={Math.min(favorites.length, 6)} /></View>
+              : null
+        }
         ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
         ListFooterComponent={
           totalCount > 0 ? (

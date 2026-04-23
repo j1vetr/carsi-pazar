@@ -9,6 +9,7 @@ import { AssetIcon } from "@/components/AssetIcon";
 import { useColors } from "@/hooks/useColors";
 import { useApp, type PortfolioItem } from "@/contexts/AppContext";
 import { formatSymbolName } from "@/lib/symbolDescriptions";
+import { EmptyState } from "@/components/common/EmptyState";
 
 const fmtTL = (v: number) =>
   v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -278,21 +279,16 @@ export default function TransactionsScreen() {
         ) : null}
 
         {grouped.length === 0 ? (
-          <View style={{ paddingVertical: 60, alignItems: "center" }}>
-            <Icon name="briefcase-outline" size={36} color={colors.mutedForeground} />
-            <Text
-              style={{
-                fontSize: 14,
-                fontFamily: "Inter_500Medium",
-                color: colors.mutedForeground,
-                marginTop: 12,
-              }}
-            >
-              {portfolio.length === 0
-                ? "Henüz hiç işlem yok."
-                : "Bu filtreyle eşleşen işlem yok."}
-            </Text>
-          </View>
+          <EmptyState
+            icon={portfolio.length === 0 ? "briefcase-outline" : "search"}
+            title={portfolio.length === 0 ? "Henüz İşlem Yok" : "Eşleşen İşlem Yok"}
+            description={
+              portfolio.length === 0
+                ? "Portföyünde alım veya satım kaydettiğinde geçmiş işlemlerin burada listelenir."
+                : "Seçili filtreyle eşleşen bir işlem bulunamadı. Farklı bir sembol veya tarih aralığı deneyebilirsin."
+            }
+            compact
+          />
         ) : (
           grouped.map((group, gi) => (
             <View key={group.key} style={{ marginBottom: 18 }}>
