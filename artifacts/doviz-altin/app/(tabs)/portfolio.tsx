@@ -29,6 +29,7 @@ import { HoldingCard } from "@/components/portfolio/HoldingCard";
 import { TxModal } from "@/components/portfolio/TxModal";
 import { HoldingActionSheet } from "@/components/portfolio/HoldingActionSheet";
 import { EmptyState } from "@/components/common/EmptyState";
+import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
 
 function EmptyPortfolio({
   onAdd,
@@ -64,6 +65,7 @@ export default function PortfolioScreen() {
     findRateByCode,
     getPriceHistory,
     availableAmount,
+    hydrated,
   } = useApp();
 
   const [range, setRange] = useState<SnapshotRange>("1A");
@@ -152,6 +154,9 @@ export default function PortfolioScreen() {
   }, []);
 
   const isEmpty = holdings.length === 0 && portfolio.length === 0;
+  // Hidrasyon tamamlanmadan portföy boş gibi görünebileceği için sahte
+  // "Portföyün Boş" ekranı yerine ilk frame'de iskelet kart gösterilir.
+  const showLoadingState = isEmpty && !hydrated;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -229,7 +234,11 @@ export default function PortfolioScreen() {
         ) : null}
       </View>
 
-      {isEmpty ? (
+      {showLoadingState ? (
+        <View style={{ paddingTop: 16, paddingHorizontal: 12 }}>
+          <PriceRowSkeleton count={4} withIcon />
+        </View>
+      ) : isEmpty ? (
         <EmptyPortfolio
           colors={colors}
           onAdd={() => {
