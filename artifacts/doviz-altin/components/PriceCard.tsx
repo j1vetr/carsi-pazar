@@ -17,6 +17,7 @@ interface PriceCardProps {
   isFavorite?: boolean;
   onPress: () => void;
   onFavoriteToggle?: () => void;
+  onLongPress?: () => void;
   compact?: boolean;
   hideIcon?: boolean;
   nameFirst?: boolean;
@@ -42,6 +43,7 @@ export function PriceCard({
   isFavorite,
   onPress,
   onFavoriteToggle,
+  onLongPress,
   hideIcon,
   nameFirst,
 }: PriceCardProps) {
@@ -73,6 +75,12 @@ export function PriceCard({
     haptics.tap();
     onPress();
   }, [onPress]);
+
+  const handleLongPress = useCallback(() => {
+    if (!onLongPress) return;
+    haptics.longPress();
+    onLongPress();
+  }, [onLongPress]);
 
   const isPositive = item.changePercent >= 0;
   const hasChange = Math.abs(item.changePercent) >= 0.005;
@@ -131,7 +139,13 @@ export function PriceCard({
   });
 
   return (
-    <Pressable onPress={handlePress} style={styles.pressable} android_ripple={{ color: colors.surface }}>
+    <Pressable
+      onPress={handlePress}
+      onLongPress={onLongPress ? handleLongPress : undefined}
+      delayLongPress={350}
+      style={styles.pressable}
+      android_ripple={{ color: colors.surface }}
+    >
       <Animated.View style={[styles.flash, flashStyle]} pointerEvents="none" />
       {!hideIcon && (
         <View style={styles.iconWrap}>

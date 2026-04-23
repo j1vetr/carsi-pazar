@@ -18,6 +18,8 @@ interface Props {
   isFavorite?: boolean;
   onPress: () => void;
   onFavoriteToggle?: () => void;
+  /** Long-press → bağlam menüsünü aç (üst ekran tarafından sağlanır). */
+  onLongPress?: () => void;
   /** Override displayed code (e.g. shorten "GRAM_ALTIN" to "GRAM") */
   codeOverride?: string;
   /** Small badge after code, e.g. "YENİ" / "ESKİ" */
@@ -40,6 +42,7 @@ export function ModernPriceRow({
   isFavorite,
   onPress,
   onFavoriteToggle,
+  onLongPress,
   codeOverride,
   badge,
   nameFirst,
@@ -72,6 +75,12 @@ export function ModernPriceRow({
     haptics.tap();
     onPress();
   }, [onPress]);
+
+  const handleLongPress = useCallback(() => {
+    if (!onLongPress) return;
+    haptics.longPress();
+    onLongPress();
+  }, [onLongPress]);
 
   const isPositive = item.changePercent >= 0;
   const hasChange = Math.abs(item.changePercent) >= 0.005;
@@ -179,6 +188,8 @@ export function ModernPriceRow({
   return (
     <Pressable
       onPress={handlePress}
+      onLongPress={onLongPress ? handleLongPress : undefined}
+      delayLongPress={350}
       style={styles.pressable}
       android_ripple={{ color: colors.surface }}
     >

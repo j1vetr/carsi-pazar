@@ -12,7 +12,9 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
-import { useApp } from "@/contexts/AppContext";
+import { useApp, type CurrencyRate, type GoldRate } from "@/contexts/AppContext";
+import { haptics } from "@/lib/haptics";
+import { PriceRowMenu } from "@/components/common/PriceRowMenu";
 import { MinimalTopBar } from "@/components/MinimalTopBar";
 import { ModernPriceRow, ModernTableHeader } from "@/components/ModernPriceRow";
 import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
@@ -27,9 +29,24 @@ export default function MarketScreen() {
   const [manualRefreshing, setManualRefreshing] = useState(false);
 
   const onManualRefresh = useCallback(async () => {
+    haptics.tap();
     setManualRefreshing(true);
-    try { await refreshData(); } finally { setManualRefreshing(false); }
+    try {
+      await refreshData();
+      haptics.success();
+    } catch {
+      haptics.error();
+    } finally {
+      setManualRefreshing(false);
+    }
   }, [refreshData]);
+
+  const [menuItem, setMenuItem] = useState<CurrencyRate | GoldRate | null>(null);
+  const [menuType, setMenuType] = useState<"currency" | "gold">("currency");
+  const openMenu = useCallback((it: CurrencyRate | GoldRate, t: "currency" | "gold") => {
+    setMenuItem(it);
+    setMenuType(t);
+  }, []);
 
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
@@ -152,6 +169,7 @@ export default function MarketScreen() {
               type={isGold ? "gold" : "currency"}
               isFavorite={favorites.includes(b.code)}
               onFavoriteToggle={() => toggleFavorite(b.code)}
+              onLongPress={() => openMenu(b, isGold ? "gold" : "currency")}
               onPress={() => router.push({
                 pathname: "/detail/[code]",
                 params: { code: b.code, type: isGold ? "gold" : "currency" },
@@ -174,6 +192,7 @@ export default function MarketScreen() {
             type="currency"
             isFavorite={favorites.includes(item.code)}
             onFavoriteToggle={() => toggleFavorite(item.code)}
+            onLongPress={() => openMenu(item, "currency")}
             onPress={() =>
               router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "currency" } })
             }
@@ -208,6 +227,12 @@ export default function MarketScreen() {
             tintColor={colors.primary}
           />
         }
+      />
+      <PriceRowMenu
+        item={menuItem}
+        type={menuType}
+        visible={!!menuItem}
+        onClose={() => setMenuItem(null)}
       />
     </View>
   );

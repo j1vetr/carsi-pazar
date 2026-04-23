@@ -1,9 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
   Platform,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -18,6 +19,8 @@ import { router } from "expo-router";
 import { haptics } from "@/lib/haptics";
 import { Icon } from "@/components/Icon";
 import { PriceCard } from "@/components/PriceCard";
+import { SwipeableRow } from "@/components/common/SwipeableRow";
+import { PriceRowMenu } from "@/components/common/PriceRowMenu";
 import { useColors } from "@/hooks/useColors";
 import { useApp, CurrencyRate, GoldRate } from "@/contexts/AppContext";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -57,6 +60,21 @@ export default function FavoritesScreen() {
     currencies, parities, currencyParities, goldRates, banks,
     lastUpdated, lastRefreshFailed, refreshData,
   } = useApp();
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  const onManualRefresh = useCallback(async () => {
+    haptics.tap();
+    setManualRefreshing(true);
+    try {
+      await refreshData();
+      haptics.success();
+    } catch {
+      haptics.error();
+    } finally {
+      setManualRefreshing(false);
+    }
+  }, [refreshData]);
+
+  const [menu, setMenu] = useState<{ item: CurrencyRate | GoldRate; type: "currency" | "gold" } | null>(null);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const isAndroid = Platform.OS === "android";
@@ -349,18 +367,42 @@ export default function FavoritesScreen() {
           }
           return (
             <View style={{ paddingHorizontal: 16 }}>
-              <PriceCard
-                item={item.item}
-                type={item.type}
-                isFavorite
-                onFavoriteToggle={() => handleRemove(item.item.code, item.item.nameTR ?? item.item.code)}
-                onPress={() =>
-                  router.push({
-                    pathname: "/detail/[code]",
-                    params: { code: item.item.code, type: item.type },
-                  })
-                }
-              />
+              <SwipeableRow
+                rightActions={[
+                  {
+                    label: "Çıkar",
+                    icon: "trash-outline",
+                    color: colors.fall,
+                    destructive: true,
+                    onPress: () => handleRemove(item.item.code, item.item.nameTR ?? item.item.code),
+                  },
+                ]}
+                leftActions={[
+                  {
+                    label: "Alarm",
+                    icon: "notifications-outline",
+                    color: colors.gold,
+                    onPress: () => router.push({
+                      pathname: "/alerts",
+                      params: { code: item.item.code, type: item.type },
+                    }),
+                  },
+                ]}
+              >
+                <PriceCard
+                  item={item.item}
+                  type={item.type}
+                  isFavorite
+                  onFavoriteToggle={() => handleRemove(item.item.code, item.item.nameTR ?? item.item.code)}
+                  onLongPress={() => setMenu({ item: item.item, type: item.type })}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/detail/[code]",
+                      params: { code: item.item.code, type: item.type },
+                    })
+                  }
+                />
+              </SwipeableRow>
             </View>
           );
         }}
@@ -413,6 +455,19 @@ export default function FavoritesScreen() {
           favorites.length === 0 && { flex: 1 },
         ]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={manualRefreshing}
+            onRefresh={onManualRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      />
+      <PriceRowMenu
+        item={menu?.item ?? null}
+        type={menu?.type ?? "currency"}
+        visible={!!menu}
+        onClose={() => setMenu(null)}
       />
     </View>
   );

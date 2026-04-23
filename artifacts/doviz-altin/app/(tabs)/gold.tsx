@@ -11,10 +11,11 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Haptics from "expo-haptics";
+import { haptics } from "@/lib/haptics";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { useApp, GoldRate } from "@/contexts/AppContext";
+import { PriceRowMenu } from "@/components/common/PriceRowMenu";
 import { MinimalTopBar } from "@/components/MinimalTopBar";
 import { ModernPriceRow, ModernTableHeader } from "@/components/ModernPriceRow";
 import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
@@ -41,9 +42,19 @@ export default function GoldScreen() {
   const sectionListRef = useRef<SectionList<GoldRate, Section>>(null);
 
   const onManualRefresh = useCallback(async () => {
+    haptics.tap();
     setManualRefreshing(true);
-    try { await refreshData(); } finally { setManualRefreshing(false); }
+    try {
+      await refreshData();
+      haptics.success();
+    } catch {
+      haptics.error();
+    } finally {
+      setManualRefreshing(false);
+    }
   }, [refreshData]);
+
+  const [menuItem, setMenuItem] = useState<GoldRate | null>(null);
 
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
@@ -94,7 +105,7 @@ export default function GoldScreen() {
   }, [allSections]);
 
   const onChipPress = useCallback((key: string) => {
-    Haptics.selectionAsync().catch(() => {});
+    haptics.select();
     if (key === "all") {
       setViewMode("all");
       requestAnimationFrame(() => {
@@ -262,6 +273,7 @@ export default function GoldScreen() {
               nameFirst
               isFavorite={favorites.includes(item.code)}
               onFavoriteToggle={() => toggleFavorite(item.code)}
+              onLongPress={() => setMenuItem(item)}
               onPress={() => router.push({ pathname: "/detail/[code]", params: { code: item.code, type: "gold" } })}
             />
           );
@@ -291,6 +303,12 @@ export default function GoldScreen() {
         }}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={manualRefreshing} onRefresh={onManualRefresh} tintColor={colors.primary} />}
+      />
+      <PriceRowMenu
+        item={menuItem}
+        type="gold"
+        visible={!!menuItem}
+        onClose={() => setMenuItem(null)}
       />
     </View>
   );

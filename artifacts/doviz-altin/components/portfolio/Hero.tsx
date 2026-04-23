@@ -1,52 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
+import { AnimatedNumber } from "@/components/common/AnimatedNumber";
 import type { PortfolioStats } from "@/lib/portfolioCalc";
 import type { DailySnapshot } from "@/lib/portfolioSnapshots";
 
 const fmtTL = (v: number) =>
   v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-function useCountUp(target: number, duration = 700) {
-  const [value, setValue] = useState(target);
-  const prevRef = useRef(target);
-  const startTimeRef = useRef(0);
-  const rafRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    const from = prevRef.current;
-    const to = target;
-    if (Math.abs(from - to) < 0.01) {
-      setValue(to);
-      prevRef.current = to;
-      return;
-    }
-    startTimeRef.current = Date.now();
-    const tick = () => {
-      const elapsed = Date.now() - startTimeRef.current;
-      const t = Math.min(1, elapsed / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      const v = from + (to - from) * eased;
-      setValue(v);
-      if (t < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      } else {
-        prevRef.current = to;
-        rafRef.current = null;
-      }
-    };
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [target, duration]);
-
-  return value;
-}
 
 function MiniSparkline({
   snapshots,
@@ -98,7 +61,6 @@ export function PortfolioHero({
   const colors = useColors();
   const totalPos = stats.totalReturn >= 0;
   const dayPos = stats.dayChange >= 0;
-  const animated = useCountUp(stats.totalValue);
   const sparkColor = dayPos ? colors.rise : colors.fall;
 
   return (
@@ -121,25 +83,26 @@ export function PortfolioHero({
         entering={FadeInUp.duration(360)}
         style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 10 }}
       >
-        <Text
-          adjustsFontSizeToFit
-          numberOfLines={1}
-          minimumFontScale={0.4}
+        <View
           accessible
           accessibilityRole="text"
           accessibilityLabel={`Toplam portföy değeri ${fmtTL(stats.totalValue)} Türk Lirası`}
-          style={{
-            flex: 1,
-            fontSize: 54,
-            fontFamily: "Inter_700Bold",
-            color: colors.foreground,
-            letterSpacing: -1.9,
-            marginTop: 10,
-            includeFontPadding: false,
-          }}
+          style={{ flex: 1, marginTop: 10 }}
         >
-          ₺{fmtTL(animated)}
-        </Text>
+          <AnimatedNumber
+            value={stats.totalValue}
+            formatter={fmtTL}
+            prefix="₺"
+            duration={700}
+            style={{
+              fontSize: 54,
+              fontFamily: "Inter_700Bold",
+              color: colors.foreground,
+              letterSpacing: -1.9,
+              includeFontPadding: false,
+            }}
+          />
+        </View>
         {snapshots.length >= 2 ? (
           <View style={{ paddingBottom: 8 }}>
             <MiniSparkline snapshots={snapshots} color={sparkColor} />
