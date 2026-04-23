@@ -111,9 +111,21 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps): Promise<
       }
 
       console.log(`${TAG} fetching prices… codes=${config.codes.join(",")}`);
-      const data = await buildData(config.codes);
+      const HARD_TIMEOUT_MS = 10_000;
+      const fetchStart = Date.now();
+      let timedOut = false;
+      const data = await Promise.race<PriceWidgetData>([
+        buildData(config.codes),
+        new Promise<PriceWidgetData>((resolve) => {
+          setTimeout(() => {
+            timedOut = true;
+            resolve(errorData("Bağlantı yok"));
+          }, HARD_TIMEOUT_MS);
+        }),
+      ]);
+      const elapsed = Date.now() - fetchStart;
       console.log(
-        `${TAG} fetched rows=${data.rows.length} err=${data.error ?? "-"}`,
+        `${TAG} fetched rows=${data.rows.length} err=${data.error ?? "-"} ms=${elapsed} timeout=${timedOut}`,
       );
       if (data.rows.length > 0 && !data.error) {
         await writeWidgetCache(data);
