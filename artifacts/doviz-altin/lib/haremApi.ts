@@ -155,17 +155,35 @@ export interface RawHaremResponse {
 export async function fetchAllPrices(opts?: { timeoutMs?: number }): Promise<RawHaremResponse> {
   const timeoutMs = opts?.timeoutMs;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let raceTimer: ReturnType<typeof setTimeout> | undefined;
   let signal: AbortSignal | undefined;
   if (timeoutMs && typeof AbortController !== "undefined") {
     const ctrl = new AbortController();
     signal = ctrl.signal;
     timer = setTimeout(() => ctrl.abort(), timeoutMs);
   }
+  // RN fetch bazı koşullarda AbortController.abort()'u onurlandırmadan hang
+  // ediyor (özellikle FGS aktifken arka planda). Bu yüzden Promise.race ile
+  // ek bir hard-timeout sarmalı kullanıyoruz: timeoutMs+2sn'de promise reject
+  // olur ve underlying fetch askıda kalsa bile akış devam eder.
   let res: Response;
   try {
-    res = await fetch(FN.getPrices, signal ? { signal } : undefined);
+    const fetchPromise = fetch(FN.getPrices, signal ? { signal } : undefined);
+    if (timeoutMs) {
+      const guardMs = timeoutMs + 2_000;
+      const racePromise = new Promise<Response>((_, reject) => {
+        raceTimer = setTimeout(
+          () => reject(new Error(`fetch hard-timeout ${guardMs}ms`)),
+          guardMs,
+        );
+      });
+      res = await Promise.race([fetchPromise, racePromise]);
+    } else {
+      res = await fetchPromise;
+    }
   } finally {
     if (timer) clearTimeout(timer);
+    if (raceTimer) clearTimeout(raceTimer);
   }
   if (!res.ok) throw new Error(`Backend hatası: ${res.status}`);
   const json = (await res.json()) as

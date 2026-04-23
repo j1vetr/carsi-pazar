@@ -89,8 +89,18 @@ async function safeDisplayOngoing(): Promise<boolean> {
     return true;
   }
   inFlight = true;
+  // Hard outer timeout: displayOngoing içindeki herhangi bir await
+  // (fetch, AsyncStorage, notifee) hang ederse 15 sn'de zorla bırak.
+  // Aksi halde inFlight=true sonsuza dek kalır ve tick loop'u ölür.
+  const HARD_TIMEOUT_MS = 15_000;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(
+      () => reject(new Error(`displayOngoing hard-timeout ${HARD_TIMEOUT_MS}ms`)),
+      HARD_TIMEOUT_MS,
+    );
+  });
   try {
-    await displayOngoing();
+    await Promise.race([displayOngoing(), timeoutPromise]);
     consecutiveFailures = 0;
     return true;
   } catch (err) {
@@ -186,16 +196,19 @@ function ensureForegroundServiceRegistered(): void {
   notifee.default.registerForegroundService(() => {
     return new Promise<void>(() => {
       serviceLoopActive = true;
-      const tick = async () => {
+      const tick = () => {
         if (!serviceLoopActive) return;
-        try {
-          await safeDisplayOngoing();
-        } catch {}
-        if (!serviceLoopActive) return;
+        // KRİTİK: Sıradaki tick'i HER HALÜKÂRDA önceden schedule et. Aksi halde
+        // current safeDisplayOngoing hang ederse veya throw ederse,
+        // setTimeout(tick, ...) hiç çağrılmaz ve loop sessizce ölür → bildirim
+        // donar. Display'i fire-and-forget çalıştırıyoruz; inFlight guard zaten
+        // paralel display'i engelliyor.
+        if (refreshTimer) clearTimeout(refreshTimer);
         refreshTimer = setTimeout(tick, REFRESH_INTERVAL_MS);
+        void safeDisplayOngoing().catch(() => {});
       };
-      // İlk tick anında değil, kısa bir gecikmeyle (display çağrıları üst üste
-      // binmesin diye)
+      // İlk tick anında değil, kısa bir gecikmeyle (start'taki ilk display
+      // çağrısı ile üst üste binmesin diye)
       refreshTimer = setTimeout(tick, REFRESH_INTERVAL_MS);
       // Promise asla resolve edilmez → service alive kalır.
     });
