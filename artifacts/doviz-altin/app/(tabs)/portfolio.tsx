@@ -8,7 +8,8 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
+import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
+import { Modal } from "react-native";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -138,6 +139,7 @@ export default function PortfolioScreen() {
     code: string;
     type: "currency" | "gold";
   } | null>(null);
+  const [addMenuVisible, setAddMenuVisible] = useState(false);
 
   const allRates = useMemo(() => {
     const out: Record<string, { buy: number; prevClose?: number; group?: string }> = {};
@@ -270,8 +272,7 @@ export default function PortfolioScreen() {
             hitSlop={10}
             onPress={() => {
               Haptics.selectionAsync().catch(() => {});
-              setTxInitial({ side: "buy" });
-              setTxVisible(true);
+              setAddMenuVisible(true);
             }}
             style={({ pressed }) => ({
               width: 40,
@@ -282,6 +283,7 @@ export default function PortfolioScreen() {
               justifyContent: "center",
               opacity: pressed ? 0.8 : 1,
             })}
+            accessibilityLabel="Yeni işlem ekle"
           >
             <Icon name="add" size={22} color={colors.primaryForeground} />
           </Pressable>
@@ -373,6 +375,120 @@ export default function PortfolioScreen() {
         lockedCode={txInitial.code}
         lockedType={txInitial.type}
       />
+
+      <Modal
+        visible={addMenuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAddMenuVisible(false)}
+      >
+        <Animated.View
+          entering={FadeIn.duration(160)}
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}
+        >
+          <Pressable style={{ flex: 1 }} onPress={() => setAddMenuVisible(false)} />
+          <Animated.View
+            entering={SlideInDown.duration(220)}
+            style={{
+              backgroundColor: colors.background,
+              borderTopLeftRadius: 22,
+              borderTopRightRadius: 22,
+              paddingTop: 12,
+              paddingBottom: Math.max(insets.bottom, 16),
+            }}
+          >
+            <View style={{ alignItems: "center", marginBottom: 8 }}>
+              <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: colors.border }} />
+            </View>
+            <View style={{ paddingHorizontal: 20, paddingVertical: 8 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontFamily: "Inter_700Bold",
+                  color: colors.mutedForeground,
+                  letterSpacing: 1.1,
+                }}
+              >
+                YENİ İŞLEM
+              </Text>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontFamily: "Inter_700Bold",
+                  color: colors.foreground,
+                  letterSpacing: -0.4,
+                  marginTop: 2,
+                }}
+              >
+                Ne Eklemek İstersin?
+              </Text>
+            </View>
+            <View style={{ paddingHorizontal: 12, paddingBottom: 6, gap: 4 }}>
+              {(
+                [
+                  { key: "buy" as const, label: "Alım Ekle", icon: "add" as const, color: colors.rise, sub: "Yeni lot ekle, ortalama maliyeti güncelle" },
+                  { key: "sell" as const, label: "Satış Kaydet", icon: "swap-vertical" as const, color: colors.fall, sub: "Elindeki varlıktan sat ve kâr/zararı hesapla" },
+                ]
+              ).map((opt) => (
+                <Pressable
+                  key={opt.key}
+                  onPress={() => {
+                    Haptics.selectionAsync().catch(() => {});
+                    setAddMenuVisible(false);
+                    setTxInitial({ side: opt.key });
+                    setTxVisible(true);
+                  }}
+                  style={({ pressed }) => ({
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 14,
+                    paddingVertical: 14,
+                    paddingHorizontal: 10,
+                    borderRadius: 12,
+                    backgroundColor: pressed ? colors.secondary : "transparent",
+                  })}
+                >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: opt.color + "18",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Icon name={opt.icon} size={20} color={opt.color} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontFamily: "Inter_700Bold",
+                        color: colors.foreground,
+                        letterSpacing: -0.2,
+                      }}
+                    >
+                      {opt.label}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 11.5,
+                        fontFamily: "Inter_500Medium",
+                        color: colors.mutedForeground,
+                        marginTop: 2,
+                      }}
+                    >
+                      {opt.sub}
+                    </Text>
+                  </View>
+                  <Icon name="chevron-forward" size={18} color={colors.mutedForeground} />
+                </Pressable>
+              ))}
+            </View>
+          </Animated.View>
+        </Animated.View>
+      </Modal>
 
       <HoldingActionSheet
         visible={!!sheet}
