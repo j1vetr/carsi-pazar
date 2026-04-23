@@ -8,6 +8,7 @@ import { Icon, type IconName } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { EmptyState } from "@/components/common/EmptyState";
+import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
 import {
   type InboxItem,
   clearInbox,
@@ -72,10 +73,13 @@ export default function InboxScreen() {
   const insets = useSafeAreaInsets();
   const [items, setItems] = useState<InboxItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  // İlk AsyncStorage okuması bitmeden boş-durum yerine iskelet göster.
+  const [loaded, setLoaded] = useState(false);
 
   const reload = useCallback(async () => {
     const list = await listInbox();
     setItems([...list]);
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -145,11 +149,15 @@ export default function InboxScreen() {
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.foreground} />}
         ListEmptyComponent={
-          <EmptyState
-            icon="notifications-outline"
-            title="Henüz Bildirim Yok"
-            description="Açılış/kapanış brifingleri, önemli fiyat hareketleri ve haftalık portföy özetin burada görünecek."
-          />
+          loaded ? (
+            <EmptyState
+              icon="notifications-outline"
+              title="Henüz Bildirim Yok"
+              description="Açılış/kapanış brifingleri, önemli fiyat hareketleri ve haftalık portföy özetin burada görünecek."
+            />
+          ) : (
+            <PriceRowSkeleton count={4} withIcon />
+          )
         }
         renderItem={({ item }) => {
           const ico = iconForType(item.type);

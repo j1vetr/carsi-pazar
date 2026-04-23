@@ -10,6 +10,7 @@ import { useColors } from "@/hooks/useColors";
 import { useApp, type PortfolioItem } from "@/contexts/AppContext";
 import { formatSymbolName } from "@/lib/symbolDescriptions";
 import { EmptyState } from "@/components/common/EmptyState";
+import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
 
 const fmtTL = (v: number) =>
   v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -40,7 +41,7 @@ function groupByMonth<T extends { date: string }>(items: T[]): { key: string; la
 export default function TransactionsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { portfolio, removeFromPortfolio } = useApp();
+  const { portfolio, removeFromPortfolio, hydrated } = useApp();
 
   const [sideFilter, setSideFilter] = useState<SideFilter>("all");
   const [codeFilter, setCodeFilter] = useState<string | null>(null);
@@ -279,16 +280,20 @@ export default function TransactionsScreen() {
         ) : null}
 
         {grouped.length === 0 ? (
-          <EmptyState
-            icon={portfolio.length === 0 ? "briefcase-outline" : "search"}
-            title={portfolio.length === 0 ? "Henüz İşlem Yok" : "Eşleşen İşlem Yok"}
-            description={
-              portfolio.length === 0
-                ? "Portföyünde alım veya satım kaydettiğinde geçmiş işlemlerin burada listelenir."
-                : "Seçili filtreyle eşleşen bir işlem bulunamadı. Farklı bir sembol veya tarih aralığı deneyebilirsin."
-            }
-            compact
-          />
+          !hydrated ? (
+            <PriceRowSkeleton count={5} withIcon />
+          ) : (
+            <EmptyState
+              icon={portfolio.length === 0 ? "briefcase-outline" : "search"}
+              title={portfolio.length === 0 ? "Henüz İşlem Yok" : "Eşleşen İşlem Yok"}
+              description={
+                portfolio.length === 0
+                  ? "Portföyünde alım veya satım kaydettiğinde geçmiş işlemlerin burada listelenir."
+                  : "Seçili filtreyle eşleşen bir işlem bulunamadı. Farklı bir sembol veya tarih aralığı deneyebilirsin."
+              }
+              compact
+            />
+          )
         ) : (
           grouped.map((group, gi) => (
             <View key={group.key} style={{ marginBottom: 18 }}>
