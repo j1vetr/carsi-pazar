@@ -306,7 +306,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const onboardingSubRef = useRef<EmitterSubscription | null>(null);
 
   const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000;
-  const HISTORY_MAX_AGE_MS = 48 * 60 * 60 * 1000;
+  const HISTORY_MAX_AGE_MS = 8 * 24 * 60 * 60 * 1000;
   const TARGET_AGE_MS = 24 * 60 * 60 * 1000;
   const PERSIST_THROTTLE_MS = 5 * 60 * 1000;
 

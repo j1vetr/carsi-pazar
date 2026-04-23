@@ -125,6 +125,9 @@ export function PortfolioHero({
           adjustsFontSizeToFit
           numberOfLines={1}
           minimumFontScale={0.4}
+          accessible
+          accessibilityRole="text"
+          accessibilityLabel={`Toplam portföy değeri ${fmtTL(stats.totalValue)} Türk Lirası`}
           style={{
             flex: 1,
             fontSize: 54,

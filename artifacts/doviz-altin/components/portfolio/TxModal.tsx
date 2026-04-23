@@ -71,9 +71,22 @@ export function TxModal({
     const day = Number(m[1]);
     const month = Number(m[2]);
     const year = Number(m[3]);
+    if (year < 1970 || year > 9999) return null;
     if (month < 1 || month > 12 || day < 1 || day > 31) return null;
     const d = new Date(year, month - 1, day, 12, 0, 0);
-    if (d.getTime() > Date.now() + 86_400_000) return null;
+    // Calendar-valid: rolled-over dates (e.g. 31.02) fail this check
+    if (
+      d.getFullYear() !== year ||
+      d.getMonth() !== month - 1 ||
+      d.getDate() !== day
+    ) {
+      return null;
+    }
+    // Reject any date strictly after today (day-level comparison)
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const picked = new Date(year, month - 1, day);
+    if (picked.getTime() > today.getTime()) return null;
     return d;
   }, [datePreset, customDate]);
 
