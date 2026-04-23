@@ -89,6 +89,13 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 **Cleanup notu:** finansveri.com tamamen kaldırıldı; eski `FINANSVERI_API_KEY` secret'ı silindi.
 
+### Teknik Borç (Task #5)
+- **lib/ klasör yapısı:** 22 dosya 5 alt-modüle bölündü → `lib/api/` (haremApi, haremSocket, historyApi, priceCoordinator, api), `lib/notifications/` (notifications, inbox, weeklyReminder, reviewPrompt), `lib/storage/` (portfolioSnapshots, miniCardPrefs, onboardingPref, startupPref, deviceId), `lib/widget/` (widgetBackgroundTask), `lib/utils/` (haptics, alertEvaluator, alertFormat, alertGroups, alertTypes, portfolioCalc, symbolDescriptions, swipeActions). Her klasörde barrel `index.ts`. İmportlar `@/lib/<klasör>/<dosya>` deseninde.
+- **TypeScript strict:** `noImplicitOverride: true` eklendi. ErrorBoundary `state`/`componentDidCatch`/`render` `override` ile işaretlendi.
+- **Push token TTL (server):** `functions/src/index.ts → cleanupStaleTokens` haftalık scheduled function; `tokens/{deviceId}.updatedAt < now - 30g` kayıtlarını 500'lük batch'te siler. Aktif kullanıcının tokenı her uygulama açılışında `setupPushAndRegister` ile tazelenir.
+- **Test altyapısı:** Jest + ts-jest, sadece pure utility'ler için node testEnvironment. `pnpm --filter @workspace/doviz-altin test`. 23 test geçiyor — `__tests__/portfolioCalc.test.ts` (FIFO P/L, bucket, available), `__tests__/alertEvaluator.test.ts` (4 alarm tipi + canFire kuralları), `__tests__/alertFormat.test.ts` (TR metin formatları).
+- **Sentry/crash reporting DEFERRED:** DSN kararı kullanıcıdan gelene kadar entegrasyon eklenmedi.
+
 ### Tarihsel grafikler (MetalpriceAPI)
 - **Sunucu:** `artifacts/api-server/src/metalprice/` — MetalpriceAPI client + 36 sembol türetme + JSON storage + 5 yıllık backfill + 6 saatte bir self-healing daily cron.
   - `symbols.ts` — sembol formülleri (USD baz). Forex TRY (USDTRY=TRY, EURTRY=TRY/EUR…), pariteler (EURUSD=1/EUR…), madenler USD (XAUUSD=1/XAU…), gram TL madenler (ALTIN=(1/XAU)·TRY/31.1034768).
@@ -106,5 +113,6 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
+- `pnpm --filter @workspace/doviz-altin test` — run mobile unit tests (pure utility fns)
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
