@@ -1,0 +1,56 @@
+root@162-55-4-35:~/carsi-pazar# git commit -m "chore: untrack api-server runtime data files"
+[main 02595fb] chore: untrack api-server runtime data files
+ Committer: root <root@162-55-4-35.datahost.net.tr>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 2 files changed, 8 deletions(-)
+ delete mode 100644 artifacts/api-server/data/history-meta.json
+ delete mode 100644 artifacts/api-server/data/history.json
+root@162-55-4-35:~/carsi-pazar# git push origin main
+Username for 'https://github.com': j1vetr
+Password for 'https://j1vetr@github.com':
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/j1vetr/carsi-pazar.git/'
+root@162-55-4-35:~/carsi-pazar# ^C
+root@162-55-4-35:~/carsi-pazar# git config --global credential.helper store
+root@162-55-4-35:~/carsi-pazar# git push origin main
+Username for 'https://github.com': j1vetr
+Password for 'https://j1vetr@github.com':
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 433 bytes | 433.00 KiB/s, done.
+Total 4 (delta 2), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/j1vetr/carsi-pazar.git
+   8985cd0..02595fb  main -> main
+root@162-55-4-35:~/carsi-pazar# cp /tmp/history.json.bak artifacts/api-server/data/history.json
+root@162-55-4-35:~/carsi-pazar# cp /tmp/history-meta.json.bak artifacts/api-server/data/history-meta.json
+root@162-55-4-35:~/carsi-pazar# pnpm install
+Scope: all 9 workspace projects
+Lockfile is up to date, resolution step is skipped
+Packages: +1
++
+Progress: resolved 1, reused 0, downloaded 1, added 1, done
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+└─ Done in 12ms
+Done in 2.6s using pnpm v10.32.1
+root@162-55-4-35:~/carsi-pazar# pnpm --filter @workspace/doviz-altin
+ ERROR  Unknown option: 'recursive'
+For help, run: pnpm help recursive
+root@162-55-4-35:~/carsi-pazar# cd doviz-altin
+-bash: cd: doviz-altin: No such file or directory
+root@162-55-4-35:~/carsi-pazar# ls
+app.json   attached_assets                                            eas.json       firestore.indexes.json  functions  node_modules  pnpm-lock.yaml       replit.md  tsconfig.base.json
+artifacts  carsi-pazar-16191-firebase-adminsdk-fbsvc-6329c7dd63.json  firebase.json  firestore.rules         lib        package.json  pnpm-workspace.yaml  scripts    tsconfig.json
+root@162-55-4-35:~/carsi-pazar#
