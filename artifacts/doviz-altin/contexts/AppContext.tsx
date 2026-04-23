@@ -38,6 +38,18 @@ import { DeviceEventEmitter, type EmitterSubscription } from "react-native";
 import * as Notifications from "expo-notifications";
 import { addInboxItem, subscribeInbox, unreadCount as inboxUnreadCount } from "@/lib/inbox";
 import { scheduleWeeklyPortfolioReminder } from "@/lib/weeklyReminder";
+import {
+  loadSnapshots,
+  saveSnapshots,
+  upsertTodaySnapshot,
+  type DailySnapshot,
+} from "@/lib/portfolioSnapshots";
+import {
+  aggregateHoldings,
+  availableToSell,
+  bucketForCode,
+  summarizePortfolio,
+} from "@/lib/portfolioCalc";
 
 export interface CurrencyRate {
   code: string;
@@ -78,6 +90,7 @@ export interface PortfolioItem {
   amount: number;
   purchasePrice: number;
   purchaseDate: string;
+  side?: "buy" | "sell";
 }
 
 export interface PriceAlert {
@@ -144,7 +157,20 @@ interface AppContextType {
   lastUpdated: Date | null;
   favorites: string[];
   addToPortfolio: (item: Omit<PortfolioItem, "id">) => Promise<void>;
+  sellFromPortfolio: (input: {
+    code: string;
+    type: "currency" | "gold";
+    name: string;
+    nameTR: string;
+    amount: number;
+    price: number;
+    date?: string;
+  }) => Promise<{ ok: true } | { ok: false; reason: "insufficient" }>;
   removeFromPortfolio: (id: string) => Promise<void>;
+  removeAllByAsset: (code: string, type: "currency" | "gold") => Promise<void>;
+  portfolioSnapshots: DailySnapshot[];
+  getPriceHistory: (code: string) => { t: number; buy: number; sell: number }[];
+  availableAmount: (code: string, type: "currency" | "gold") => number;
   addAlert: (alert: Omit<PriceAlert, "id">) => Promise<void>;
   removeAlert: (id: string) => Promise<void>;
   toggleFavorite: (code: string) => Promise<void>;
@@ -260,6 +286,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     favoritesUpdatedAt: 0,
   });
   const [inboxUnread, setInboxUnread] = useState<number>(0);
+  const [portfolioSnapshots, setPortfolioSnapshots] = useState<DailySnapshot[]>([]);
+  const snapshotPersistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const historicalCache = useRef<Map<string, HistoricalPoint[]>>(new Map());
   const priceHistoryRef = useRef<Record<string, { t: number; buy: number; sell: number }[]>>({});
   const lastSnapshotPersistRef = useRef<number>(0);
@@ -592,7 +620,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         AsyncStorage.getItem("portfolio_updatedAt"),
         AsyncStorage.getItem("favorites_updatedAt"),
       ]);
-      if (storedPortfolio) setPortfolio(JSON.parse(storedPortfolio));
+      if (storedPortfolio) {
+        try {
+          const parsed = JSON.parse(storedPortfolio) as PortfolioItem[];
+          if (Array.isArray(parsed)) {
+            setPortfolio(
+              parsed.map((it) => ({
+                ...it,
+                side: it.side === "sell" ? "sell" : "buy",
+              })),
+            );
+          }
+        } catch {}
+      }
+      try {
+        const snaps = await loadSnapshots();
+        setPortfolioSnapshots(snaps);
+      } catch {}
       if (storedFavorites) setFavorites(JSON.parse(storedFavorites));
       if (storedHistory) {
         try {
@@ -624,6 +668,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       amount: it.amount,
       purchasePrice: it.purchasePrice,
       purchaseDate: it.purchaseDate,
+      side: it.side === "sell" ? "sell" : "buy",
     }));
 
   // Sunucudaki portföyü lokal PortfolioItem'a güvenle dönüştür.
@@ -655,6 +700,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           typeof o.purchaseDate === "string" && o.purchaseDate
             ? o.purchaseDate
             : new Date().toISOString(),
+        side: o.side === "sell" ? "sell" : "buy",
       });
     }
     return out;
@@ -800,6 +846,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     async (item: Omit<PortfolioItem, "id">) => {
       const newItem: PortfolioItem = {
         ...item,
+        side: item.side === "sell" ? "sell" : "buy",
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       };
       const updated = [...portfolio, newItem];
@@ -815,9 +862,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [portfolio, schedulePortfolioPush]
   );
 
-  const removeFromPortfolio = useCallback(
-    async (id: string) => {
-      const updated = portfolio.filter((p) => p.id !== id);
+  const sellFromPortfolio = useCallback(
+    async (input: {
+      code: string;
+      type: "currency" | "gold";
+      name: string;
+      nameTR: string;
+      amount: number;
+      price: number;
+      date?: string;
+    }): Promise<{ ok: true } | { ok: false; reason: "insufficient" }> => {
+      const have = availableToSell(portfolio, input.code, input.type);
+      if (input.amount <= 0 || input.amount > have + 1e-9) {
+        return { ok: false, reason: "insufficient" };
+      }
+      const newItem: PortfolioItem = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        type: input.type,
+        code: input.code,
+        name: input.name,
+        nameTR: input.nameTR,
+        amount: input.amount,
+        purchasePrice: input.price,
+        purchaseDate: input.date ?? new Date().toISOString(),
+        side: "sell",
+      };
+      const updated = [...portfolio, newItem];
       const ts = Date.now();
       setPortfolio(updated);
       portfolioUpdatedAtRef.current = ts;
@@ -826,8 +896,48 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ["portfolio_updatedAt", String(ts)],
       ]);
       schedulePortfolioPush(updated, ts);
+      return { ok: true };
     },
-    [portfolio, schedulePortfolioPush]
+    [portfolio, schedulePortfolioPush],
+  );
+
+  const getPriceHistory = useCallback(
+    (code: string) => priceHistoryRef.current[code] ?? [],
+    [],
+  );
+
+  const availableAmount = useCallback(
+    (code: string, type: "currency" | "gold") => availableToSell(portfolio, code, type),
+    [portfolio],
+  );
+
+  const removeManyFromPortfolio = useCallback(
+    async (predicate: (p: PortfolioItem) => boolean) => {
+      let updated: PortfolioItem[] = [];
+      setPortfolio((prev) => {
+        updated = prev.filter((p) => !predicate(p));
+        return updated;
+      });
+      const ts = Date.now();
+      portfolioUpdatedAtRef.current = ts;
+      await AsyncStorage.multiSet([
+        ["portfolio", JSON.stringify(updated)],
+        ["portfolio_updatedAt", String(ts)],
+      ]);
+      schedulePortfolioPush(updated, ts);
+    },
+    [schedulePortfolioPush],
+  );
+
+  const removeFromPortfolio = useCallback(
+    (id: string) => removeManyFromPortfolio((p) => p.id === id),
+    [removeManyFromPortfolio],
+  );
+
+  const removeAllByAsset = useCallback(
+    (code: string, type: "currency" | "gold") =>
+      removeManyFromPortfolio((p) => p.code === code && p.type === type),
+    [removeManyFromPortfolio],
   );
 
   const addAlert = useCallback(
@@ -922,21 +1032,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [findRateByCode]
   );
 
-  const getPortfolioTotalValue = useCallback(() => {
-    return portfolio.reduce((total, item) => {
-      const rate = findRateByCode(item.code);
-      const currentPrice = rate?.buy ?? item.purchasePrice;
-      return total + item.amount * currentPrice;
-    }, 0);
+  const portfolioStats = useMemo(() => {
+    const holdings = aggregateHoldings(portfolio, (code) => {
+      const r = findRateByCode(code);
+      if (!r) return undefined;
+      return { buy: r.buy, prevClose: (r as GoldRate).prevClose };
+    });
+    return summarizePortfolio(holdings, (h) => {
+      const r = findRateByCode(h.code);
+      return bucketForCode(h.code, h.type, r?.group);
+    });
   }, [portfolio, findRateByCode]);
 
+  const getPortfolioTotalValue = useCallback(
+    () => portfolioStats.totalValue,
+    [portfolioStats],
+  );
+
   const getPortfolioGainLoss = useCallback(() => {
-    const totalValue = getPortfolioTotalValue();
-    const totalCost = portfolio.reduce((sum, item) => sum + item.amount * item.purchasePrice, 0);
-    const gainLoss = totalValue - totalCost;
-    const percent = totalCost > 0 ? (gainLoss / totalCost) * 100 : 0;
-    return { value: gainLoss, percent };
-  }, [portfolio, getPortfolioTotalValue]);
+    return {
+      value: portfolioStats.totalReturn,
+      percent: portfolioStats.totalReturnPercent,
+    };
+  }, [portfolioStats]);
+
+  useEffect(() => {
+    const { totalValue, totalCost } = portfolioStats;
+    if (!isHydrated.current) return;
+    setPortfolioSnapshots((prev) => {
+      const { snapshots, changed } = upsertTodaySnapshot(prev, totalValue, totalCost);
+      if (!changed) return prev;
+      if (snapshotPersistTimer.current) clearTimeout(snapshotPersistTimer.current);
+      snapshotPersistTimer.current = setTimeout(() => {
+        void saveSnapshots(snapshots);
+      }, 1500);
+      return snapshots;
+    });
+  }, [portfolioStats]);
 
   const convertAmount = useCallback(
     (fromCode: string, toCode: string, amount: number): number => {
@@ -1047,6 +1179,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         spreads: buckets.spreads,
         banks: buckets.banks,
         portfolio,
+        portfolioSnapshots,
+        getPriceHistory,
+        availableAmount,
+        sellFromPortfolio,
+        removeAllByAsset,
         alerts,
         news,
         newsLoading,

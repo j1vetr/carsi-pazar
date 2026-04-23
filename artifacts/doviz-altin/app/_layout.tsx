@@ -46,6 +46,7 @@ function RootLayoutNav() {
       <Stack.Screen name="inbox" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="news" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="parities" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="portfolio/transactions" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="about" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="settings/index" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="settings/theme" options={{ headerShown: false, animation: "slide_from_right" }} />

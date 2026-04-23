@@ -133,6 +133,7 @@ export type ServerPortfolioItem = {
   amount: number;
   purchasePrice: number;
   purchaseDate: string;
+  side?: "buy" | "sell";
 };
 
 export async function apiGetPortfolio(
