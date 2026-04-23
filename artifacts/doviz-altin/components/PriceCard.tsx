@@ -6,7 +6,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Icon } from "@/components/Icon";
-import * as Haptics from "expo-haptics";
+import { haptics } from "@/lib/haptics";
 import { useColors } from "@/hooks/useColors";
 import { CurrencyRate, GoldRate } from "@/contexts/AppContext";
 import { AssetIcon } from "@/components/AssetIcon";
@@ -54,9 +54,10 @@ export function PriceCard({
     if (delta !== 0) {
       const meaningful = Math.abs(delta / (prevPrice.current || 1)) > 0.0001;
       if (meaningful) {
+        // 800ms toplam: hızlı ramp-up + uzun decay → değişim göze çarpsın.
         const direction = delta > 0 ? 1 : -1;
-        flashOpacity.value = withTiming(direction * 0.06, { duration: 120 }, () => {
-          flashOpacity.value = withTiming(0, { duration: 600 });
+        flashOpacity.value = withTiming(direction * 0.12, { duration: 140 }, () => {
+          flashOpacity.value = withTiming(0, { duration: 660 });
         });
       }
       prevPrice.current = item.buy;
@@ -69,9 +70,7 @@ export function PriceCard({
   }));
 
   const handlePress = useCallback(() => {
-    if (typeof Haptics?.impactAsync === "function") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    }
+    haptics.tap();
     onPress();
   }, [onPress]);
 

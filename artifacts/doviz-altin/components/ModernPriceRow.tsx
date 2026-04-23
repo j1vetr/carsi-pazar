@@ -5,7 +5,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import { haptics } from "@/lib/haptics";
 import { Icon } from "@/components/Icon";
 import { AssetIcon } from "@/components/AssetIcon";
 import { useColors } from "@/hooks/useColors";
@@ -53,9 +53,10 @@ export function ModernPriceRow({
     if (delta !== 0) {
       const meaningful = Math.abs(delta / (prevPrice.current || 1)) > 0.0001;
       if (meaningful) {
+        // 800ms toplam: hızlı ramp-up + uzun decay → değişim göze çarpsın.
         const dir = delta > 0 ? 1 : -1;
-        flashOpacity.value = withTiming(dir * 0.07, { duration: 120 }, () => {
-          flashOpacity.value = withTiming(0, { duration: 600 });
+        flashOpacity.value = withTiming(dir * 0.12, { duration: 140 }, () => {
+          flashOpacity.value = withTiming(0, { duration: 660 });
         });
       }
       prevPrice.current = item.buy;
@@ -68,9 +69,7 @@ export function ModernPriceRow({
   }));
 
   const handlePress = useCallback(() => {
-    if (typeof Haptics?.impactAsync === "function") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    }
+    haptics.tap();
     onPress();
   }, [onPress]);
 

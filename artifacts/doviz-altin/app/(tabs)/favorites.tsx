@@ -15,7 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { haptics } from "@/lib/haptics";
 import { Icon } from "@/components/Icon";
 import { PriceCard } from "@/components/PriceCard";
 import { useColors } from "@/hooks/useColors";
@@ -40,7 +40,7 @@ function EmptyFavorites(_: { colors: any }) {
         label: "Piyasayı Keşfet",
         icon: "trending-up",
         onPress: () => {
-          Haptics.selectionAsync().catch(() => {});
+          haptics.select();
           router.push("/");
         },
       }}
@@ -140,7 +140,7 @@ export default function FavoritesScreen() {
           text: "Çıkar",
           style: "destructive",
           onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+            haptics.warning();
             toggleFavorite(code);
           },
         },

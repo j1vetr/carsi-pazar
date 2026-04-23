@@ -65,11 +65,18 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 ### Onboarding (ilk açılış)
 - `app/onboarding.tsx` — 3 sayfa swipeable (FlatList horizontal pagingEnabled). Sayfa 1 hero, Sayfa 2 widget, Sayfa 3 alarm. (Eski "BİLDİRİM" slide'ı notification widget özelliğiyle birlikte kaldırıldı.) Renk tokenleri `constants/colors.ts` ile birebir uyumlu. icon.png koyu zeminlerde beyaz çip içinde.
+- **Üst bar:** sol "‹ Geri" (1. slide'da gizli), sağ "Atla" (son slide'da gizli). Alt CTA korunur. haptics.select tıklamada.
 - `lib/onboardingPref.ts` — AsyncStorage flag `onboarding-seen-v1` (`isOnboardingSeen`, `setOnboardingSeen`, `resetOnboardingSeen`).
 - `app/_layout.tsx` — startup tab redirect'inden ÖNCE `isOnboardingSeen()` kontrol edilir; false ise `/onboarding`'e replace, true ise startup tercihi uygulanır.
 - Stack.Screen `onboarding` `gestureEnabled: false`, `animation: "fade"`. Mockup referansı: `mockup-sandbox/src/components/mockups/carsi-widget/OnboardingFlow.tsx`.
 
 **newArchEnabled:** `true` (Reanimated 4 gerektiriyor, sabit)
+
+### Mikro etkileşimler (Task #4)
+- `lib/haptics.ts` — semantik wrapper (`tap`/`select`/`longPress`/`heavy`/`success`/`warning`/`error`); iOS+Android'de aktif, web'de no-op. Doğrudan `expo-haptics` çağrısı yerine bu helper kullanılmalı.
+- `components/common/AnimatedNumber.tsx` — Reanimated count-up; `Animated.TextInput` (editable=false) + `useAnimatedProps({text})` pattern'i. 600ms cubic-out default.
+- `components/common/ActionSheet.tsx` — uzun-bas bağlam menüsü; FadeIn overlay + SlideInDown sheet, item array (icon/destructive/disabled/hint), 60ms gecikmeli onPress + unmount cleanup.
+- Fiyat flash (`ModernPriceRow` + `PriceCard`): 140ms ramp 0.12 opacity + 660ms decay = 800ms toplam (önceki 720ms × 0.06-0.07'den güçlendi).
 
 **Backend haberler:**
 - `functions/src/news.ts` — 6 Türkçe RSS kaynağı (Bloomberg HT, AA, TRT, Dünya, CNN Türk, BBC Türkçe), dedup + kategorize (Döviz/Altın/Merkez Bankası/Emtia/Parite/Ekonomi)

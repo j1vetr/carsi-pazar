@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, Platform, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { haptics } from "@/lib/haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon, type IconName } from "@/components/Icon";
@@ -96,19 +96,19 @@ export default function InboxScreen() {
   }, [reload]);
 
   const onItemPress = useCallback((item: InboxItem) => {
-    Haptics.selectionAsync().catch(() => {});
+    haptics.select();
     void markRead(item.id);
     const r = routeForItem(item);
     if (r) router.push(r as never);
   }, []);
 
   const onItemLongPress = useCallback((item: InboxItem) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    haptics.tap();
     void removeInboxItem(item.id);
   }, []);
 
   const onClearAll = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    haptics.longPress();
     await clearInbox();
   }, []);
 

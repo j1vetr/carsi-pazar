@@ -16,6 +16,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { setOnboardingSeen } from "@/lib/onboardingPref";
+import { haptics } from "@/lib/haptics";
 
 const { width: W } = Dimensions.get("window");
 
@@ -508,12 +509,24 @@ export default function Onboarding() {
   }, []);
 
   const onPrimary = useCallback(async () => {
+    haptics.tap();
     if (active >= SLIDES.length - 1) {
       void finish();
     } else {
       goTo(active + 1);
     }
   }, [active, goTo, finish]);
+
+  const onBack = useCallback(() => {
+    if (active <= 0) return;
+    haptics.select();
+    goTo(active - 1);
+  }, [active, goTo]);
+
+  const onSkip = useCallback(() => {
+    haptics.select();
+    void finish();
+  }, [finish]);
 
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -529,6 +542,37 @@ export default function Onboarding() {
     <View style={{ flex: 1, backgroundColor: C.paper }}>
       <StatusBar barStyle="dark-content" backgroundColor={C.paper} />
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+        {/* Üst bar: sol "Geri" (1. slide gizli), sağ "Atla" (son slide gizli) */}
+        <View style={styles.topBar} pointerEvents="box-none">
+          {active > 0 ? (
+            <Pressable
+              onPress={onBack}
+              hitSlop={14}
+              accessibilityRole="button"
+              accessibilityLabel="Önceki adıma dön"
+              style={({ pressed }) => [styles.topBtn, { opacity: pressed ? 0.55 : 1 }]}
+            >
+              <Text style={styles.topBtnArrow}>‹</Text>
+              <Text style={styles.topBtnText}>Geri</Text>
+            </Pressable>
+          ) : (
+            <View style={styles.topBtn} />
+          )}
+          {active < SLIDES.length - 1 ? (
+            <Pressable
+              onPress={onSkip}
+              hitSlop={14}
+              accessibilityRole="button"
+              accessibilityLabel="Tanıtımı atla ve uygulamayı aç"
+              style={({ pressed }) => [styles.topBtn, { opacity: pressed ? 0.55 : 1 }]}
+            >
+              <Text style={styles.topBtnText}>Atla</Text>
+            </Pressable>
+          ) : (
+            <View style={styles.topBtn} />
+          )}
+        </View>
+
         <FlatList
           ref={listRef}
           data={SLIDES as readonly Slide[] as Slide[]}
@@ -576,9 +620,39 @@ export default function Onboarding() {
 }
 
 const styles = StyleSheet.create({
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingTop: 8,
+    paddingBottom: 4,
+    minHeight: 40,
+  },
+  topBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    minWidth: 56,
+  },
+  topBtnArrow: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 22,
+    color: C.inkSoft,
+    lineHeight: 22,
+    marginTop: -3,
+  },
+  topBtnText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 13,
+    color: C.inkSoft,
+    letterSpacing: -0.2,
+  },
   slide: {
     flex: 1,
-    paddingTop: 36,
+    paddingTop: 16,
     paddingHorizontal: 30,
   },
   contentArea: {

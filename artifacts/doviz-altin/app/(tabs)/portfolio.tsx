@@ -11,7 +11,7 @@ import {
 import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
 import { Modal } from "react-native";
 import { router } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { haptics } from "@/lib/haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
@@ -119,7 +119,7 @@ export default function PortfolioScreen() {
           text: "Sil",
           style: "destructive",
           onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+            haptics.warning();
             void removeFromPortfolio(id);
           },
         },
@@ -139,7 +139,7 @@ export default function PortfolioScreen() {
             text: "Tümünü Sil",
             style: "destructive",
             onPress: () => {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+              haptics.warning();
               void removeAllByAsset(code, type);
             },
           },
@@ -215,7 +215,7 @@ export default function PortfolioScreen() {
           <Pressable
             hitSlop={10}
             onPress={() => {
-              Haptics.selectionAsync().catch(() => {});
+              haptics.select();
               setAddMenuVisible(true);
             }}
             style={({ pressed }) => ({
@@ -381,7 +381,7 @@ export default function PortfolioScreen() {
                 <Pressable
                   key={opt.key}
                   onPress={() => {
-                    Haptics.selectionAsync().catch(() => {});
+                    haptics.select();
                     setAddMenuVisible(false);
                     setTxInitial({ side: opt.key });
                     setTxVisible(true);

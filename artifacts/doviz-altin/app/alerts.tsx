@@ -14,7 +14,7 @@ import {
 import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Haptics from "expo-haptics";
+import { haptics } from "@/lib/haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import type { SmartAlert, AlertGroup } from "@/lib/alertTypes";
@@ -262,7 +262,7 @@ export default function AlertsScreen() {
   const groupOf = (id?: string) => (id ? alertGroups.find((g) => g.id === id) : undefined);
 
   const openAlertActions = (alert: SmartAlert) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.longPress();
     const muteOptions: { label: string; until?: number; reset?: boolean }[] = [
       { label: "1 Saat Sustur", until: Date.now() + 60 * 60 * 1000 },
       { label: "Bugün Sustur", until: endOfToday() },
@@ -318,7 +318,7 @@ export default function AlertsScreen() {
         text: "Sil",
         style: "destructive",
         onPress: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          haptics.warning();
           removeAlert(id);
         },
       },
