@@ -1,0 +1,333 @@
+04-23 13:22:48.122 I/HoneySpace.HoneyAppWidgetHostView(23211): touch up, widgetId : 25
+04-23 13:22:48.122 I/HoneySpace.SALoggingUtils(23211): SA Logging screenID: 101 eventId: 1003 detail: {PackageName=com.toov1.dovizaltin, det=1} value: -1
+04-23 13:22:48.126 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [findHostViewAncestor] - com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:48.126 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [getActivityLaunchOptions] hostView-com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false, targetView-com.honeyspace.ui.common.widget.WidgetHostViewContainer{a56da4f VFE...CL. ........ 0,0-1000,284} - Çarşı Piyasa - Canlı Döviz & Altın, appWidgetId=25, alpha=1.0, spanX=4, spanY=1, isStandardized: false, lastLabel: null, lastCornerRadius: null, lastBackgroundOpacity: 0, lastTransparent: true, x=0, y=0, cookieId-36881, intent-Intent { cmp=com.toov1.dovizaltin/.widget.PriceWidget }
+04-23 13:22:48.128 I/HoneySpace.ShellAnimationRunner(23211): setDelegate, delegate-com.honeyspace.transition.delegate.AppWidgetLaunchAnimationDelegate@74f9e4b, strong-false
+04-23 13:22:48.134 D/ActivityManager( 1426): Received BROADCAST intent 0xbdd3ab7 Key{broadcastIntent pkg=com.toov1.dovizaltin intent=act=com.toov1.dovizaltin.WIDGET_CLICK xflg=0x4 cmp=com.toov1.dovizaltin/.widget.PriceWidget flags=0x2000000 u=0} requestCode=-1176799699 sent=0 from uid 10153
+04-23 13:22:48.140 D/AppWidgetProvider( 7922): onReceive:com.toov1.dovizaltin.WIDGET_CLICK
+04-23 13:22:48.143 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in com.toov1.dovizaltin
+04-23 13:22:48.143 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 1
+04-23 13:22:48.145 I/AppWidgetServiceImpl( 1426): handleSaveMessage 0
+04-23 13:22:48.162 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:48.163 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:48.164 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:48.184 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:48.184 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:48.185 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:48.221 I/ReactNativeJS( 7922): [CARSI-WIDGET] taskHandler ENTER action=WIDGET_CLICK id=25 name=PriceWidget w=401 h=95
+04-23 13:22:48.281 I/ReactNativeJS( 7922): [CARSI-WIDGET] renderWidget OK stage=cache+refreshing field=sell rows=4 loading=false err=-
+04-23 13:22:48.281 I/ReactNativeJS( 7922): [CARSI-WIDGET] fetching prices… codes=USD,EUR,ALTIN,CEYREK
+04-23 13:22:48.325 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:48.616 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:48.777 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:49.035 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:49.062 I/HoneySpace.HoneyAppWidgetHostView(23211): touch up, widgetId : 25
+04-23 13:22:49.063 I/HoneySpace.SALoggingUtils(23211): SA Logging screenID: 101 eventId: 1003 detail: {PackageName=com.toov1.dovizaltin, det=1} value: -1
+04-23 13:22:49.066 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [findHostViewAncestor] - com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:49.066 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [getActivityLaunchOptions] hostView-com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false, targetView-com.honeyspace.ui.common.widget.WidgetHostViewContainer{a56da4f VFE...CL. ........ 0,0-1000,284} - Çarşı Piyasa - Canlı Döviz & Altın, appWidgetId=25, alpha=1.0, spanX=4, spanY=1, isStandardized: false, lastLabel: null, lastCornerRadius: null, lastBackgroundOpacity: 0, lastTransparent: true, x=0, y=0, cookieId-36881, intent-Intent { cmp=com.toov1.dovizaltin/.widget.PriceWidget }
+04-23 13:22:49.067 I/HoneySpace.ShellAnimationRunner(23211): setDelegate, delegate-com.honeyspace.transition.delegate.AppWidgetLaunchAnimationDelegate@65366d4, strong-false
+04-23 13:22:49.071 D/ActivityManager( 1426): Received BROADCAST intent 0xbdd3ab7 Key{broadcastIntent pkg=com.toov1.dovizaltin intent=act=com.toov1.dovizaltin.WIDGET_CLICK xflg=0x4 cmp=com.toov1.dovizaltin/.widget.PriceWidget flags=0x2000000 u=0} requestCode=-1176799699 sent=0 from uid 10153
+04-23 13:22:49.072 D/AppWidgetProvider( 7922): onReceive:com.toov1.dovizaltin.WIDGET_CLICK
+04-23 13:22:49.073 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in com.toov1.dovizaltin
+04-23 13:22:49.074 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 1
+04-23 13:22:49.075 I/AppWidgetServiceImpl( 1426): handleSaveMessage 0
+04-23 13:22:49.087 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:49.087 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:49.088 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:49.098 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:49.098 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:49.099 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:49.122 I/ReactNativeJS( 7922): [CARSI-WIDGET] taskHandler ENTER action=WIDGET_CLICK id=25 name=PriceWidget w=401 h=95
+04-23 13:22:49.164 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:49.165 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:49.173 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:49.174 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:49.182 I/AppWidgetManager( 7922): updateAppWidget() appWidgetIds = [25]
+04-23 13:22:49.182 I/AppWidgetServiceImpl( 1426): Null RemoteViews on updateAppWidgetIds
+04-23 13:22:49.184 D/AppWidgetServiceImpl( 1426): handleNotifyUpdateAppWidget, appWidgetId = 25
+04-23 13:22:49.184 D/AppWidgetServiceImpl( 1426): Trying to notify widget update for package com.toov1.dovizaltin with widget id: 25
+04-23 13:22:49.185 I/AppWidgetHost(23211): updateAppWidgetView, appWidgetId = 25, v = com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:49.185 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] receive event - isAnimating: false, remoteViews: android.widget.RemoteViews@214cb72, hostView: @4c3860a
+04-23 13:22:49.185 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] start update job for widget
+04-23 13:22:49.185 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] update after transition animation
+04-23 13:22:49.185 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] perform updateAppWidget - remoteViews: android.widget.RemoteViews@214cb72, hostView: @4c3860a
+04-23 13:22:49.242 I/ReactNativeJS( 7922): [CARSI-WIDGET] renderWidget OK stage=cache+refreshing field=sell rows=4 loading=false err=-
+04-23 13:22:49.243 I/ReactNativeJS( 7922): [CARSI-WIDGET] fetching prices… codes=USD,EUR,ALTIN,CEYREK
+04-23 13:22:49.288 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:49.609 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:49.790 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:49.995 I/HoneySpace.HoneyAppWidgetHostView(23211): touch up, widgetId : 25
+04-23 13:22:49.995 I/HoneySpace.SALoggingUtils(23211): SA Logging screenID: 101 eventId: 1003 detail: {PackageName=com.toov1.dovizaltin, det=1} value: -1
+04-23 13:22:49.999 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [findHostViewAncestor] - com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:49.999 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [getActivityLaunchOptions] hostView-com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false, targetView-com.honeyspace.ui.common.widget.WidgetHostViewContainer{a56da4f VFE...CL. ........ 0,0-1000,284} - Çarşı Piyasa - Canlı Döviz & Altın, appWidgetId=25, alpha=1.0, spanX=4, spanY=1, isStandardized: false, lastLabel: null, lastCornerRadius: null, lastBackgroundOpacity: 0, lastTransparent: true, x=0, y=0, cookieId-36881, intent-Intent { cmp=com.toov1.dovizaltin/.widget.PriceWidget }
+04-23 13:22:50.000 I/HoneySpace.ShellAnimationRunner(23211): setDelegate, delegate-com.honeyspace.transition.delegate.AppWidgetLaunchAnimationDelegate@365dcb1, strong-false
+04-23 13:22:50.004 D/ActivityManager( 1426): Received BROADCAST intent 0x4078c80 Key{broadcastIntent pkg=com.toov1.dovizaltin intent=act=com.toov1.dovizaltin.WIDGET_CLICK xflg=0x4 cmp=com.toov1.dovizaltin/.widget.PriceWidget flags=0x2000000 u=0} requestCode=-1176691363 sent=0 from uid 10153
+04-23 13:22:50.006 D/AppWidgetProvider( 7922): onReceive:com.toov1.dovizaltin.WIDGET_CLICK
+04-23 13:22:50.007 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in com.toov1.dovizaltin
+04-23 13:22:50.007 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 1
+04-23 13:22:50.008 I/AppWidgetServiceImpl( 1426): handleSaveMessage 0
+04-23 13:22:50.017 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:50.017 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:50.017 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:50.025 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:50.025 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:50.025 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:50.039 I/ReactNativeJS( 7922): [CARSI-WIDGET] taskHandler ENTER action=WIDGET_CLICK id=25 name=PriceWidget w=401 h=95
+04-23 13:22:50.046 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:50.164 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:50.164 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:50.173 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:50.173 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:50.180 I/AppWidgetManager( 7922): updateAppWidget() appWidgetIds = [25]
+04-23 13:22:50.181 I/AppWidgetServiceImpl( 1426): Null RemoteViews on updateAppWidgetIds
+04-23 13:22:50.182 D/AppWidgetServiceImpl( 1426): handleNotifyUpdateAppWidget, appWidgetId = 25
+04-23 13:22:50.182 D/AppWidgetServiceImpl( 1426): Trying to notify widget update for package com.toov1.dovizaltin with widget id: 25
+04-23 13:22:50.184 I/AppWidgetHost(23211): updateAppWidgetView, appWidgetId = 25, v = com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:50.184 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] receive event - isAnimating: false, remoteViews: android.widget.RemoteViews@9681517, hostView: @4c3860a
+04-23 13:22:50.184 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] start update job for widget
+04-23 13:22:50.184 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] update after transition animation
+04-23 13:22:50.184 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] perform updateAppWidget - remoteViews: android.widget.RemoteViews@9681517, hostView: @4c3860a
+04-23 13:22:50.235 I/ReactNativeJS( 7922): [CARSI-WIDGET] renderWidget OK stage=cache+refreshing field=sell rows=4 loading=false err=-
+04-23 13:22:50.236 I/ReactNativeJS( 7922): [CARSI-WIDGET] fetching prices… codes=USD,EUR,ALTIN,CEYREK
+04-23 13:22:50.279 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:50.530 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:50.690 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:50.712 I/HoneySpace.HoneyAppWidgetHostView(23211): touch up, widgetId : 25
+04-23 13:22:50.713 I/HoneySpace.SALoggingUtils(23211): SA Logging screenID: 101 eventId: 1003 detail: {PackageName=com.toov1.dovizaltin, det=1} value: -1
+04-23 13:22:50.716 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [findHostViewAncestor] - com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:50.716 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [getActivityLaunchOptions] hostView-com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false, targetView-com.honeyspace.ui.common.widget.WidgetHostViewContainer{a56da4f VFE...CL. ........ 0,0-1000,284} - Çarşı Piyasa - Canlı Döviz & Altın, appWidgetId=25, alpha=1.0, spanX=4, spanY=1, isStandardized: false, lastLabel: null, lastCornerRadius: null, lastBackgroundOpacity: 0, lastTransparent: true, x=0, y=0, cookieId-36881, intent-Intent { cmp=com.toov1.dovizaltin/.widget.PriceWidget }
+04-23 13:22:50.717 I/HoneySpace.ShellAnimationRunner(23211): setDelegate, delegate-com.honeyspace.transition.delegate.AppWidgetLaunchAnimationDelegate@b2067a, strong-false
+04-23 13:22:50.723 D/ActivityManager( 1426): Received BROADCAST intent 0xffa6b98 Key{broadcastIntent pkg=com.toov1.dovizaltin intent=act=com.toov1.dovizaltin.WIDGET_CLICK xflg=0x4 cmp=com.toov1.dovizaltin/.widget.PriceWidget flags=0x2000000 u=0} requestCode=-1176690364 sent=0 from uid 10153
+04-23 13:22:50.727 D/AppWidgetProvider( 7922): onReceive:com.toov1.dovizaltin.WIDGET_CLICK
+04-23 13:22:50.728 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in com.toov1.dovizaltin
+04-23 13:22:50.729 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 1
+04-23 13:22:50.730 I/AppWidgetServiceImpl( 1426): handleSaveMessage 0
+04-23 13:22:50.743 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:50.743 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:50.744 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:50.755 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:50.755 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:50.755 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:50.786 I/ReactNativeJS( 7922): [CARSI-WIDGET] taskHandler ENTER action=WIDGET_CLICK id=25 name=PriceWidget w=401 h=95
+04-23 13:22:50.971 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:51.096 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:51.096 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:51.105 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:51.106 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:51.113 I/AppWidgetManager( 7922): updateAppWidget() appWidgetIds = [25]
+04-23 13:22:51.114 I/AppWidgetServiceImpl( 1426): Null RemoteViews on updateAppWidgetIds
+04-23 13:22:51.115 D/AppWidgetServiceImpl( 1426): handleNotifyUpdateAppWidget, appWidgetId = 25
+04-23 13:22:51.115 D/AppWidgetServiceImpl( 1426): Trying to notify widget update for package com.toov1.dovizaltin with widget id: 25
+04-23 13:22:51.116 I/AppWidgetHost(23211): updateAppWidgetView, appWidgetId = 25, v = com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:51.116 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] receive event - isAnimating: false, remoteViews: android.widget.RemoteViews@1fa2288, hostView: @4c3860a
+04-23 13:22:51.116 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] start update job for widget
+04-23 13:22:51.116 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] update after transition animation
+04-23 13:22:51.116 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] perform updateAppWidget - remoteViews: android.widget.RemoteViews@1fa2288, hostView: @4c3860a
+04-23 13:22:51.169 I/ReactNativeJS( 7922): [CARSI-WIDGET] renderWidget OK stage=cache+refreshing field=sell rows=4 loading=false err=-
+04-23 13:22:51.170 I/ReactNativeJS( 7922): [CARSI-WIDGET] fetching prices… codes=USD,EUR,ALTIN,CEYREK
+04-23 13:22:51.215 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:51.476 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:51.654 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:51.838 I/HoneySpace.HoneyAppWidgetHostView(23211): touch up, widgetId : 25
+04-23 13:22:51.839 I/HoneySpace.SALoggingUtils(23211): SA Logging screenID: 101 eventId: 1003 detail: {PackageName=com.toov1.dovizaltin, det=1} value: -1
+04-23 13:22:51.840 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [findHostViewAncestor] - com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:51.841 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [getActivityLaunchOptions] hostView-com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false, targetView-com.honeyspace.ui.common.widget.WidgetHostViewContainer{a56da4f VFE...CL. ........ 0,0-1000,284} - Çarşı Piyasa - Canlı Döviz & Altın, appWidgetId=25, alpha=1.0, spanX=4, spanY=1, isStandardized: false, lastLabel: null, lastCornerRadius: null, lastBackgroundOpacity: 0, lastTransparent: true, x=0, y=0, cookieId-36881, intent-Intent { cmp=com.toov1.dovizaltin/.widget.PriceWidget }
+04-23 13:22:51.842 I/HoneySpace.ShellAnimationRunner(23211): setDelegate, delegate-com.honeyspace.transition.delegate.AppWidgetLaunchAnimationDelegate@66d9aff, strong-false
+04-23 13:22:51.845 D/ActivityManager( 1426): Received BROADCAST intent 0x173bd4f Key{broadcastIntent pkg=com.toov1.dovizaltin intent=act=com.toov1.dovizaltin.WIDGET_CLICK xflg=0x4 cmp=com.toov1.dovizaltin/.widget.PriceWidget flags=0x2000000 u=0} requestCode=-1176689431 sent=0 from uid 10153
+04-23 13:22:51.848 D/AppWidgetProvider( 7922): onReceive:com.toov1.dovizaltin.WIDGET_CLICK
+04-23 13:22:51.849 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in com.toov1.dovizaltin
+04-23 13:22:51.849 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 1
+04-23 13:22:51.850 I/AppWidgetServiceImpl( 1426): handleSaveMessage 0
+04-23 13:22:51.865 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:51.865 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:51.866 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:51.878 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:51.879 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:51.879 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:51.908 I/ReactNativeJS( 7922): [CARSI-WIDGET] taskHandler ENTER action=WIDGET_CLICK id=25 name=PriceWidget w=401 h=95
+04-23 13:22:51.963 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:52.098 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:52.099 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:52.109 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:52.110 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:52.117 I/AppWidgetManager( 7922): updateAppWidget() appWidgetIds = [25]
+04-23 13:22:52.118 I/AppWidgetServiceImpl( 1426): Null RemoteViews on updateAppWidgetIds
+04-23 13:22:52.120 D/AppWidgetServiceImpl( 1426): handleNotifyUpdateAppWidget, appWidgetId = 25
+04-23 13:22:52.120 D/AppWidgetServiceImpl( 1426): Trying to notify widget update for package com.toov1.dovizaltin with widget id: 25
+04-23 13:22:52.121 I/AppWidgetHost(23211): updateAppWidgetView, appWidgetId = 25, v = com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:52.121 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] receive event - isAnimating: false, remoteViews: android.widget.RemoteViews@96c0f15, hostView: @4c3860a
+04-23 13:22:52.121 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] start update job for widget
+04-23 13:22:52.121 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] update after transition animation
+04-23 13:22:52.121 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] perform updateAppWidget - remoteViews: android.widget.RemoteViews@96c0f15, hostView: @4c3860a
+04-23 13:22:52.182 I/ReactNativeJS( 7922): [CARSI-WIDGET] renderWidget OK stage=cache+refreshing field=sell rows=4 loading=false err=-
+04-23 13:22:52.182 I/ReactNativeJS( 7922): [CARSI-WIDGET] fetching prices… codes=USD,EUR,ALTIN,CEYREK
+04-23 13:22:52.231 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:52.490 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:52.503 I/HoneySpace.HoneyAppWidgetHostView(23211): touch up, widgetId : 25
+04-23 13:22:52.503 I/HoneySpace.SALoggingUtils(23211): SA Logging screenID: 101 eventId: 1003 detail: {PackageName=com.toov1.dovizaltin, det=1} value: -1
+04-23 13:22:52.533 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [findHostViewAncestor] - com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:52.533 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [getActivityLaunchOptions] hostView-com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false, targetView-com.honeyspace.ui.common.widget.WidgetHostViewContainer{a56da4f VFE...CL. ........ 0,0-1000,284} - Çarşı Piyasa - Canlı Döviz & Altın, appWidgetId=25, alpha=1.0, spanX=4, spanY=1, isStandardized: false, lastLabel: null, lastCornerRadius: null, lastBackgroundOpacity: 0, lastTransparent: true, x=0, y=0, cookieId-36881, intent-Intent { cmp=com.toov1.dovizaltin/.widget.PriceWidget }
+04-23 13:22:52.534 I/HoneySpace.ShellAnimationRunner(23211): setDelegate, delegate-com.honeyspace.transition.delegate.AppWidgetLaunchAnimationDelegate@4600bd0, strong-false
+04-23 13:22:52.540 D/ActivityManager( 1426): Received BROADCAST intent 0xd240747 Key{broadcastIntent pkg=com.toov1.dovizaltin intent=act=com.toov1.dovizaltin.WIDGET_CLICK xflg=0x4 cmp=com.toov1.dovizaltin/.widget.PriceWidget flags=0x2000000 u=0} requestCode=-1176688428 sent=0 from uid 10153
+04-23 13:22:52.542 D/AppWidgetProvider( 7922): onReceive:com.toov1.dovizaltin.WIDGET_CLICK
+04-23 13:22:52.544 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in com.toov1.dovizaltin
+04-23 13:22:52.544 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 1
+04-23 13:22:52.546 I/AppWidgetServiceImpl( 1426): handleSaveMessage 0
+04-23 13:22:52.559 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:52.559 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:52.560 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:52.571 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:52.571 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:52.571 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:52.595 I/ReactNativeJS( 7922): [CARSI-WIDGET] taskHandler ENTER action=WIDGET_CLICK id=25 name=PriceWidget w=401 h=95
+04-23 13:22:52.659 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:52.944 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:53.072 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:53.074 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:53.089 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:53.090 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:53.103 I/AppWidgetManager( 7922): updateAppWidget() appWidgetIds = [25]
+04-23 13:22:53.104 I/AppWidgetServiceImpl( 1426): Null RemoteViews on updateAppWidgetIds
+04-23 13:22:53.106 D/AppWidgetServiceImpl( 1426): handleNotifyUpdateAppWidget, appWidgetId = 25
+04-23 13:22:53.106 D/AppWidgetServiceImpl( 1426): Trying to notify widget update for package com.toov1.dovizaltin with widget id: 25
+04-23 13:22:53.108 I/AppWidgetHost(23211): updateAppWidgetView, appWidgetId = 25, v = com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:53.108 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] receive event - isAnimating: false, remoteViews: android.widget.RemoteViews@ffc0ece, hostView: @4c3860a
+04-23 13:22:53.109 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] start update job for widget
+04-23 13:22:53.109 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] update after transition animation
+04-23 13:22:53.109 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] perform updateAppWidget - remoteViews: android.widget.RemoteViews@ffc0ece, hostView: @4c3860a
+04-23 13:22:53.172 I/ReactNativeJS( 7922): [CARSI-WIDGET] renderWidget OK stage=cache+refreshing field=sell rows=4 loading=false err=-
+04-23 13:22:53.172 I/ReactNativeJS( 7922): [CARSI-WIDGET] fetching prices… codes=USD,EUR,ALTIN,CEYREK
+04-23 13:22:53.221 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:53.487 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:53.546 I/ComplicationWidgetPluginController( 1865): requestAppWidgetListening false , true false true
+04-23 13:22:53.546 I/SharedAppWidgetFacade( 1865):  startAppWidgetListening
+04-23 13:22:53.546 I/AppWidgetServiceImpl( 1426): startListening() 
+04-23 13:22:53.546 I/AppWidgetServiceImpl( 1426): lookupOrAddHostLocked = HostId{user:0, app:10050, hostId:2304, pkg:com.android.systemui}
+04-23 13:22:53.546 I/AppWidgetServiceImpl( 1426): startListening callbacks : com.android.internal.appwidget.IAppWidgetHost$Stub$Proxy@f1395f8 intervalEnsure:41937847 intervalHostLock:41937847 LhostId:HostId{user:0, app:10050, hostId:2304, pkg:com.android.systemui}
+04-23 13:22:53.546 I/AppWidgetServiceImpl( 1426): startListening() finish
+04-23 13:22:53.650 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:53.967 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:54.102 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:54.103 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:54.110 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:54.110 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:54.118 I/AppWidgetManager( 7922): updateAppWidget() appWidgetIds = [25]
+04-23 13:22:54.118 I/AppWidgetServiceImpl( 1426): Null RemoteViews on updateAppWidgetIds
+04-23 13:22:54.120 D/AppWidgetServiceImpl( 1426): handleNotifyUpdateAppWidget, appWidgetId = 25
+04-23 13:22:54.120 D/AppWidgetServiceImpl( 1426): Trying to notify widget update for package com.toov1.dovizaltin with widget id: 25
+04-23 13:22:54.121 I/AppWidgetHost(23211): updateAppWidgetView, appWidgetId = 25, v = com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:54.121 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] receive event - isAnimating: false, remoteViews: android.widget.RemoteViews@48823d, hostView: @4c3860a
+04-23 13:22:54.122 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] start update job for widget
+04-23 13:22:54.122 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] update after transition animation
+04-23 13:22:54.122 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] perform updateAppWidget - remoteViews: android.widget.RemoteViews@48823d, hostView: @4c3860a
+04-23 13:22:55.390 I/ComplicationWidgetPluginController( 1865): requestAppWidgetListening false , false false true
+04-23 13:22:55.390 I/SharedAppWidgetFacade( 1865):  stopAppWidgetListening
+04-23 13:22:55.390 I/AppWidgetServiceImpl( 1426): stopListening callbacks : null
+04-23 13:22:56.001 I/HoneySpace.HoneyAppWidgetHostView(23211): touch up, widgetId : 25
+04-23 13:22:56.002 I/HoneySpace.SALoggingUtils(23211): SA Logging screenID: 101 eventId: 1003 detail: {PackageName=com.toov1.dovizaltin, det=1} value: -1
+04-23 13:22:56.006 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [findHostViewAncestor] - com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:56.006 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [getActivityLaunchOptions] hostView-com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false, targetView-com.honeyspace.ui.common.widget.WidgetHostViewContainer{a56da4f VFE...CL. ........ 0,0-1000,284} - Çarşı Piyasa - Canlı Döviz & Altın, appWidgetId=25, alpha=1.0, spanX=4, spanY=1, isStandardized: false, lastLabel: null, lastCornerRadius: null, lastBackgroundOpacity: 0, lastTransparent: true, x=0, y=0, cookieId-36881, intent-Intent { cmp=com.toov1.dovizaltin/.widget.PriceWidget }
+04-23 13:22:56.007 I/HoneySpace.ShellAnimationRunner(23211): setDelegate, delegate-com.honeyspace.transition.delegate.AppWidgetLaunchAnimationDelegate@3cfaea9, strong-false
+04-23 13:22:56.012 D/ActivityManager( 1426): Received BROADCAST intent 0xe11f2d6 Key{broadcastIntent pkg=com.toov1.dovizaltin intent=act=com.toov1.dovizaltin.WIDGET_CLICK xflg=0x4 cmp=com.toov1.dovizaltin/.widget.PriceWidget flags=0x2000000 u=0} requestCode=-1176686427 sent=0 from uid 10153
+04-23 13:22:56.018 D/AppWidgetProvider( 7922): onReceive:com.toov1.dovizaltin.WIDGET_CLICK
+04-23 13:22:56.020 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in com.toov1.dovizaltin
+04-23 13:22:56.020 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 1
+04-23 13:22:56.023 I/AppWidgetServiceImpl( 1426): handleSaveMessage 0
+04-23 13:22:56.037 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:56.037 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:56.037 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:56.052 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:56.052 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:56.053 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:56.088 I/ReactNativeJS( 7922): [CARSI-WIDGET] taskHandler ENTER action=WIDGET_CLICK id=25 name=PriceWidget w=401 h=95
+04-23 13:22:56.149 I/ReactNativeJS( 7922): [CARSI-WIDGET] renderWidget OK stage=cache+refreshing field=sell rows=4 loading=false err=-
+04-23 13:22:56.149 I/ReactNativeJS( 7922): [CARSI-WIDGET] fetching prices… codes=USD,EUR,ALTIN,CEYREK
+04-23 13:22:56.192 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:56.466 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:56.584 I/HoneySpace.HoneyAppWidgetHostView(23211): touch up, widgetId : 25
+04-23 13:22:56.584 I/HoneySpace.SALoggingUtils(23211): SA Logging screenID: 101 eventId: 1003 detail: {PackageName=com.toov1.dovizaltin, det=1} value: -1
+04-23 13:22:56.589 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [findHostViewAncestor] - com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:56.589 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [getActivityLaunchOptions] hostView-com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false, targetView-com.honeyspace.ui.common.widget.WidgetHostViewContainer{a56da4f VFE...CL. ........ 0,0-1000,284} - Çarşı Piyasa - Canlı Döviz & Altın, appWidgetId=25, alpha=1.0, spanX=4, spanY=1, isStandardized: false, lastLabel: null, lastCornerRadius: null, lastBackgroundOpacity: 0, lastTransparent: true, x=0, y=0, cookieId-36881, intent-Intent { cmp=com.toov1.dovizaltin/.widget.PriceWidget }
+04-23 13:22:56.589 I/HoneySpace.ShellAnimationRunner(23211): setDelegate, delegate-com.honeyspace.transition.delegate.AppWidgetLaunchAnimationDelegate@a8fbd3a, strong-false
+04-23 13:22:56.592 D/ActivityManager( 1426): Received BROADCAST intent 0xe11f2d6 Key{broadcastIntent pkg=com.toov1.dovizaltin intent=act=com.toov1.dovizaltin.WIDGET_CLICK xflg=0x4 cmp=com.toov1.dovizaltin/.widget.PriceWidget flags=0x2000000 u=0} requestCode=-1176686427 sent=0 from uid 10153
+04-23 13:22:56.594 D/AppWidgetProvider( 7922): onReceive:com.toov1.dovizaltin.WIDGET_CLICK
+04-23 13:22:56.595 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in com.toov1.dovizaltin
+04-23 13:22:56.595 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 1
+04-23 13:22:56.597 I/AppWidgetServiceImpl( 1426): handleSaveMessage 0
+04-23 13:22:56.612 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:56.612 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:56.613 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:56.624 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:56.624 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:56.624 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:56.624 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:56.647 I/ReactNativeJS( 7922): [CARSI-WIDGET] taskHandler ENTER action=WIDGET_CLICK id=25 name=PriceWidget w=401 h=95
+04-23 13:22:56.894 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:57.020 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:57.021 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:57.032 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:57.032 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:57.039 I/AppWidgetManager( 7922): updateAppWidget() appWidgetIds = [25]
+04-23 13:22:57.040 I/AppWidgetServiceImpl( 1426): Null RemoteViews on updateAppWidgetIds
+04-23 13:22:57.041 D/AppWidgetServiceImpl( 1426): handleNotifyUpdateAppWidget, appWidgetId = 25
+04-23 13:22:57.041 D/AppWidgetServiceImpl( 1426): Trying to notify widget update for package com.toov1.dovizaltin with widget id: 25
+04-23 13:22:57.042 I/AppWidgetHost(23211): updateAppWidgetView, appWidgetId = 25, v = com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:57.042 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] receive event - isAnimating: false, remoteViews: android.widget.RemoteViews@3599748, hostView: @4c3860a
+04-23 13:22:57.042 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] start update job for widget
+04-23 13:22:57.042 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] update after transition animation
+04-23 13:22:57.042 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] perform updateAppWidget - remoteViews: android.widget.RemoteViews@3599748, hostView: @4c3860a
+04-23 13:22:57.091 I/ReactNativeJS( 7922): [CARSI-WIDGET] renderWidget OK stage=cache+refreshing field=sell rows=4 loading=false err=-
+04-23 13:22:57.091 I/ReactNativeJS( 7922): [CARSI-WIDGET] fetching prices… codes=USD,EUR,ALTIN,CEYREK
+04-23 13:22:57.138 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:57.176 I/HoneySpace.HoneyAppWidgetHostView(23211): touch up, widgetId : 25
+04-23 13:22:57.176 I/HoneySpace.SALoggingUtils(23211): SA Logging screenID: 101 eventId: 1003 detail: {PackageName=com.toov1.dovizaltin, det=1} value: -1
+04-23 13:22:57.180 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [findHostViewAncestor] - com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:57.180 I/HoneySpace.WidgetInteractionHandlerImpl(23211): [getActivityLaunchOptions] hostView-com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false, targetView-com.honeyspace.ui.common.widget.WidgetHostViewContainer{a56da4f VFE...CL. ........ 0,0-1000,284} - Çarşı Piyasa - Canlı Döviz & Altın, appWidgetId=25, alpha=1.0, spanX=4, spanY=1, isStandardized: false, lastLabel: null, lastCornerRadius: null, lastBackgroundOpacity: 0, lastTransparent: true, x=0, y=0, cookieId-36881, intent-Intent { cmp=com.toov1.dovizaltin/.widget.PriceWidget }
+04-23 13:22:57.181 I/HoneySpace.ShellAnimationRunner(23211): setDelegate, delegate-com.honeyspace.transition.delegate.AppWidgetLaunchAnimationDelegate@e35debf, strong-false
+04-23 13:22:57.184 D/ActivityManager( 1426): Received BROADCAST intent 0xf033dc8 Key{broadcastIntent pkg=com.toov1.dovizaltin intent=act=com.toov1.dovizaltin.WIDGET_CLICK xflg=0x4 cmp=com.toov1.dovizaltin/.widget.PriceWidget flags=0x2000000 u=0} requestCode=-1176683505 sent=0 from uid 10153
+04-23 13:22:57.186 D/AppWidgetProvider( 7922): onReceive:com.toov1.dovizaltin.WIDGET_CLICK
+04-23 13:22:57.188 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in com.toov1.dovizaltin
+04-23 13:22:57.188 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 1
+04-23 13:22:57.191 I/AppWidgetServiceImpl( 1426): handleSaveMessage 0
+04-23 13:22:57.205 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:57.205 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:57.206 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:57.223 D/PackageManager( 1426): setEnabledSetting : userId = 0 packageName = com.toov1.dovizaltin cmp = androidx.work.impl.background.systemalarm.RescheduleReceiver newState = 1 callingPackage = com.toov1.dovizaltin
+04-23 13:22:57.224 D/ApplicationPolicy( 1426): getApplicationStateEnabled : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:57.224 D/ApplicationPolicy( 1426): getApplicationComponentState : pkg = com.toov1.dovizaltin userId : 0
+04-23 13:22:57.247 I/ReactNativeJS( 7922): [CARSI-WIDGET] taskHandler ENTER action=WIDGET_CLICK id=25 name=PriceWidget w=401 h=95
+04-23 13:22:57.436 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:57.612 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:57.882 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:58.002 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:58.005 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:58.019 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:58.021 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:58.034 I/AppWidgetManager( 7922): updateAppWidget() appWidgetIds = [25]
+04-23 13:22:58.035 I/AppWidgetServiceImpl( 1426): Null RemoteViews on updateAppWidgetIds
+04-23 13:22:58.038 D/AppWidgetServiceImpl( 1426): handleNotifyUpdateAppWidget, appWidgetId = 25
+04-23 13:22:58.038 D/AppWidgetServiceImpl( 1426): Trying to notify widget update for package com.toov1.dovizaltin with widget id: 25
+04-23 13:22:58.040 I/AppWidgetHost(23211): updateAppWidgetView, appWidgetId = 25, v = com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:58.040 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] receive event - isAnimating: false, remoteViews: android.widget.RemoteViews@2d158d5, hostView: @4c3860a
+04-23 13:22:58.040 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] start update job for widget
+04-23 13:22:58.040 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] update after transition animation
+04-23 13:22:58.040 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] perform updateAppWidget - remoteViews: android.widget.RemoteViews@2d158d5, hostView: @4c3860a
+04-23 13:22:58.091 I/ReactNativeJS( 7922): [CARSI-WIDGET] renderWidget OK stage=cache+refreshing field=sell rows=4 loading=false err=-
+04-23 13:22:58.091 I/ReactNativeJS( 7922): [CARSI-WIDGET] fetching prices… codes=USD,EUR,ALTIN,CEYREK
+04-23 13:22:58.138 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:58.389 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:58.501 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:58.737 I/Kumiho-Kumiho( 7922): getPackageName: com.toov1.dovizaltin
+04-23 13:22:58.861 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:58.867 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:58.881 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock in null
+04-23 13:22:58.882 I/AppWidgetServiceImpl( 1426): getInstalledProvidersForProfiles lock exit 39
+04-23 13:22:58.895 I/AppWidgetManager( 7922): updateAppWidget() appWidgetIds = [25]
+04-23 13:22:58.897 I/AppWidgetServiceImpl( 1426): Null RemoteViews on updateAppWidgetIds
+04-23 13:22:58.899 D/AppWidgetServiceImpl( 1426): handleNotifyUpdateAppWidget, appWidgetId = 25
+04-23 13:22:58.899 D/AppWidgetServiceImpl( 1426): Trying to notify widget update for package com.toov1.dovizaltin with widget id: 25
+04-23 13:22:58.902 I/AppWidgetHost(23211): updateAppWidgetView, appWidgetId = 25, v = com.honeyspace.ui.common.widget.HoneyAppWidgetHostView{4c3860a VFE...... R....... 30,30-1158,299} - span boundary: (4, 1) ~ (4, 6), appWidgetSize: 0, flag: 1, lastAppliedInfo: RemoteViewInfo(packages=com.toov1.dovizaltin), cachedImageView: false
+04-23 13:22:58.902 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] receive event - isAnimating: false, remoteViews: android.widget.RemoteViews@15ccd8d, hostView: @4c3860a
+04-23 13:22:58.902 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] start update job for widget
+04-23 13:22:58.902 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] update after transition animation
+04-23 13:22:58.902 I/HoneySpace.HoneyAppWidgetHostView(23211): [updateAppWidget id=25] perform updateAppWidget - remoteViews: android.widget.RemoteViews@15ccd8d, hostView: @4c3860a
