@@ -30,21 +30,25 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon, type IconName } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useDrawer } from "@/contexts/DrawerContext";
 import { useApp } from "@/contexts/AppContext";
 
-const LOGO = require("../assets/images/logo-dark.png");
+const LOGO_DARK = require("../assets/images/logo-dark.png");
+const LOGO_LIGHT = require("../assets/images/logo-light.png");
 const SCREEN_W = Dimensions.get("window").width;
 const DRAWER_W = Math.min(Math.round(SCREEN_W * 0.84), 340);
 
 const SPRING = { damping: 26, stiffness: 220, mass: 0.9 };
 const TIMING = { duration: 240, easing: Easing.out(Easing.cubic) };
 
+const GOLD_DARK = "#C9A227";
+const GOLD_LIGHT = "#A4811C";
+
 interface ItemDef {
   key: string;
   label: string;
   icon: IconName;
-  color: string;
   route?: string;
   badge?: string;
   soon?: boolean;
@@ -56,30 +60,29 @@ interface SectionDef {
 }
 
 function buildSections(activeAlertCount: number, inboxUnread: number): SectionDef[] {
-  const sections: SectionDef[] = [
+  return [
     {
-      title: "ARAÇLAR",
+      title: "Araçlar",
       items: [
-        { key: "converter", label: "Çevirici", icon: "swap-horizontal", color: "#3B82F6", route: "/tools/converter" },
-        { key: "gold-calc", label: "Saf Altın Hesaplayıcı", icon: "diamond", color: "#F59E0B", route: "/tools/gold-calc" },
-        { key: "compare", label: "Karşılaştırma", icon: "swap-vertical", color: "#06B6D4", route: "/tools/compare" },
+        { key: "converter", label: "Çevirici", icon: "swap-horizontal", route: "/tools/converter" },
+        { key: "gold-calc", label: "Saf Altın Hesaplayıcı", icon: "diamond", route: "/tools/gold-calc" },
+        { key: "compare", label: "Karşılaştırma", icon: "swap-vertical", route: "/tools/compare" },
       ],
     },
     {
-      title: "İÇERİK",
+      title: "İçerik",
       items: [
-        { key: "news", label: "Haberler", icon: "newspaper-outline", color: "#8B5CF6", route: "/news" },
-        { key: "parities", label: "Pariteler", icon: "trending-up", color: "#0EA5E9", route: "/parities" },
+        { key: "news", label: "Haberler", icon: "newspaper-outline", route: "/news" },
+        { key: "parities", label: "Pariteler", icon: "trending-up", route: "/parities" },
       ],
     },
     {
-      title: "BİLDİRİMLER",
+      title: "Bildirimler",
       items: [
         {
           key: "inbox",
           label: "Gelen Kutusu",
           icon: "mail-outline",
-          color: "#0B3D91",
           route: "/inbox",
           badge: inboxUnread > 0 ? String(inboxUnread > 99 ? "99+" : inboxUnread) : undefined,
         },
@@ -87,46 +90,82 @@ function buildSections(activeAlertCount: number, inboxUnread: number): SectionDe
           key: "alerts",
           label: "Alarmlar",
           icon: "notifications-outline",
-          color: "#EF4444",
           route: "/alerts",
           badge: activeAlertCount > 0 ? String(activeAlertCount) : undefined,
         },
       ],
     },
     {
-      title: "AYARLAR",
+      title: "Ayarlar",
       items: [
-        { key: "settings", label: "Bildirimler & Tercihler", icon: "grid-outline", color: "#10B981", route: "/settings" },
+        { key: "settings", label: "Bildirimler & Tercihler", icon: "grid-outline", route: "/settings" },
         ...(Platform.OS === "android"
-          ? [{ key: "widget", label: "Widget Ayarları", icon: "apps-outline" as IconName, color: "#6366F1", route: "/settings/widget" }]
+          ? [{ key: "widget", label: "Widget Ayarları", icon: "apps-outline" as IconName, route: "/settings/widget" }]
           : []),
-        { key: "theme", label: "Tema", icon: "flame-outline", color: "#EC4899", route: "/settings/theme" },
+        { key: "theme", label: "Tema", icon: "flame-outline", route: "/settings/theme" },
       ],
     },
     {
-      title: "YASAL",
+      title: "Yasal",
       items: [
-        { key: "disclaimer", label: "Yasal Uyarı", icon: "alert-circle", color: "#F59E0B", route: "/legal/disclaimer" },
-        { key: "privacy", label: "KVKK Aydınlatma Metni", icon: "shield-outline", color: "#0EA5E9", route: "/legal/privacy" },
+        { key: "disclaimer", label: "Yasal Uyarı", icon: "alert-circle", route: "/legal/disclaimer" },
+        { key: "privacy", label: "KVKK Aydınlatma Metni", icon: "shield-outline", route: "/legal/privacy" },
       ],
     },
   ];
-  return sections;
 }
 
 export function MenuDrawer() {
   const colors = useColors();
+  const { effective } = useTheme();
+  const isDark = effective === "dark";
   const insets = useSafeAreaInsets();
   const { isOpen, close } = useDrawer();
   const { alerts, inboxUnread } = useApp();
   const pathname = usePathname();
 
-  // 0 = closed (off-screen left), 1 = fully open
+  // Editorial theme tokens
+  const t = useMemo(() => {
+    if (isDark) {
+      return {
+        bg: "#0B1322",
+        headerGradient: ["#14223C", "#0B1322"] as const,
+        headerBorder: "rgba(201,162,39,0.18)",
+        text: "#F4ECD3",
+        textMuted: "rgba(232,238,247,0.92)",
+        textSubtle: "rgba(232,238,247,0.55)",
+        iconBorder: "rgba(232,238,247,0.14)",
+        iconColor: "rgba(232,238,247,0.78)",
+        pressed: "rgba(255,255,255,0.04)",
+        divider: "rgba(232,238,247,0.08)",
+        chevron: "rgba(232,238,247,0.32)",
+        gold: GOLD_DARK,
+        goldTint: "rgba(201,162,39,0.06)",
+        logo: LOGO_DARK,
+      };
+    }
+    return {
+      bg: "#FBF9F4",
+      headerGradient: ["#FFFFFF", "#F2EBDB"] as const,
+      headerBorder: "rgba(164,129,28,0.32)",
+      text: "#0B1F3A",
+      textMuted: "rgba(11,31,58,0.92)",
+      textSubtle: "rgba(11,31,58,0.55)",
+      iconBorder: "rgba(11,31,58,0.14)",
+      iconColor: "rgba(11,31,58,0.72)",
+      pressed: "rgba(11,31,58,0.05)",
+      divider: "rgba(11,31,58,0.08)",
+      chevron: "rgba(11,31,58,0.30)",
+      gold: GOLD_LIGHT,
+      goldTint: "rgba(164,129,28,0.08)",
+      logo: LOGO_LIGHT,
+    };
+  }, [isDark]);
+
+  // 0 = closed, 1 = fully open
   const progress = useSharedValue(0);
-  // Drag offset while dragging (negative values = pulled left)
   const dragX = useSharedValue(0);
 
-  // Drive animation when isOpen changes
   useEffect(() => {
     if (isOpen) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
@@ -137,7 +176,6 @@ export function MenuDrawer() {
     }
   }, [isOpen, progress, dragX]);
 
-  // Android hardware back closes drawer first
   useEffect(() => {
     if (Platform.OS !== "android" || !isOpen) return;
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -147,9 +185,8 @@ export function MenuDrawer() {
     return () => sub.remove();
   }, [isOpen, close]);
 
-  // Compose progress + drag → effective open value [0..1]
-  const effective = useAnimatedStyle(() => {
-    const dragProgress = dragX.value / DRAWER_W; // negative when dragging to close
+  const effectiveStyle = useAnimatedStyle(() => {
+    const dragProgress = dragX.value / DRAWER_W;
     const v = Math.max(0, Math.min(1, progress.value + dragProgress));
     return {
       transform: [{ translateX: interpolate(v, [0, 1], [-DRAWER_W - 24, 0]) }],
@@ -162,7 +199,6 @@ export function MenuDrawer() {
     return { opacity: v * 0.5 };
   });
 
-  // Pan gesture: drag drawer left to close
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
@@ -172,20 +208,18 @@ export function MenuDrawer() {
           if (e.translationX < 0) {
             dragX.value = e.translationX;
           } else {
-            dragX.value = e.translationX * 0.15; // resist over-pull right
+            dragX.value = e.translationX * 0.15;
           }
         })
         .onEnd((e) => {
           const fast = e.velocityX < -700;
           const past = e.translationX < -DRAWER_W * 0.3;
           if (fast || past) {
-            // close
             progress.value = withTiming(0, TIMING, (finished) => {
               if (finished) runOnJS(close)();
             });
             dragX.value = 0;
           } else {
-            // snap back
             dragX.value = withSpring(0, SPRING);
           }
         }),
@@ -209,7 +243,7 @@ export function MenuDrawer() {
       pointerEvents={isOpen ? "auto" : "none"}
       style={[StyleSheet.absoluteFill, { zIndex: 999 }]}
     >
-      {/* Backdrop — blur on iOS, solid dim on Android */}
+      {/* Backdrop */}
       <Animated.View style={[StyleSheet.absoluteFill, backdropStyle]}>
         {Platform.OS === "ios" ? (
           <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
@@ -219,7 +253,7 @@ export function MenuDrawer() {
         <Pressable style={StyleSheet.absoluteFill} onPress={close} />
       </Animated.View>
 
-      {/* Drawer panel — gesture wrapped */}
+      {/* Drawer panel */}
       <GestureDetector gesture={panGesture}>
         <Animated.View
           style={[
@@ -229,70 +263,119 @@ export function MenuDrawer() {
               bottom: 0,
               left: 0,
               width: DRAWER_W,
-              backgroundColor: colors.background,
+              backgroundColor: t.bg,
               shadowColor: "#000",
               shadowOpacity: 0.28,
               shadowRadius: 28,
               shadowOffset: { width: 6, height: 0 },
               elevation: 24,
             },
-            effective,
+            effectiveStyle,
           ]}
         >
-          {/* Brand header — premium gradient hero */}
+          {/* Brand header — logo only, gold hairline rule */}
           <LinearGradient
-            colors={["#0B1A33", "#0B3D91"]}
+            colors={t.headerGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{
               paddingTop: insets.top + 18,
               paddingBottom: 22,
               paddingHorizontal: 22,
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomColor: t.headerBorder,
             }}
           >
-            <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 4 }}>
-              <Image source={LOGO} style={{ width: 180, height: 60 }} resizeMode="contain" />
+            <View style={{ alignItems: "center", justifyContent: "center" }}>
+              <Image
+                source={t.logo}
+                style={{ width: 160, height: 44 }}
+                resizeMode="contain"
+              />
             </View>
+
+            {/* Gold hairline rule */}
+            <View
+              style={{
+                position: "absolute",
+                left: 28,
+                right: 28,
+                bottom: 0,
+                height: StyleSheet.hairlineWidth * 2,
+                backgroundColor: t.gold,
+                opacity: 0.6,
+              }}
+            />
 
             {/* Subtle drag handle hint */}
             <View
               style={{
                 position: "absolute",
                 right: 6,
-                top: insets.top + 36,
+                top: insets.top + 28,
                 width: 3,
                 height: 28,
                 borderRadius: 2,
-                backgroundColor: "rgba(255,255,255,0.22)",
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.18)"
+                  : "rgba(11,31,58,0.18)",
               }}
             />
           </LinearGradient>
 
-          {/* Items — staggered fade-in */}
           <ScrollView
             style={{ flex: 1 }}
-            contentContainerStyle={{ paddingTop: 12, paddingBottom: insets.bottom + 24 }}
+            contentContainerStyle={{ paddingTop: 6, paddingBottom: insets.bottom + 24 }}
             showsVerticalScrollIndicator={false}
           >
             {sections.map((section, sIdx) => (
               <Animated.View
                 key={section.title}
                 entering={isOpen ? FadeInLeft.delay(80 + sIdx * 40).duration(280) : undefined}
-                style={{ marginBottom: 6 }}
+                style={{ marginBottom: 4 }}
               >
-                <Text
+                {/* Editorial section header */}
+                <View
                   style={{
-                    fontSize: 11,
-                    fontFamily: "Inter_700Bold",
-                    color: colors.mutedForeground,
-                    letterSpacing: 1.3,
+                    flexDirection: "row",
+                    alignItems: "center",
                     paddingHorizontal: 22,
-                    paddingTop: 14,
+                    paddingTop: 18,
                     paddingBottom: 8,
                   }}
                 >
-                  {section.title}
-                </Text>
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontFamily: "Inter_700Bold",
+                      color: t.gold,
+                      letterSpacing: 3,
+                      marginRight: 10,
+                    }}
+                  >
+                    {String(sIdx + 1).padStart(2, "0")}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontFamily: "PlayfairDisplay_600SemiBold_Italic",
+                      color: t.textSubtle,
+                      letterSpacing: 2.6,
+                      textTransform: "uppercase",
+                      marginRight: 12,
+                    }}
+                  >
+                    {section.title}
+                  </Text>
+                  <View
+                    style={{
+                      flex: 1,
+                      height: StyleSheet.hairlineWidth,
+                      backgroundColor: t.divider,
+                    }}
+                  />
+                </View>
+
                 {section.items.map((item) => {
                   const isActive = !!item.route && pathname === item.route;
                   return (
@@ -303,20 +386,14 @@ export function MenuDrawer() {
                         {
                           flexDirection: "row",
                           alignItems: "center",
-                          paddingHorizontal: 14,
-                          paddingVertical: 10,
-                          marginHorizontal: 8,
-                          borderRadius: 12,
-                          backgroundColor: isActive
-                            ? item.color + "14"
-                            : pressed
-                            ? colors.secondary
-                            : "transparent",
+                          paddingHorizontal: 22,
+                          paddingVertical: 12,
+                          backgroundColor: pressed ? t.pressed : "transparent",
                           overflow: "hidden",
                         },
                       ]}
                     >
-                      {/* Active vertical accent bar */}
+                      {/* Active gold rule */}
                       {isActive ? (
                         <View
                           style={{
@@ -324,122 +401,143 @@ export function MenuDrawer() {
                             left: 0,
                             top: 8,
                             bottom: 8,
-                            width: 3,
-                            borderTopRightRadius: 2,
-                            borderBottomRightRadius: 2,
-                            backgroundColor: item.color,
+                            width: 2,
+                            backgroundColor: t.gold,
                           }}
                         />
                       ) : null}
+
+                      {/* Hairline square icon frame */}
                       <View
                         style={{
                           width: 36,
                           height: 36,
-                          borderRadius: 10,
-                          backgroundColor: item.color + "1A",
+                          borderRadius: 2,
+                          borderWidth: StyleSheet.hairlineWidth * 1.5,
+                          borderColor: isActive ? t.gold : t.iconBorder,
+                          backgroundColor: isActive ? t.goldTint : "transparent",
                           alignItems: "center",
                           justifyContent: "center",
-                          marginRight: 12,
+                          marginRight: 14,
                         }}
                       >
-                        <Icon name={item.icon} size={18} color={item.color} />
+                        <Icon
+                          name={item.icon}
+                          size={18}
+                          color={isActive ? t.gold : t.iconColor}
+                        />
                       </View>
+
                       <View style={{ flex: 1 }}>
                         <Text
                           style={{
                             fontSize: 15,
-                            fontFamily: isActive ? "Inter_700Bold" : "Inter_600SemiBold",
-                            color: colors.foreground,
+                            fontFamily: isActive ? "Inter_700Bold" : "Inter_500Medium",
+                            color: isActive ? t.text : t.textMuted,
                             letterSpacing: -0.2,
                           }}
                         >
                           {item.label}
                         </Text>
                       </View>
+
                       {item.badge ? (
                         <View
                           style={{
                             minWidth: 22,
-                            height: 22,
-                            borderRadius: 11,
-                            paddingHorizontal: 7,
-                            backgroundColor: "#EF4444",
+                            paddingHorizontal: 6,
+                            paddingVertical: 2,
+                            borderRadius: 2,
+                            borderWidth: StyleSheet.hairlineWidth * 1.5,
+                            borderColor: t.gold,
                             alignItems: "center",
                             justifyContent: "center",
-                            marginRight: 6,
+                            marginRight: 8,
                           }}
                         >
-                          <Text style={{ color: "#fff", fontSize: 11, fontFamily: "Inter_700Bold" }}>
+                          <Text
+                            style={{
+                              color: t.gold,
+                              fontSize: 11,
+                              fontFamily: "PlayfairDisplay_700Bold",
+                              letterSpacing: 0.6,
+                            }}
+                          >
                             {item.badge}
                           </Text>
                         </View>
                       ) : null}
+
                       {item.soon ? (
                         <View
                           style={{
                             paddingHorizontal: 8,
                             paddingVertical: 3,
-                            borderRadius: 8,
-                            backgroundColor: colors.secondary,
-                            marginRight: 6,
+                            borderRadius: 2,
+                            borderWidth: StyleSheet.hairlineWidth,
+                            borderColor: t.iconBorder,
+                            marginRight: 8,
                           }}
                         >
                           <Text
                             style={{
-                              fontSize: 10,
+                              fontSize: 9,
                               fontFamily: "Inter_700Bold",
-                              color: colors.mutedForeground,
-                              letterSpacing: 0.4,
+                              color: t.textSubtle,
+                              letterSpacing: 1.2,
                             }}
                           >
                             YAKINDA
                           </Text>
                         </View>
                       ) : null}
-                      <Icon name="chevron-forward" size={16} color={colors.mutedForeground} />
+
+                      <Icon name="chevron-forward" size={14} color={t.chevron} />
                     </Pressable>
                   );
                 })}
               </Animated.View>
             ))}
 
-            {/* Footer signature */}
+            {/* Footer signature — gold rule + uppercase + serif italic */}
             <View
               style={{
                 paddingHorizontal: 22,
-                paddingTop: 22,
+                paddingTop: 26,
                 paddingBottom: 6,
                 alignItems: "center",
               }}
             >
               <View
                 style={{
-                  width: 40,
+                  width: 32,
                   height: StyleSheet.hairlineWidth * 2,
-                  backgroundColor: colors.border,
+                  backgroundColor: t.gold,
+                  opacity: 0.55,
                   marginBottom: 14,
                 }}
               />
               <Text
                 style={{
-                  fontSize: 11,
-                  fontFamily: "Inter_600SemiBold",
-                  color: colors.mutedForeground,
-                  letterSpacing: 0.2,
+                  fontSize: 10,
+                  fontFamily: "Inter_700Bold",
+                  color: t.textSubtle,
+                  letterSpacing: 4,
                 }}
               >
-                Çarşı Piyasa
+                ÇARŞI PİYASA
               </Text>
               <Text
                 style={{
                   fontSize: 10,
-                  fontFamily: "Inter_500Medium",
-                  color: colors.mutedForeground,
-                  marginTop: 2,
-                  opacity: 0.7,
+                  fontFamily: "PlayfairDisplay_500Medium_Italic",
+                  color: t.textSubtle,
+                  marginTop: 4,
+                  opacity: 0.85,
+                  letterSpacing: 0.3,
                 }}
               >
-                Anlık Döviz & Altın Takibinde Türkiye'nin Tercihi
+                Versiyon 1.0 · İstanbul
               </Text>
             </View>
           </ScrollView>
