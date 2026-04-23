@@ -48,3 +48,7 @@ Thumbs.db
 .cache/
 .local/
 *firebase-adminsdk*.json
+
+# API server runtime data (live, server-side written)
+artifacts/api-server/data/history.json
+artifacts/api-server/data/history-meta.json
