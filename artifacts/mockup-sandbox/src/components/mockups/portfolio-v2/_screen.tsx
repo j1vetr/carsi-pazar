@@ -196,7 +196,7 @@ function HoldingRow({ h, expanded }: { h: Holding; expanded?: boolean }) {
             </div>
           </div>
           <div className="num" style={{ fontSize: 11.5, fontWeight: 500, color: "var(--muted)", marginTop: 4, letterSpacing: -0.1 }}>
-            {fmtAmount(h.amount)} {isGold ? (h.code === "GA" ? "gr" : "adet") : "birim"} · Ort ₺{fmtPrice(h.avgPrice)}
+            {fmtAmount(h.amount)} {isGold ? (h.code === "GA" ? "Gram" : "Adet") : "Birim"} · Ort ₺{fmtPrice(h.avgPrice)}
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
@@ -431,7 +431,7 @@ export function PortfolioScreen({ theme }: { theme: "light" | "dark" }) {
               {dayPos ? "+" : "−"}₺{fmtTL(Math.abs(totals.day))} · %{Math.abs(dayPct).toFixed(2)}
             </span>
           </div>
-          <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)" }}>bugün</span>
+          <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)" }}>Bugün</span>
         </div>
 
         <div style={{ display: "flex", marginTop: 18, gap: 10 }}>
@@ -476,7 +476,7 @@ export function PortfolioScreen({ theme }: { theme: "light" | "dark" }) {
             VARLIKLARIM · {HOLDINGS.length}
           </div>
           <div style={{ fontSize: 11, fontWeight: 500, color: "var(--muted)" }}>
-            uzun bas → işlem
+Uzun Bas → İşlem
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
