@@ -65,19 +65,16 @@ export function PortfolioHero({
 
   return (
     <View style={{ paddingHorizontal: 20, paddingBottom: 24 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.gold }} />
-        <Text
-          style={{
-            fontSize: 11,
-            fontFamily: "Inter_700Bold",
-            color: colors.mutedForeground,
-            letterSpacing: 1.4,
-          }}
-        >
-          TOPLAM PORTFÖY DEĞERİ
-        </Text>
-      </View>
+      <Text
+        style={{
+          fontSize: 11,
+          fontFamily: "Inter_700Bold",
+          color: colors.mutedForeground,
+          letterSpacing: 1.4,
+        }}
+      >
+        TOPLAM PORTFÖY DEĞERİ
+      </Text>
 
       <Animated.View
         entering={FadeInUp.duration(360)}
@@ -148,7 +145,7 @@ export function PortfolioHero({
             color: colors.mutedForeground,
           }}
         >
-          bugün
+          Bugün
         </Text>
       </Animated.View>
 

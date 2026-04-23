@@ -113,6 +113,20 @@ export function HoldingCard({
           overflow: "hidden",
         })}
       >
+        {holding.type === "gold" ? (
+          <View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 12,
+              bottom: 12,
+              width: 3,
+              borderRadius: 2,
+              backgroundColor: colors.gold,
+            }}
+          />
+        ) : null}
         <View
           style={{
             padding: 14,
@@ -164,8 +178,13 @@ export function HoldingCard({
                 letterSpacing: -0.1,
               }}
             >
-              {fmtAmount(holding.amount)} {holding.type === "gold" ? "adet/gr" : "birim"} · Ort ₺
-              {fmtPrice(holding.avgPrice)}
+              {fmtAmount(holding.amount)}{" "}
+              {holding.type === "gold"
+                ? holding.code === "GA"
+                  ? "Gram"
+                  : "Adet"
+                : "Birim"}{" "}
+              · Ort ₺{fmtPrice(holding.avgPrice)}
             </Text>
           </View>
 

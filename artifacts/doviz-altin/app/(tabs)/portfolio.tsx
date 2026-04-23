@@ -307,7 +307,7 @@ export default function PortfolioScreen() {
                   letterSpacing: -0.1,
                 }}
               >
-                uzun bas → işlem
+                Uzun Bas → İşlem
               </Text>
             </View>
             {holdings.map((h, i) => (
