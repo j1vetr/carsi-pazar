@@ -6,7 +6,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Icon } from "@/components/Icon";
-import { haptics } from "@/lib/haptics";
+import { haptics } from "@/lib/utils/haptics";
 import { useColors } from "@/hooks/useColors";
 import { CurrencyRate, GoldRate } from "@/contexts/AppContext";
 import { AssetIcon } from "@/components/AssetIcon";

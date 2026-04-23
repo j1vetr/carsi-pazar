@@ -3,7 +3,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
-import { sliceForRange, type DailySnapshot, type SnapshotRange } from "@/lib/portfolioSnapshots";
+import { sliceForRange, type DailySnapshot, type SnapshotRange } from "@/lib/storage/portfolioSnapshots";
 
 const RANGES: { key: SnapshotRange; label: string }[] = [
   { key: "1H", label: "1H" },

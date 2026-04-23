@@ -7,8 +7,8 @@ import {
   SYMBOL_REGISTRY,
   type AssetRate,
   type RawHaremResponse,
-} from "@/lib/haremApi";
-import { getPrices } from "@/lib/priceCoordinator";
+} from "@/lib/api/haremApi";
+import { getPrices } from "@/lib/api/priceCoordinator";
 import type { AssetKind, PriceWidgetData, WidgetRow } from "./PriceWidget";
 
 export const WIDGET_CACHE_KEY = "@carsi/widget-cache-v3";

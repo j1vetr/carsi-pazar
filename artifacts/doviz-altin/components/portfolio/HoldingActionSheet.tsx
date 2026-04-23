@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
 import { Icon, type IconName } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
-import { formatSymbolName } from "@/lib/symbolDescriptions";
+import { formatSymbolName } from "@/lib/utils/symbolDescriptions";
 
 export function HoldingActionSheet({
   visible,

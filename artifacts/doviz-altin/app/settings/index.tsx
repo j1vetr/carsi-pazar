@@ -13,7 +13,7 @@ import {
   saveStartupTab,
   STARTUP_TABS,
   type StartupTab,
-} from "@/lib/startupPref";
+} from "@/lib/storage/startupPref";
 
 function PrefCard({
   colors, icon, iconColor, title, subtitle, enabled, onToggle,

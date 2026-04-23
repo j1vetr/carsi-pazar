@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, G, Path, Text as SvgText } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
-import type { AllocationBucket } from "@/lib/portfolioCalc";
+import type { AllocationBucket } from "@/lib/utils/portfolioCalc";
 
 const BUCKET_LABELS: Record<AllocationBucket, string> = {
   currency: "Döviz",

@@ -3,7 +3,7 @@ import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 
 import { refreshPriceWidget } from "@/widgets/refresh";
-import { addInboxItem } from "./inbox";
+import { addInboxItem } from "../notifications/inbox";
 
 export const WIDGET_BACKGROUND_TASK = "carsi-widget-background-refresh";
 

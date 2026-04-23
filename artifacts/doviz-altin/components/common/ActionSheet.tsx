@@ -10,7 +10,7 @@ import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon, type IconName } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
-import { haptics } from "@/lib/haptics";
+import { haptics } from "@/lib/utils/haptics";
 
 export interface ActionSheetItem {
   key: string;

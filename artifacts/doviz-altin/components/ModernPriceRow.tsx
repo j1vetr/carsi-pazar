@@ -5,12 +5,12 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { haptics } from "@/lib/haptics";
+import { haptics } from "@/lib/utils/haptics";
 import { Icon } from "@/components/Icon";
 import { AssetIcon } from "@/components/AssetIcon";
 import { useColors } from "@/hooks/useColors";
 import { CurrencyRate, GoldRate } from "@/contexts/AppContext";
-import { getSymbolDescription } from "@/lib/symbolDescriptions";
+import { getSymbolDescription } from "@/lib/utils/symbolDescriptions";
 
 interface Props {
   item: CurrencyRate | GoldRate;

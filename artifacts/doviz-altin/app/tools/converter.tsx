@@ -18,7 +18,7 @@ import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import { AssetIcon } from "@/components/AssetIcon";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { formatSymbolName } from "@/lib/symbolDescriptions";
+import { formatSymbolName } from "@/lib/utils/symbolDescriptions";
 
 // ── Number formatting ──────────────────────────────────────────────────────
 const fmtAmount = (v: number): string => {

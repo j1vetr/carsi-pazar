@@ -18,9 +18,9 @@ import type {
   AlertWindow,
   NewAlertInput,
   SmartAlert,
-} from "@/lib/alertTypes";
-import { alertKindLabel, alertKindBadge } from "@/lib/alertTypes";
-import { formatAlertPreview } from "@/lib/alertFormat";
+} from "@/lib/utils/alertTypes";
+import { alertKindLabel, alertKindBadge } from "@/lib/utils/alertTypes";
+import { formatAlertPreview } from "@/lib/utils/alertFormat";
 
 const KINDS: AlertKind[] = ["price", "percent", "trend", "volatility"];
 const PERCENT_WINDOWS = [1, 6, 12, 24];

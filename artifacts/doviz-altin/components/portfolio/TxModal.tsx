@@ -15,7 +15,7 @@ import * as Haptics from "expo-haptics";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { useApp, type PortfolioItem } from "@/contexts/AppContext";
-import { formatSymbolName } from "@/lib/symbolDescriptions";
+import { formatSymbolName } from "@/lib/utils/symbolDescriptions";
 
 const fmtPrice = (v: number) =>
   v >= 100

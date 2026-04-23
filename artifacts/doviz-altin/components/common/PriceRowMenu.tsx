@@ -3,7 +3,7 @@ import { Share, Platform } from "react-native";
 import { router } from "expo-router";
 import { ActionSheet, type ActionSheetItem } from "@/components/common/ActionSheet";
 import { useApp, type CurrencyRate, type GoldRate } from "@/contexts/AppContext";
-import { haptics } from "@/lib/haptics";
+import { haptics } from "@/lib/utils/haptics";
 
 type RowItem = CurrencyRate | GoldRate;
 

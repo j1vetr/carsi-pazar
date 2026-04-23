@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/components/Icon";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { useColors } from "@/hooks/useColors";
-import { SYMBOL_REGISTRY } from "@/lib/haremApi";
+import { SYMBOL_REGISTRY } from "@/lib/api/haremApi";
 import {
   DEFAULT_WIDGET_CONFIG,
   readWidgetConfig,

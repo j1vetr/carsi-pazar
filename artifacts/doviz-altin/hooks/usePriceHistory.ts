@@ -4,7 +4,7 @@ import {
   hasHistorySupport,
   type HistoryPoint,
   type HistoryRange,
-} from "@/lib/historyApi";
+} from "@/lib/api/historyApi";
 
 interface State {
   data: HistoryPoint[];

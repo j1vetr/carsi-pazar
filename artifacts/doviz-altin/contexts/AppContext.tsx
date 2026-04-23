@@ -17,7 +17,7 @@ import {
   type RawHaremResponse,
   type SymbolMeta,
   findMetaByCode,
-} from "@/lib/haremApi";
+} from "@/lib/api/haremApi";
 import {
   apiListAlerts,
   apiSaveAlert,
@@ -31,25 +31,25 @@ import {
   type ServerAlert,
   type ServerNewsItem,
   type UserPrefs,
-} from "@/lib/api";
-import { setupPushAndRegister } from "@/lib/notifications";
-import { isOnboardingSeen, ONBOARDING_DONE_EVENT } from "@/lib/onboardingPref";
+} from "@/lib/api/api";
+import { setupPushAndRegister } from "@/lib/notifications/notifications";
+import { isOnboardingSeen, ONBOARDING_DONE_EVENT } from "@/lib/storage/onboardingPref";
 import { DeviceEventEmitter, type EmitterSubscription } from "react-native";
 import * as Notifications from "expo-notifications";
-import { addInboxItem, subscribeInbox, unreadCount as inboxUnreadCount } from "@/lib/inbox";
-import { scheduleWeeklyPortfolioReminder } from "@/lib/weeklyReminder";
+import { addInboxItem, subscribeInbox, unreadCount as inboxUnreadCount } from "@/lib/notifications/inbox";
+import { scheduleWeeklyPortfolioReminder } from "@/lib/notifications/weeklyReminder";
 import {
   loadSnapshots,
   saveSnapshots,
   upsertTodaySnapshot,
   type DailySnapshot,
-} from "@/lib/portfolioSnapshots";
+} from "@/lib/storage/portfolioSnapshots";
 import {
   aggregateHoldings,
   availableToSell,
   bucketForCode,
   summarizePortfolio,
-} from "@/lib/portfolioCalc";
+} from "@/lib/utils/portfolioCalc";
 import type {
   AlertGroup,
   AlertKind,
@@ -61,16 +61,16 @@ import type {
   SmartAlert,
   TrendAlertRule,
   VolatilityAlertRule,
-} from "@/lib/alertTypes";
-import { applyAlertPatch } from "@/lib/alertTypes";
-import { fetchHistory, hasHistorySupport } from "@/lib/historyApi";
+} from "@/lib/utils/alertTypes";
+import { applyAlertPatch } from "@/lib/utils/alertTypes";
+import { fetchHistory, hasHistorySupport } from "@/lib/api/historyApi";
 import {
   loadAlertGroups,
   newGroupId,
   saveAlertGroups,
-} from "@/lib/alertGroups";
-import { evaluateAlerts } from "@/lib/alertEvaluator";
-import { formatAlertBody, formatAlertTitle } from "@/lib/alertFormat";
+} from "@/lib/utils/alertGroups";
+import { evaluateAlerts } from "@/lib/utils/alertEvaluator";
+import { formatAlertBody, formatAlertTitle } from "@/lib/utils/alertFormat";
 
 export interface CurrencyRate {
   code: string;
@@ -115,7 +115,7 @@ export interface PortfolioItem {
 }
 
 export type PriceAlert = SmartAlert;
-export type { AlertGroup, AlertKind, AlertWindow } from "@/lib/alertTypes";
+export type { AlertGroup, AlertKind, AlertWindow } from "@/lib/utils/alertTypes";
 
 export interface NewsItem {
   id: string;

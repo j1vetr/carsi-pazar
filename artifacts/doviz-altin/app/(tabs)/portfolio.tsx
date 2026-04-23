@@ -12,7 +12,7 @@ import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
 import { Modal } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SwipeableRow } from "@/components/common/SwipeableRow";
-import { haptics } from "@/lib/haptics";
+import { haptics } from "@/lib/utils/haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
@@ -21,8 +21,8 @@ import {
   aggregateHoldings,
   bucketForCode,
   summarizePortfolio,
-} from "@/lib/portfolioCalc";
-import type { SnapshotRange } from "@/lib/portfolioSnapshots";
+} from "@/lib/utils/portfolioCalc";
+import type { SnapshotRange } from "@/lib/storage/portfolioSnapshots";
 import { PortfolioHero } from "@/components/portfolio/Hero";
 import { AllocationDonut } from "@/components/portfolio/AllocationDonut";
 import { PortfolioTimeChart } from "@/components/portfolio/TimeSeriesChart";

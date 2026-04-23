@@ -15,8 +15,8 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { setOnboardingSeen } from "@/lib/onboardingPref";
-import { haptics } from "@/lib/haptics";
+import { setOnboardingSeen } from "@/lib/storage/onboardingPref";
+import { haptics } from "@/lib/utils/haptics";
 
 const { width: W } = Dimensions.get("window");
 

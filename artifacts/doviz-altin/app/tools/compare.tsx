@@ -16,7 +16,7 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
-import { formatSymbolName } from "@/lib/symbolDescriptions";
+import { formatSymbolName } from "@/lib/utils/symbolDescriptions";
 
 type Slot = "a" | "b";
 

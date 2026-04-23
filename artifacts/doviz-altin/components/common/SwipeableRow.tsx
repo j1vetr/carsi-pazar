@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import { Icon, type IconName } from "@/components/Icon";
-import { haptics } from "@/lib/haptics";
+import { haptics } from "@/lib/utils/haptics";
 
 export interface SwipeAction {
   label: string;

@@ -1,4 +1,4 @@
-import { findMetaByCode } from "./haremApi";
+import { findMetaByCode } from "../api/haremApi";
 
 /**
  * Insan diline çevrilmiş kısa sembol açıklamaları.

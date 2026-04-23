@@ -16,7 +16,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { haptics } from "@/lib/haptics";
+import { haptics } from "@/lib/utils/haptics";
 import { Icon } from "@/components/Icon";
 import { PriceCard } from "@/components/PriceCard";
 import { SwipeableRow } from "@/components/common/SwipeableRow";

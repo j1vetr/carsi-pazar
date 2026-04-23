@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { haptics } from "@/lib/haptics";
+import { haptics } from "@/lib/utils/haptics";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { useApp, GoldRate } from "@/contexts/AppContext";
@@ -19,7 +19,7 @@ import { PriceRowMenu } from "@/components/common/PriceRowMenu";
 import { MinimalTopBar } from "@/components/MinimalTopBar";
 import { ModernPriceRow, ModernTableHeader } from "@/components/ModernPriceRow";
 import { SwipeableRow } from "@/components/common/SwipeableRow";
-import { symbolLeftActions } from "@/lib/swipeActions";
+import { symbolLeftActions } from "@/lib/utils/swipeActions";
 import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";

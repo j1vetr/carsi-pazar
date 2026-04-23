@@ -14,13 +14,13 @@ import {
 import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { haptics } from "@/lib/haptics";
+import { haptics } from "@/lib/utils/haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
-import type { SmartAlert, AlertGroup } from "@/lib/alertTypes";
+import type { SmartAlert, AlertGroup } from "@/lib/utils/alertTypes";
 import { SwipeableRow } from "@/components/common/SwipeableRow";
-import { alertKindBadge, alertKindLabel, alertKindShort, isPermanentMute, PERMANENT_MUTE_UNTIL } from "@/lib/alertTypes";
-import { formatAlertRule } from "@/lib/alertFormat";
+import { alertKindBadge, alertKindLabel, alertKindShort, isPermanentMute, PERMANENT_MUTE_UNTIL } from "@/lib/utils/alertTypes";
+import { formatAlertRule } from "@/lib/utils/alertFormat";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
 

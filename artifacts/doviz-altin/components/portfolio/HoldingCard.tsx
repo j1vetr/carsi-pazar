@@ -6,8 +6,8 @@ import * as Haptics from "expo-haptics";
 import { Icon } from "@/components/Icon";
 import { AssetIcon } from "@/components/AssetIcon";
 import { useColors } from "@/hooks/useColors";
-import { formatSymbolName } from "@/lib/symbolDescriptions";
-import type { Holding } from "@/lib/portfolioCalc";
+import { formatSymbolName } from "@/lib/utils/symbolDescriptions";
+import type { Holding } from "@/lib/utils/portfolioCalc";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);

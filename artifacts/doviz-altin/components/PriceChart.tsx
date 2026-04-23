@@ -10,7 +10,7 @@ import Svg, {
   Text as SvgText,
 } from "react-native-svg";
 import { useColors } from "@/hooks/useColors";
-import type { HistoryPoint, HistoryRange } from "@/lib/historyApi";
+import type { HistoryPoint, HistoryRange } from "@/lib/api/historyApi";
 
 const W = 354;
 const H = 200;

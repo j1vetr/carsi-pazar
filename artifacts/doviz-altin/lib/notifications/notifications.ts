@@ -2,8 +2,8 @@ import { Platform } from "react-native";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
-import { apiRegisterToken } from "./api";
-import { getDeviceId } from "./deviceId";
+import { apiRegisterToken } from "../api/api";
+import { getDeviceId } from "../storage/deviceId";
 
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {

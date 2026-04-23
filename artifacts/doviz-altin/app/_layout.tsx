@@ -28,10 +28,10 @@ import { OfflineBanner } from "@/components/common/OfflineBanner";
 import { AppProvider } from "@/contexts/AppContext";
 import { DrawerProvider } from "@/contexts/DrawerContext";
 import { ThemeProvider, ThemedTreeRemount } from "@/contexts/ThemeContext";
-import { scheduleReviewPrompt } from "@/lib/reviewPrompt";
-import { isOnboardingSeen } from "@/lib/onboardingPref";
-import { loadStartupTab, routeForStartupTab } from "@/lib/startupPref";
-import { registerWidgetBackgroundTask } from "@/lib/widgetBackgroundTask";
+import { scheduleReviewPrompt } from "@/lib/notifications/reviewPrompt";
+import { isOnboardingSeen } from "@/lib/storage/onboardingPref";
+import { loadStartupTab, routeForStartupTab } from "@/lib/storage/startupPref";
+import { registerWidgetBackgroundTask } from "@/lib/widget/widgetBackgroundTask";
 import { refreshPriceWidget } from "@/widgets/refresh";
 
 SplashScreen.preventAutoHideAsync();

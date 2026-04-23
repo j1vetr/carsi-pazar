@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
@@ -120,6 +120,41 @@ export const pollPrices = onSchedule(
       .catch(() => {});
 
     await checkAlerts(items);
+  }
+);
+
+/**
+ * Haftada bir 30 günden eski (hiç refresh edilmemiş) push token kayıtlarını siler.
+ * Aktif kullanıcının token'ı her uygulama açılışında setupPushAndRegister
+ * tarafından `updatedAt`'i tazelendiği için temizlik sadece sessize alınmış
+ * cihazları hedef alır. Expo Push servisi geçersiz token'a "DeviceNotRegistered"
+ * döndürür; bu temizlik o gürültüyü kaynağında keser.
+ */
+const TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+export const cleanupStaleTokens = onSchedule(
+  { region: REGION, schedule: "every 168 hours", memory: "256MiB" },
+  async () => {
+    const cutoff = Date.now() - TOKEN_TTL_MS;
+    const cutoffTs = Timestamp.fromMillis(cutoff);
+    const snap = await db
+      .collection("tokens")
+      .where("updatedAt", "<", cutoffTs)
+      .get();
+    if (snap.empty) {
+      logger.info("[token-cleanup] no stale tokens");
+      return;
+    }
+    let deleted = 0;
+    // Firestore bulk delete API yerine 500'lük batch ile
+    const docs = snap.docs;
+    for (let i = 0; i < docs.length; i += 500) {
+      const batch = db.batch();
+      const slice = docs.slice(i, i + 500);
+      for (const d of slice) batch.delete(d.ref);
+      await batch.commit();
+      deleted += slice.length;
+    }
+    logger.info(`[token-cleanup] removed ${deleted} stale tokens (>30d)`);
   }
 );
 

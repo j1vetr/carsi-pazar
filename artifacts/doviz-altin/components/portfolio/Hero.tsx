@@ -5,8 +5,8 @@ import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { AnimatedNumber } from "@/components/common/AnimatedNumber";
-import type { PortfolioStats } from "@/lib/portfolioCalc";
-import type { DailySnapshot } from "@/lib/portfolioSnapshots";
+import type { PortfolioStats } from "@/lib/utils/portfolioCalc";
+import type { DailySnapshot } from "@/lib/storage/portfolioSnapshots";
 
 const fmtTL = (v: number) =>
   v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

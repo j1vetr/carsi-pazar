@@ -8,7 +8,7 @@ import { Icon } from "@/components/Icon";
 import { AssetIcon } from "@/components/AssetIcon";
 import { useColors } from "@/hooks/useColors";
 import { useApp, type PortfolioItem } from "@/contexts/AppContext";
-import { formatSymbolName } from "@/lib/symbolDescriptions";
+import { formatSymbolName } from "@/lib/utils/symbolDescriptions";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
 

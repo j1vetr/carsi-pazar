@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, Platform, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
-import { haptics } from "@/lib/haptics";
+import { haptics } from "@/lib/utils/haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon, type IconName } from "@/components/Icon";
@@ -17,7 +17,7 @@ import {
   markRead,
   removeInboxItem,
   subscribeInbox,
-} from "@/lib/inbox";
+} from "@/lib/notifications/inbox";
 
 function iconForType(type: string): { name: IconName; color: string } {
   switch (type) {
