@@ -27,5 +27,6 @@ export const modules: ModuleMap = {
   "./components/mockups/carsi-widget/PulseLight.tsx": () => import("../components/mockups/carsi-widget/PulseLight.tsx"),
   "./components/mockups/carsi-widget/SettingsScreen.tsx": () => import("../components/mockups/carsi-widget/SettingsScreen.tsx"),
   "./components/mockups/carsi-widget/WidgetList.tsx": () => import("../components/mockups/carsi-widget/WidgetList.tsx"),
-  "./components/mockups/carsi-widget/WidgetStrip.tsx": () => import("../components/mockups/carsi-widget/WidgetStrip.tsx")
+  "./components/mockups/carsi-widget/WidgetStrip.tsx": () => import("../components/mockups/carsi-widget/WidgetStrip.tsx"),
+  "./components/mockups/portfolio-current/Current.tsx": () => import("../components/mockups/portfolio-current/Current.tsx")
 };
