@@ -18,11 +18,7 @@
       },
       "env": {
         "EXPO_PUBLIC_API_BASE": "https://carsiapi.toovgames.com",
-        "EXPO_PUBLIC_APP_ENV": "preview",
-        "EXPO_PUBLIC_SENTRY_DSN": "$EXPO_PUBLIC_SENTRY_DSN",
-        "SENTRY_AUTH_TOKEN": "$SENTRY_AUTH_TOKEN",
-        "SENTRY_ORG": "$SENTRY_ORG",
-        "SENTRY_PROJECT": "$SENTRY_PROJECT"
+        "EXPO_PUBLIC_APP_ENV": "preview"
       }
     },
     "production": {
@@ -32,11 +28,7 @@
       },
       "env": {
         "EXPO_PUBLIC_API_BASE": "https://carsiapi.toovgames.com",
-        "EXPO_PUBLIC_APP_ENV": "production",
-        "EXPO_PUBLIC_SENTRY_DSN": "$EXPO_PUBLIC_SENTRY_DSN",
-        "SENTRY_AUTH_TOKEN": "$SENTRY_AUTH_TOKEN",
-        "SENTRY_ORG": "$SENTRY_ORG",
-        "SENTRY_PROJECT": "$SENTRY_PROJECT"
+        "EXPO_PUBLIC_APP_ENV": "production"
       }
     }
   },
