@@ -5,6 +5,7 @@ const FUNCTIONS_BASE =
 export const FN = {
   getPrices: `${FUNCTIONS_BASE}/getPrices`,
   registerToken: `${FUNCTIONS_BASE}/registerToken`,
+  deleteToken: `${FUNCTIONS_BASE}/deleteToken`,
   listAlerts: `${FUNCTIONS_BASE}/listAlerts`,
   saveAlert: `${FUNCTIONS_BASE}/saveAlert`,
   deleteAlert: `${FUNCTIONS_BASE}/deleteAlert`,
@@ -48,6 +49,10 @@ export async function apiRegisterToken(input: {
   platform: string;
 }): Promise<void> {
   await postJson<{ ok: boolean }>(FN.registerToken, input);
+}
+
+export async function apiDeleteToken(input: { deviceId: string }): Promise<void> {
+  await postJson<{ ok: boolean }>(FN.deleteToken, input);
 }
 
 export async function apiListAlerts(deviceId: string): Promise<ServerAlert[]> {

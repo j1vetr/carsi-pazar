@@ -175,6 +175,21 @@ export const registerToken = onRequest(COMMON, async (req: Request, res) => {
   res.json({ ok: true });
 });
 
+/**
+ * İstemci tarafı self-healing: kullanıcı izinleri kaldırdığında veya
+ * Expo push token'ı geçersizleştiğinde mobil `validateAndRefreshToken`
+ * bu endpoint'i çağırır. Cron'u beklemeden Firestore kaydını siler ki
+ * news/widget/alarm broadcast'leri bu cihaza yararsız mesaj göndermesin.
+ */
+export const deleteToken = onRequest(COMMON, async (req: Request, res) => {
+  if (req.method !== "POST") return bad(res, 405, "POST only");
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const deviceId = getString(body.deviceId);
+  if (!deviceId) return bad(res, 400, "deviceId required");
+  await db.doc(`tokens/${deviceId}`).delete().catch(() => undefined);
+  res.json({ ok: true });
+});
+
 export const listAlerts = onRequest(COMMON, async (req, res) => {
   const deviceId = getString(req.query.deviceId as string | undefined);
   if (!deviceId) return bad(res, 400, "deviceId required");

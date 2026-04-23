@@ -2,6 +2,16 @@ import * as Sentry from "@sentry/react-native";
 
 const DSN = process.env.EXPO_PUBLIC_SENTRY_DSN ?? "";
 
+/**
+ * Build profile (dev/preview/production) `eas.json` env block tarafından
+ * `EXPO_PUBLIC_APP_ENV` olarak inject edilir. Lokal/Expo Go'da __DEV__ true,
+ * profile yoksa "development" varsayılır → Sentry events ortama göre
+ * etiketlenir (release ≠ debug crash gürültüsü).
+ */
+const APP_ENV =
+  process.env.EXPO_PUBLIC_APP_ENV ??
+  (typeof __DEV__ !== "undefined" && __DEV__ ? "development" : "production");
+
 let initialized = false;
 
 const SENSITIVE_KEY_RE = /token|secret|auth|password|key|cookie|session/i;
@@ -38,8 +48,9 @@ export function initSentry(): void {
   try {
     Sentry.init({
       dsn: DSN,
-      enabled: !__DEV__,
-      tracesSampleRate: 0.1,
+      enabled: APP_ENV !== "development",
+      environment: APP_ENV,
+      tracesSampleRate: APP_ENV === "production" ? 0.1 : 0.5,
       sendDefaultPii: false,
       beforeSend(event) {
         try {

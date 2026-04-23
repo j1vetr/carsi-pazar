@@ -33,6 +33,7 @@ import {
   type UserPrefs,
 } from "@/lib/api/api";
 import { setupPushAndRegister } from "@/lib/notifications/notifications";
+import { validateAndRefreshToken } from "@/lib/notifications/tokenValidator";
 import { isOnboardingSeen, ONBOARDING_DONE_EVENT } from "@/lib/storage/onboardingPref";
 import { DeviceEventEmitter, type EmitterSubscription } from "react-native";
 import * as Notifications from "expo-notifications";
@@ -449,6 +450,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setupPushAndRegister()
         .then(({ deviceId }) => {
           deviceIdRef.current = deviceId;
+          // Self-healing: izin iptali / token rotation durumunda
+          // server'ı senkronize et (cron'u beklemeden temizler).
+          void validateAndRefreshToken();
           // Tercihleri yükle + favoriler için last-write-wins sync (paralel)
           apiGetPrefs(deviceId)
             .then(async (p) => {
