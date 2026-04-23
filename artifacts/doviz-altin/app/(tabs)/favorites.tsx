@@ -21,6 +21,7 @@ import { PriceCard } from "@/components/PriceCard";
 import { useColors } from "@/hooks/useColors";
 import { useApp, CurrencyRate, GoldRate } from "@/contexts/AppContext";
 import { EmptyState } from "@/components/common/EmptyState";
+import { ErrorState } from "@/components/common/ErrorState";
 import { PriceCardSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -54,7 +55,7 @@ export default function FavoritesScreen() {
   const {
     favorites, toggleFavorite,
     currencies, parities, currencyParities, goldRates, banks,
-    lastUpdated,
+    lastUpdated, lastRefreshFailed, refreshData,
   } = useApp();
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
@@ -372,11 +373,22 @@ export default function FavoritesScreen() {
           ) : null
         }
         ListEmptyComponent={
-          favorites.length === 0
-            ? <EmptyFavorites colors={colors} />
-            : (currencies.length === 0 && goldRates.length === 0 && lastUpdated === null)
-              ? <View style={{ paddingTop: 8 }}><PriceCardSkeleton count={Math.min(favorites.length, 6)} /></View>
-              : null
+          favorites.length === 0 ? (
+            <EmptyFavorites colors={colors} />
+          ) : currencies.length === 0 && goldRates.length === 0 && lastUpdated === null ? (
+            // İlk açılış: hiç veri yok, hata da yok → iskelet.
+            // İlk açılış başarısız olduysa (lastRefreshFailed) → ErrorState ile retry.
+            lastRefreshFailed ? (
+              <ErrorState
+                title="Favoriler Yüklenemedi"
+                description="Favori varlıkların için fiyat bilgisi alınamadı. İnternet bağlantını kontrol edip tekrar dene."
+                icon="cloud-offline-outline"
+                onRetry={() => { void refreshData(); }}
+              />
+            ) : (
+              <View style={{ paddingTop: 8 }}><PriceCardSkeleton count={Math.min(favorites.length, 6)} /></View>
+            )
+          ) : null
         }
         ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
         ListFooterComponent={
