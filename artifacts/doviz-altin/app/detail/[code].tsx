@@ -5,19 +5,17 @@ import {
   ScrollView,
   Text,
   View,
-  Modal,
-  TextInput,
 } from "react-native";
 import { Icon } from "@/components/Icon";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
 import { getSymbolDescription, formatSymbolName } from "@/lib/symbolDescriptions";
 import { PriceChart } from "@/components/PriceChart";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { hasHistorySupport, type HistoryRange } from "@/lib/historyApi";
+import { AddAlertModal } from "@/components/alerts/AddAlertModal";
 
 const MONO_FONT = Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" });
 
@@ -44,90 +42,6 @@ function formatPriceTR(p: number): string {
   if (p >= 100)
     return p.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return p.toLocaleString("tr-TR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-}
-
-function AddAlertModal({
-  visible,
-  onClose,
-  code,
-  nameTR,
-  currentPrice,
-  type,
-  colors,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  code: string;
-  nameTR: string;
-  currentPrice: number;
-  type: "currency" | "gold";
-  colors: any;
-}) {
-  const { addAlert } = useApp();
-  const [targetPrice, setTargetPrice] = useState(currentPrice.toFixed(2));
-  const [direction, setDirection] = useState<"above" | "below">("above");
-  const insets = useSafeAreaInsets();
-
-  const handleAdd = () => {
-    const price = parseFloat(targetPrice);
-    if (!price) return;
-    addAlert({ type, code, name: code, nameTR, targetPrice: price, direction, active: true, triggered: false });
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    onClose();
-  };
-
-  return (
-    <Modal visible={visible} animationType="slide" presentationStyle="formSheet">
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{ paddingTop: 20, paddingHorizontal: 20, paddingBottom: 16, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: colors.border }}>
-          <Text style={{ flex: 1, fontSize: 18, fontFamily: "Inter_700Bold", color: colors.foreground }}>Fiyat Alarmı</Text>
-          <Pressable onPress={onClose}><Icon name="close" size={24} color={colors.foreground} /></Pressable>
-        </View>
-        <View style={{ padding: 20, gap: 20 }}>
-          <View>
-            <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, marginBottom: 8 }}>YÖN</Text>
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <Pressable
-                onPress={() => setDirection("above")}
-                style={{ flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: direction === "above" ? colors.rise + "20" : colors.secondary, borderWidth: 1, borderColor: direction === "above" ? colors.rise : colors.border, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 6 }}
-              >
-                <Icon name="trending-up" size={16} color={direction === "above" ? colors.rise : colors.mutedForeground} />
-                <Text style={{ fontSize: 14, fontFamily: "Inter_600SemiBold", color: direction === "above" ? colors.rise : colors.mutedForeground }}>Üzerine Çıkınca</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setDirection("below")}
-                style={{ flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: direction === "below" ? colors.fall + "20" : colors.secondary, borderWidth: 1, borderColor: direction === "below" ? colors.fall : colors.border, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 6 }}
-              >
-                <Icon name="trending-down" size={16} color={direction === "below" ? colors.fall : colors.mutedForeground} />
-                <Text style={{ fontSize: 14, fontFamily: "Inter_600SemiBold", color: direction === "below" ? colors.fall : colors.mutedForeground }}>Altına Düşünce</Text>
-              </Pressable>
-            </View>
-          </View>
-          <View>
-            <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, marginBottom: 8 }}>HEDEF FİYAT (₺)</Text>
-            <TextInput
-              value={targetPrice}
-              onChangeText={setTargetPrice}
-              keyboardType="decimal-pad"
-              placeholder="0.00"
-              placeholderTextColor={colors.mutedForeground}
-              style={{ backgroundColor: colors.card, borderRadius: 10, borderWidth: 1, borderColor: colors.border, padding: 14, fontSize: 18, fontFamily: "Inter_600SemiBold", color: colors.foreground }}
-            />
-          </View>
-          <View style={{ backgroundColor: colors.secondary, borderRadius: 10, padding: 14 }}>
-            <Text style={{ fontSize: 12, fontFamily: "Inter_400Regular", color: colors.mutedForeground }}>
-              {nameTR} fiyatı ₺{parseFloat(targetPrice || "0").toFixed(2)} seviyesinin {direction === "above" ? "üzerine çıktığında" : "altına düştüğünde"} bildirim alacaksınız.
-            </Text>
-          </View>
-        </View>
-        <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: 20, paddingBottom: (Platform.OS === "web" ? 34 : insets.bottom) + 20 }}>
-          <Pressable onPress={handleAdd} style={{ backgroundColor: colors.primary, paddingVertical: 16, borderRadius: 14, alignItems: "center" }}>
-            <Text style={{ fontSize: 16, fontFamily: "Inter_600SemiBold", color: colors.primaryForeground }}>Alarm Kur</Text>
-          </Pressable>
-        </View>
-      </View>
-    </Modal>
-  );
 }
 
 export default function DetailScreen() {

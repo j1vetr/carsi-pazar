@@ -50,6 +50,24 @@ import {
   bucketForCode,
   summarizePortfolio,
 } from "@/lib/portfolioCalc";
+import type {
+  AlertGroup,
+  AlertKind,
+  AlertWindow,
+  NewAlertInput,
+  PercentAlertRule,
+  PriceAlertRule,
+  SmartAlert,
+  TrendAlertRule,
+  VolatilityAlertRule,
+} from "@/lib/alertTypes";
+import {
+  loadAlertGroups,
+  newGroupId,
+  saveAlertGroups,
+} from "@/lib/alertGroups";
+import { evaluateAlerts } from "@/lib/alertEvaluator";
+import { formatAlertBody, formatAlertTitle } from "@/lib/alertFormat";
 
 export interface CurrencyRate {
   code: string;
@@ -93,17 +111,8 @@ export interface PortfolioItem {
   side?: "buy" | "sell";
 }
 
-export interface PriceAlert {
-  id: string;
-  type: "currency" | "gold";
-  code: string;
-  name: string;
-  nameTR: string;
-  targetPrice: number;
-  direction: "above" | "below";
-  active: boolean;
-  triggered: boolean;
-}
+export type PriceAlert = SmartAlert;
+export type { AlertGroup, AlertKind, AlertWindow } from "@/lib/alertTypes";
 
 export interface NewsItem {
   id: string;
@@ -171,8 +180,14 @@ interface AppContextType {
   portfolioSnapshots: DailySnapshot[];
   getPriceHistory: (code: string) => { t: number; buy: number; sell: number }[];
   availableAmount: (code: string, type: "currency" | "gold") => number;
-  addAlert: (alert: Omit<PriceAlert, "id">) => Promise<void>;
+  addAlert: (alert: NewAlertInput) => Promise<void>;
   removeAlert: (id: string) => Promise<void>;
+  updateAlert: (id: string, patch: Partial<SmartAlert>) => Promise<void>;
+  alertGroups: AlertGroup[];
+  createAlertGroup: (name: string) => Promise<AlertGroup>;
+  renameAlertGroup: (id: string, name: string) => Promise<void>;
+  deleteAlertGroup: (id: string) => Promise<void>;
+  toggleAlertGroupMute: (id: string) => Promise<void>;
   toggleFavorite: (code: string) => Promise<void>;
   refreshData: () => Promise<void>;
   getHistoricalData: (
@@ -270,6 +285,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [allRates, setAllRates] = useState<AssetRate[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
+  const [alertGroups, setAlertGroupsState] = useState<AlertGroup[]>([]);
   const [favorites, setFavorites] = useState<string[]>(["USD", "EUR", "GBP", "ALTIN", "CEYREK"]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStale, setIsStale] = useState(false);
@@ -497,7 +513,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         })
         .then((server) => {
           if (!mounted) return;
-          setAlerts(server.map(serverAlertToLocal));
+          // Server yalnızca "price" kind'ı tanıyor. Local'deki smart alarmlar
+          // dokunulmaz; server'dan gelen price alarmlarını id bazında merge et.
+          setAlerts((prev) => {
+            const ids = new Set(prev.map((a) => a.id));
+            const additions = server
+              .filter((s) => !ids.has(s.id))
+              .map(serverAlertToLocal);
+            if (additions.length === 0) return prev;
+            const next = [...prev, ...additions];
+            void persistLocalAlerts(next);
+            return next;
+          });
         })
         .catch((err) => console.warn("[alerts] sync hatası:", err));
       };
@@ -583,7 +610,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function serverAlertToLocal(s: ServerAlert): PriceAlert {
+  function serverAlertToLocal(s: ServerAlert): PriceAlertRule {
     const meta = findMetaByCode(s.code);
     const isGold =
       meta?.group?.startsWith("gold") ||
@@ -594,6 +621,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       meta?.category === "GRAM ALTIN";
     return {
       id: s.id,
+      kind: "price",
       type: isGold ? "gold" : "currency",
       code: s.code,
       name: s.name,
@@ -605,6 +633,73 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }
 
+  // Eski (kind'sız) kayıtları bu sürümün şemasına çevir.
+  function migrateAlertShape(a: unknown): SmartAlert | null {
+    if (!a || typeof a !== "object") return null;
+    const o = a as Record<string, unknown>;
+    const id = typeof o.id === "string" ? o.id : null;
+    const code = typeof o.code === "string" ? o.code : null;
+    if (!id || !code) return null;
+    const base = {
+      id,
+      code,
+      type: o.type === "gold" ? ("gold" as const) : ("currency" as const),
+      name: typeof o.name === "string" ? o.name : code,
+      nameTR: typeof o.nameTR === "string" ? o.nameTR : code,
+      active: o.active !== false,
+      triggered: !!o.triggered,
+      lastTriggeredAt: typeof o.lastTriggeredAt === "number" ? o.lastTriggeredAt : undefined,
+      groupId: typeof o.groupId === "string" ? o.groupId : undefined,
+      mutedUntil: typeof o.mutedUntil === "number" ? o.mutedUntil : undefined,
+      window:
+        o.window &&
+        typeof (o.window as AlertWindow).start === "string" &&
+        typeof (o.window as AlertWindow).end === "string"
+          ? (o.window as AlertWindow)
+          : undefined,
+    };
+    const kind = typeof o.kind === "string" ? (o.kind as AlertKind) : "price";
+    switch (kind) {
+      case "percent":
+        return {
+          ...base,
+          kind: "percent",
+          direction: (o.direction === "up" || o.direction === "down" || o.direction === "any")
+            ? o.direction : "any",
+          thresholdPct: typeof o.thresholdPct === "number" ? o.thresholdPct : 2,
+          windowHours: typeof o.windowHours === "number" ? o.windowHours : 24,
+        } satisfies PercentAlertRule;
+      case "trend":
+        return {
+          ...base,
+          kind: "trend",
+          direction: o.direction === "down" ? "down" : "up",
+          days: typeof o.days === "number" ? o.days : 3,
+        } satisfies TrendAlertRule;
+      case "volatility":
+        return {
+          ...base,
+          kind: "volatility",
+          multiplier: typeof o.multiplier === "number" ? o.multiplier : 2,
+          lookbackDays: typeof o.lookbackDays === "number" ? o.lookbackDays : 7,
+        } satisfies VolatilityAlertRule;
+      case "price":
+      default:
+        return {
+          ...base,
+          kind: "price",
+          direction: o.direction === "below" ? "below" : "above",
+          targetPrice: typeof o.targetPrice === "number" ? o.targetPrice : 0,
+        } satisfies PriceAlertRule;
+    }
+  }
+
+  async function persistLocalAlerts(next: SmartAlert[]): Promise<void> {
+    try {
+      await AsyncStorage.setItem("alerts_v2", JSON.stringify(next));
+    } catch {}
+  }
+
   const loadStoredData = async () => {
     try {
       const [
@@ -613,13 +708,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         storedHistory,
         storedPortfolioTs,
         storedFavoritesTs,
+        storedAlerts,
       ] = await Promise.all([
         AsyncStorage.getItem("portfolio"),
         AsyncStorage.getItem("favorites"),
         AsyncStorage.getItem("priceHistory_v1"),
         AsyncStorage.getItem("portfolio_updatedAt"),
         AsyncStorage.getItem("favorites_updatedAt"),
+        AsyncStorage.getItem("alerts_v2"),
       ]);
+      if (storedAlerts) {
+        try {
+          const raw = JSON.parse(storedAlerts);
+          if (Array.isArray(raw)) {
+            const migrated = raw
+              .map(migrateAlertShape)
+              .filter((x): x is SmartAlert => x !== null);
+            setAlerts(migrated);
+          }
+        } catch {}
+      }
+      try {
+        const groups = await loadAlertGroups();
+        setAlertGroupsState(groups);
+      } catch {}
       if (storedPortfolio) {
         try {
           const parsed = JSON.parse(storedPortfolio) as PortfolioItem[];
@@ -941,26 +1053,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addAlert = useCallback(
-    async (alert: Omit<PriceAlert, "id">) => {
+    async (alert: NewAlertInput) => {
       const deviceId = deviceIdRef.current;
-      if (!deviceId) {
-        console.warn("[alerts] deviceId hazır değil, alarm eklenemedi");
-        return;
+      let id: string | null = null;
+      // Sadece "price" kind alarmları sunucuya gönderilir; smart alarmlar
+      // (percent / trend / volatility) şimdilik yalnızca cihazda çalışır.
+      if (alert.kind === "price" && deviceId) {
+        try {
+          const resp = await apiSaveAlert({
+            deviceId,
+            code: alert.code,
+            type: alert.direction,
+            target: alert.targetPrice,
+            currency: "TRY",
+            name: alert.name,
+            nameTR: alert.nameTR,
+          });
+          id = resp.id;
+        } catch (err) {
+          console.warn("[alerts] sunucuya kaydedilemedi:", err);
+        }
       }
-      try {
-        const { id } = await apiSaveAlert({
-          deviceId,
-          code: alert.code,
-          type: alert.direction,
-          target: alert.targetPrice,
-          currency: "TRY",
-          name: alert.name,
-          nameTR: alert.nameTR,
-        });
-        setAlerts((prev) => [...prev, { ...alert, id }]);
-      } catch (err) {
-        console.warn("[alerts] eklenemedi:", err);
+      if (!id) {
+        id = `local_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
       }
+      const full: SmartAlert = { ...alert, id } as SmartAlert;
+      setAlerts((prev) => {
+        const next = [...prev, full];
+        void persistLocalAlerts(next);
+        return next;
+      });
     },
     []
   );
@@ -968,16 +1090,90 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const removeAlert = useCallback(
     async (id: string) => {
       const deviceId = deviceIdRef.current;
-      // Optimistic remove
-      setAlerts((prev) => prev.filter((a) => a.id !== id));
-      if (!deviceId) return;
-      try {
-        await apiDeleteAlert({ deviceId, id });
-      } catch (err) {
-        console.warn("[alerts] silinemedi:", err);
+      let wasPriceServerBacked = false;
+      setAlerts((prev) => {
+        const tgt = prev.find((a) => a.id === id);
+        wasPriceServerBacked = !!tgt && tgt.kind === "price" && !id.startsWith("local_");
+        const next = prev.filter((a) => a.id !== id);
+        void persistLocalAlerts(next);
+        return next;
+      });
+      if (deviceId && wasPriceServerBacked) {
+        try {
+          await apiDeleteAlert({ deviceId, id });
+        } catch (err) {
+          console.warn("[alerts] sunucudan silinemedi:", err);
+        }
       }
     },
     []
+  );
+
+  const updateAlert = useCallback(
+    async (id: string, patch: Partial<SmartAlert>) => {
+      setAlerts((prev) => {
+        const next = prev.map((a) => (a.id === id ? ({ ...a, ...patch } as SmartAlert) : a));
+        void persistLocalAlerts(next);
+        return next;
+      });
+    },
+    []
+  );
+
+  const persistGroups = useCallback(async (next: AlertGroup[]) => {
+    setAlertGroupsState(next);
+    await saveAlertGroups(next);
+  }, []);
+
+  const createAlertGroup = useCallback(
+    async (name: string): Promise<AlertGroup> => {
+      const trimmed = (name || "").trim() || "Yeni Grup";
+      const grp: AlertGroup = { id: newGroupId(), name: trimmed, muted: false };
+      const next = [...alertGroups, grp];
+      await persistGroups(next);
+      return grp;
+    },
+    [alertGroups, persistGroups]
+  );
+
+  const renameAlertGroup = useCallback(
+    async (id: string, name: string) => {
+      const trimmed = (name || "").trim();
+      if (!trimmed) return;
+      const next = alertGroups.map((g) => (g.id === id ? { ...g, name: trimmed } : g));
+      await persistGroups(next);
+    },
+    [alertGroups, persistGroups]
+  );
+
+  const deleteAlertGroup = useCallback(
+    async (id: string) => {
+      const next = alertGroups.filter((g) => g.id !== id);
+      await persistGroups(next);
+      // Bu gruba atanmış alarmların groupId'sini temizle.
+      setAlerts((prev) => {
+        let touched = false;
+        const upd = prev.map((a) => {
+          if (a.groupId === id) {
+            touched = true;
+            const { groupId: _omit, ...rest } = a;
+            return rest as SmartAlert;
+          }
+          return a;
+        });
+        if (touched) void persistLocalAlerts(upd);
+        return upd;
+      });
+    },
+    [alertGroups, persistGroups]
+  );
+
+  const toggleAlertGroupMute = useCallback(
+    async (id: string) => {
+      const next = alertGroups.map((g) => (g.id === id ? { ...g, muted: !g.muted } : g));
+      await persistGroups(next);
+    },
+    [alertGroups, persistGroups]
   );
 
   const toggleFavorite = useCallback(
@@ -1055,6 +1251,65 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       percent: portfolioStats.totalReturnPercent,
     };
   }, [portfolioStats]);
+
+  // Smart alarm değerlendirme döngüsü. Her fiyat güncellemesinde aktif,
+  // susturulmamış ve pencere içindeki alarmları değerlendirir; tetiklenenler
+  // için bir yerel bildirim gönderir ve inbox'a düşer. Cooldown mantığı
+  // evaluator içindedir (30 dk).
+  useEffect(() => {
+    if (!isHydrated.current) return;
+    if (alerts.length === 0) return;
+    if (allRates.length === 0) return;
+    const priceOf = (code: string): number | null => {
+      const r = findRateByCode(code);
+      return r ? r.buy : null;
+    };
+    const historyOf = (code: string) => priceHistoryRef.current[code] ?? [];
+    const fired = evaluateAlerts({ alerts, groups: alertGroups, priceOf, historyOf });
+    if (fired.length === 0) return;
+
+    const now = Date.now();
+    setAlerts((prev) => {
+      let touched = false;
+      const next = prev.map((a) => {
+        const f = fired.find((x) => x.alert.id === a.id);
+        if (!f) return a;
+        touched = true;
+        const patch: Partial<SmartAlert> = { lastTriggeredAt: now };
+        if (a.kind === "price") patch.triggered = true;
+        return { ...a, ...patch } as SmartAlert;
+      });
+      if (touched) void persistLocalAlerts(next);
+      return next;
+    });
+
+    for (const f of fired) {
+      const title = formatAlertTitle(f.alert);
+      const body = formatAlertBody(f.alert, f.result);
+      const notifId = `smart_alert_${f.alert.id}_${now}`;
+      Notifications.scheduleNotificationAsync({
+        identifier: notifId,
+        content: {
+          title,
+          body,
+          data: {
+            type: "smart_alert",
+            alertId: f.alert.id,
+            route: `/detail/${encodeURIComponent(f.alert.code)}?type=${f.alert.type}`,
+          },
+        },
+        trigger: null,
+      }).catch(() => {});
+      void addInboxItem({
+        id: notifId,
+        title,
+        body,
+        type: "smart_alert",
+        data: { alertId: f.alert.id, code: f.alert.code },
+        ts: now,
+      });
+    }
+  }, [allRates, alerts, alertGroups, findRateByCode]);
 
   useEffect(() => {
     const { totalValue, totalCost } = portfolioStats;
@@ -1203,6 +1458,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         removeFromPortfolio,
         addAlert,
         removeAlert,
+        updateAlert,
+        alertGroups,
+        createAlertGroup,
+        renameAlertGroup,
+        deleteAlertGroup,
+        toggleAlertGroupMute,
         toggleFavorite,
         refreshData,
         getHistoricalData,
