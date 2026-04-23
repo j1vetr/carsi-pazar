@@ -3,12 +3,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
-  fetchAllPrices,
   mapPrices,
   SYMBOL_REGISTRY,
   type AssetRate,
   type RawHaremResponse,
 } from "@/lib/haremApi";
+import { getPrices } from "@/lib/priceCoordinator";
 import type { AssetKind, PriceWidgetData, WidgetRow } from "./PriceWidget";
 
 export const WIDGET_CACHE_KEY = "@carsi/widget-cache-v3";
@@ -56,17 +56,17 @@ export function errorData(message: string): PriceWidgetData {
 }
 
 /**
- * Toplam süre üst sınırı: ilk deneme 7sn, kısa retry 6sn → max ~13sn.
- * Widget task'ı asla bunu aşmaz, "Yükleniyor..." kilidine girmez.
+ * priceCoordinator üzerinden fetch — paralel istekler tek fetch'e join olur.
+ * Hata olursa kısa bekleme + tek retry. Toplam süre üst sınırı ~14.5 sn,
+ * üstüne widget-task.tsx'teki 10sn outer timeout zaten Promise.race ile sınırlar.
  */
 async function fetchWithRetry(): Promise<RawHaremResponse> {
   try {
-    return await fetchAllPrices({ timeoutMs: 7000 });
+    return await getPrices({ timeoutMs: 7000 });
   } catch (e1) {
-    // Geçici network glitch için kısa bir bekleme + tek retry
     await new Promise((r) => setTimeout(r, 1500));
     try {
-      return await fetchAllPrices({ timeoutMs: 6000 });
+      return await getPrices({ timeoutMs: 6000, forceRefresh: true });
     } catch (e2) {
       throw e2 instanceof Error ? e2 : e1;
     }

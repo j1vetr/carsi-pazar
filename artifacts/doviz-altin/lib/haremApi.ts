@@ -168,7 +168,19 @@ export async function fetchAllPrices(opts?: { timeoutMs?: number }): Promise<Raw
   // olur ve underlying fetch askıda kalsa bile akış devam eder.
   let res: Response;
   try {
-    const fetchPromise = fetch(FN.getPrices, signal ? { signal } : undefined);
+    // Cache-Control: no-cache → CDN/proxy stale veri döndürmesin.
+    // Connection: close → HTTP keep-alive bağlantısı reuse edilmesin. Stale
+    // keep-alive bağlantıları (özellikle FGS arka planda uzun süre dururken)
+    // yeni isteklerde silent hang'e neden olabiliyor; her fetch temiz TCP
+    // bağlantısı açsın.
+    const fetchInit: RequestInit = {
+      headers: {
+        "Cache-Control": "no-cache",
+        Connection: "close",
+      },
+    };
+    if (signal) fetchInit.signal = signal;
+    const fetchPromise = fetch(FN.getPrices, fetchInit);
     if (timeoutMs) {
       const guardMs = timeoutMs + 2_000;
       const racePromise = new Promise<Response>((_, reject) => {
