@@ -152,9 +152,9 @@ export function EditorialDrawer({ theme }: DrawerProps) {
             src={t.logoSrc}
             alt="Çarşı Piyasa"
             style={{
-              height: 64,
+              height: 44,
               width: "auto",
-              maxWidth: "82%",
+              maxWidth: "62%",
               objectFit: "contain",
             }}
           />
