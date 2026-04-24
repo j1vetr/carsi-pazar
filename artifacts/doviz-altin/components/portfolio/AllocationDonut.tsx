@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Svg, { Circle, G, Path, Text as SvgText } from "react-native-svg";
+import Svg, { Circle, Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import type { AllocationBucket } from "@/lib/utils/portfolioCalc";
@@ -131,43 +131,60 @@ export function AllocationDonut({
       </View>
 
       <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
-        <Svg width={size} height={size}>
-          {segs.map((s) => {
-            const isActive = !selected || selected === s.key;
-            return (
-              <Path
-                key={s.key}
-                d={arcPath(cx, cy, rOuter, rInner, s.startA, s.endA)}
-                fill={palette[s.key]}
-                opacity={isActive ? 1 : 0.28}
-                onPress={() => handleSelect(s.key)}
-              />
-            );
-          })}
-          <Circle cx={cx} cy={cy} r={rInner - 1} fill={colors.card} />
-          <SvgText
-            x={cx}
-            y={cy - 4}
-            textAnchor="middle"
-            fontSize={10}
-            fontFamily="Inter_700Bold"
-            fill={colors.mutedForeground}
-            letterSpacing={0.8}
+        <View style={{ width: size, height: size }}>
+          <Svg width={size} height={size}>
+            {segs.map((s) => {
+              const isActive = !selected || selected === s.key;
+              return (
+                <Path
+                  key={s.key}
+                  d={arcPath(cx, cy, rOuter, rInner, s.startA, s.endA)}
+                  fill={palette[s.key]}
+                  opacity={isActive ? 1 : 0.28}
+                  onPress={() => handleSelect(s.key)}
+                />
+              );
+            })}
+            <Circle cx={cx} cy={cy} r={rInner - 1} fill={colors.card} />
+          </Svg>
+          <View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              width: size,
+              height: size,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            {active ? BUCKET_LABELS[active.key].toUpperCase() : "AĞIRLIK"}
-          </SvgText>
-          <SvgText
-            x={cx}
-            y={cy + 15}
-            textAnchor="middle"
-            fontSize={20}
-            fontFamily="Inter_700Bold"
-            fill={colors.foreground}
-            letterSpacing={-0.6}
-          >
-            %{active ? Math.round(active.pct) : 0}
-          </SvgText>
-        </Svg>
+            <Text
+              style={{
+                fontSize: 10,
+                fontFamily: "Inter_700Bold",
+                color: colors.mutedForeground,
+                letterSpacing: 0.8,
+                marginBottom: 2,
+              }}
+              numberOfLines={1}
+            >
+              {active ? BUCKET_LABELS[active.key].toUpperCase() : "AĞIRLIK"}
+            </Text>
+            <Text
+              style={{
+                fontSize: 20,
+                fontFamily: "Inter_700Bold",
+                color: colors.foreground,
+                letterSpacing: -0.6,
+                lineHeight: 24,
+              }}
+              numberOfLines={1}
+            >
+              %{active ? Math.round(active.pct) : 0}
+            </Text>
+          </View>
+        </View>
 
         <View style={{ flex: 1, gap: 9 }}>
           {segs.map((s) => {
