@@ -76,3 +76,44 @@ export async function fetchHistory(
   const body = (await r.json()) as { points?: HistoryPoint[] };
   return body.points ?? [];
 }
+
+/**
+ * Verilen tarih için, hangi history range'inin çağrılması gerektiğini seçer.
+ * Hafta sonu/tatil toleransı için 5 gün buffer ekler.
+ */
+export function pickRangeForDate(target: Date, now: Date = new Date()): HistoryRange {
+  const diffDays = Math.ceil((now.getTime() - target.getTime()) / (24 * 60 * 60 * 1000));
+  const padded = diffDays + 5;
+  if (padded <= 7) return "1H";
+  if (padded <= 31) return "1A";
+  if (padded <= 92) return "3A";
+  if (padded <= 366) return "1Y";
+  if (padded <= 366 * 3) return "3Y";
+  return "5Y";
+}
+
+/**
+ * Verilen tarihe en yakın işlem gününün fiyatını döner. Hafta sonu/tatil için
+ * +/- toleranceDays gün arar; bulunamazsa null döner.
+ */
+export function findClosestPoint(
+  points: HistoryPoint[],
+  target: Date,
+  toleranceDays: number = 5,
+): HistoryPoint | null {
+  if (points.length === 0) return null;
+  const targetMs = target.getTime();
+  const toleranceMs = toleranceDays * 24 * 60 * 60 * 1000;
+  let best: HistoryPoint | null = null;
+  let bestDiff = Infinity;
+  for (const p of points) {
+    const pMs = new Date(p.t).getTime();
+    if (Number.isNaN(pMs)) continue;
+    const diff = Math.abs(pMs - targetMs);
+    if (diff < bestDiff && diff <= toleranceMs) {
+      best = p;
+      bestDiff = diff;
+    }
+  }
+  return best;
+}

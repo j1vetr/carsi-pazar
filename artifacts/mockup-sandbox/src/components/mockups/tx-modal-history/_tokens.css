@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.txm {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-feature-settings: 'cv11', 'ss01', 'tnum';
+}
+.txm * { box-sizing: border-box; }
+.txm .num { font-variant-numeric: tabular-nums; }
+
+.txm.dark {
+  --bg: #0A0F1C;
+  --fg: #F1F5F9;
+  --muted: #8597B3;
+  --card: #131A2B;
+  --secondary: #1A2438;
+  --border: #1F2A40;
+  --primary: #5B8DEF;
+  --primary-fg: #FFFFFF;
+  --gold: #E8C752;
+}

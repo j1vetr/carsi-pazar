@@ -16,6 +16,7 @@ import * as Haptics from "expo-haptics";
 import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { useApp, type PortfolioItem } from "@/contexts/AppContext";
+import { useHistoricalPriceAt } from "@/hooks/useHistoricalPriceAt";
 import { formatSymbolName } from "@/lib/utils/symbolDescriptions";
 
 const fmtPrice = (v: number) =>
@@ -195,6 +196,31 @@ export function TxModal({
     }
     setCustomDate(formatted);
   }, []);
+
+  // Hook sadece şu durumda fetch tetikler: modal açık + alış işlemi + geçmiş tarih
+  const historicalDate = useMemo(
+    () =>
+      visible && side === "buy" && datePreset !== "today" && resolvedDate
+        ? resolvedDate
+        : null,
+    [visible, side, datePreset, resolvedDate],
+  );
+  const historical = useHistoricalPriceAt(selectedCode, historicalDate);
+
+  const historicalSourceLabel = useMemo(() => {
+    if (!historical.point) return "";
+    const d = new Date(historical.point.t);
+    if (Number.isNaN(d.getTime())) return "";
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yy = d.getFullYear();
+    return `${dd}.${mm}.${yy}`;
+  }, [historical.point]);
+
+  const historicalChangePct = useMemo(() => {
+    if (!historical.point || !selectedAsset || historical.point.c <= 0) return null;
+    return ((selectedAsset.buy - historical.point.c) / historical.point.c) * 100;
+  }, [historical.point, selectedAsset]);
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -664,6 +690,86 @@ export function TxModal({
                   letterSpacing: 1,
                 }}
               />
+            ) : null}
+
+            {historical.supported && historical.point && side === "buy" ? (
+              <Pressable
+                onPress={() => {
+                  if (historical.point) {
+                    setPrice(String(historical.point.c));
+                    Haptics.selectionAsync().catch(() => {});
+                  }
+                }}
+                style={({ pressed }) => ({
+                  marginTop: 10,
+                  backgroundColor: colors.secondary,
+                  borderRadius: 12,
+                  paddingVertical: 12,
+                  paddingHorizontal: 14,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  opacity: pressed ? 0.85 : 1,
+                })}
+              >
+                <View style={{ flex: 1, marginRight: 10 }}>
+                  <Text
+                    style={{
+                      fontSize: 10.5,
+                      fontFamily: "Inter_700Bold",
+                      color: colors.mutedForeground,
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    O GÜNKÜ PİYASA
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontFamily: "Inter_700Bold",
+                      color: colors.foreground,
+                      marginTop: 3,
+                      letterSpacing: -0.3,
+                    }}
+                  >
+                    ₺{fmtPrice(historical.point.c)}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontFamily: "Inter_500Medium",
+                      color: colors.mutedForeground,
+                      marginTop: 2,
+                    }}
+                  >
+                    {historicalSourceLabel}
+                    {historicalChangePct != null
+                      ? `  ·  bugüne göre ${historicalChangePct >= 0 ? "+" : "−"}%${Math.abs(historicalChangePct).toFixed(2)}`
+                      : ""}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 7,
+                    borderRadius: 8,
+                    backgroundColor: colors.card,
+                    borderWidth: StyleSheet.hairlineWidth,
+                    borderColor: colors.border,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontFamily: "Inter_700Bold",
+                      color: colors.primary,
+                      letterSpacing: -0.1,
+                    }}
+                  >
+                    Kullan
+                  </Text>
+                </View>
+              </Pressable>
             ) : null}
           </View>
         </ScrollView>
