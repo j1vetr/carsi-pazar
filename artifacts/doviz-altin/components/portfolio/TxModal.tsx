@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -184,9 +185,23 @@ export function TxModal({
 
   const canSellAsset = (code: string, t: "currency" | "gold") => availableAmount(code, t) > 0;
 
+  const handleCustomDateChange = useCallback((text: string) => {
+    const digits = text.replace(/\D/g, "").slice(0, 8);
+    let formatted = digits;
+    if (digits.length > 4) {
+      formatted = `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4)}`;
+    } else if (digits.length > 2) {
+      formatted = `${digits.slice(0, 2)}.${digits.slice(2)}`;
+    }
+    setCustomDate(formatted);
+  }, []);
+
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: colors.background }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View
           style={{
             paddingTop: 20,
@@ -625,11 +640,17 @@ export function TxModal({
             {datePreset === "custom" ? (
               <TextInput
                 value={customDate}
-                onChangeText={setCustomDate}
-                placeholder="GG.AA.YYYY (örn: 15.03.2026)"
+                onChangeText={handleCustomDateChange}
+                placeholder="GG.AA.YYYY"
                 placeholderTextColor={colors.mutedForeground}
-                keyboardType="numbers-and-punctuation"
+                keyboardType="number-pad"
+                inputMode="numeric"
                 autoCorrect={false}
+                autoComplete="off"
+                spellCheck={false}
+                textContentType="none"
+                importantForAutofill="no"
+                maxLength={10}
                 style={{
                   marginTop: 8,
                   backgroundColor: colors.card,
@@ -640,6 +661,7 @@ export function TxModal({
                   fontSize: 15,
                   fontFamily: "Inter_600SemiBold",
                   color: colors.foreground,
+                  letterSpacing: 1,
                 }}
               />
             ) : null}
@@ -678,7 +700,7 @@ export function TxModal({
             </Text>
           </Pressable>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
