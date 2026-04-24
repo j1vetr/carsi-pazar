@@ -200,7 +200,7 @@ export function HoldingCard({
               ₺{fmtTL(holding.currentValue)}
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Sparkline data={sparklineData} positive={dayPos} />
+              <Sparkline data={sparklineData} positive={pos} />
               <Text
                 style={{
                   fontSize: 11.5,
