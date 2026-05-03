@@ -8,6 +8,7 @@ import {
   UIManager,
   View,
 } from "react-native";
+import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import { Icon } from "@/components/Icon";
@@ -206,7 +207,11 @@ export function PortfolioTimeChart({
       </Pressable>
 
       {open ? (
-        <View style={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 0 }}>
+        <Animated.View
+          entering={FadeInDown.duration(260).springify().damping(18).mass(0.6)}
+          exiting={FadeOutDown.duration(160)}
+          style={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 0 }}
+        >
           {chart ? (
             <>
               <Svg
@@ -331,7 +336,7 @@ export function PortfolioTimeChart({
               })}
             </View>
           ) : null}
-        </View>
+        </Animated.View>
       ) : null}
     </View>
   );
