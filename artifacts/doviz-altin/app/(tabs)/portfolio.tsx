@@ -268,16 +268,20 @@ export default function PortfolioScreen() {
           }}
           showsVerticalScrollIndicator={false}
         >
-          <PortfolioHero stats={stats} snapshots={portfolioSnapshots} />
+          <PortfolioHero stats={stats} />
           <PortfolioTimeChart
             snapshots={portfolioSnapshots}
             range={range}
             onRangeChange={setRange}
             currentValue={stats.totalValue}
+            defaultOpen={false}
+            persistId="portfolio:chart"
           />
           <AllocationDonut
             buckets={stats.buckets}
             totalValue={stats.totalValue}
+            defaultOpen={false}
+            persistId="portfolio:donut"
           />
 
           <View style={{ paddingHorizontal: 20, gap: 10 }}>

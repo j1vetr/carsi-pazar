@@ -9,6 +9,9 @@ interface Props {
   suffix?: string;
   style?: StyleProp<TextStyle>;
   accessibilityLabel?: string;
+  numberOfLines?: number;
+  adjustsFontSizeToFit?: boolean;
+  minimumFontScale?: number;
 }
 
 const defaultFmt = (n: number) =>
@@ -31,6 +34,9 @@ export function AnimatedNumber({
   suffix = "",
   style,
   accessibilityLabel,
+  numberOfLines,
+  adjustsFontSizeToFit,
+  minimumFontScale,
 }: Props) {
   const [display, setDisplay] = useState<number>(value);
   const fromRef = useRef<number>(value);
@@ -74,7 +80,13 @@ export function AnimatedNumber({
   }
 
   return (
-    <Text style={style} accessibilityLabel={accessibilityLabel}>
+    <Text
+      style={style}
+      accessibilityLabel={accessibilityLabel}
+      numberOfLines={numberOfLines}
+      adjustsFontSizeToFit={adjustsFontSizeToFit}
+      minimumFontScale={minimumFontScale}
+    >
       {text}
     </Text>
   );

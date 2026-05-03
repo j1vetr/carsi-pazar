@@ -1,9 +1,23 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  LayoutAnimation,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  UIManager,
+  View,
+} from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
+import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
+import { useCollapsiblePref } from "@/hooks/useCollapsiblePref";
 import type { AllocationBucket } from "@/lib/utils/portfolioCalc";
+
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const BUCKET_LABELS: Record<AllocationBucket, string> = {
   currency: "Döviz",
@@ -37,13 +51,18 @@ function arcPath(cx: number, cy: number, rOuter: number, rInner: number, startA:
 
 export function AllocationDonut({
   buckets,
-  totalValue,
+  totalValue: _totalValue,
+  defaultOpen = true,
+  persistId,
 }: {
   buckets: Record<AllocationBucket, number>;
   totalValue: number;
+  defaultOpen?: boolean;
+  persistId?: string;
 }) {
   const colors = useColors();
   const [selected, setSelected] = useState<AllocationBucket | null>(null);
+  const { open, toggle } = useCollapsiblePref(persistId, defaultOpen);
 
   const size = 148;
   const cx = size / 2;
@@ -91,169 +110,216 @@ export function AllocationDonut({
     setSelected((cur) => (cur === k ? null : k));
   };
 
+  const handleToggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    Haptics.selectionAsync().catch(() => {});
+    toggle();
+  };
+
+  const summary = dominant
+    ? `${BUCKET_LABELS[dominant.key]} ağırlıkta · %${Math.round(dominant.pct)} · ${segs.length} kategori`
+    : "Henüz dağılım yok";
+
   return (
     <View
       style={{
         marginHorizontal: 20,
-        marginBottom: 18,
+        marginBottom: 12,
         backgroundColor: colors.card,
         borderRadius: 16,
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: colors.border,
-        padding: 16,
+        overflow: "hidden",
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-        <Text
-          style={{
-            fontSize: 11,
-            fontFamily: "Inter_700Bold",
-            color: colors.mutedForeground,
-            letterSpacing: 1.1,
-          }}
-        >
-          VARLIK DAĞILIMI
-        </Text>
-        {selected ? (
-          <Pressable onPress={() => setSelected(null)} hitSlop={8}>
-            <Text
-              style={{
-                fontSize: 10.5,
-                fontFamily: "Inter_700Bold",
-                color: colors.primary,
-                letterSpacing: 0.3,
-              }}
-            >
-              SIFIRLA
-            </Text>
-          </Pressable>
-        ) : null}
-      </View>
-
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
-        <View style={{ width: size, height: size }}>
-          <Svg width={size} height={size}>
-            {segs.map((s) => {
-              const isActive = !selected || selected === s.key;
-              return (
-                <Path
-                  key={s.key}
-                  d={arcPath(cx, cy, rOuter, rInner, s.startA, s.endA)}
-                  fill={palette[s.key]}
-                  opacity={isActive ? 1 : 0.28}
-                  onPress={() => handleSelect(s.key)}
-                />
-              );
-            })}
-            <Circle cx={cx} cy={cy} r={rInner - 1} fill={colors.card} />
-          </Svg>
-          <View
-            pointerEvents="none"
+      <Pressable
+        onPress={handleToggle}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel="Varlık Dağılımı"
+        style={({ pressed }) => ({
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          opacity: pressed ? 0.85 : 1,
+        })}
+      >
+        <View style={{ flex: 1 }}>
+          <Text
             style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              width: size,
-              height: size,
-              alignItems: "center",
-              justifyContent: "center",
+              fontSize: 11,
+              fontFamily: "Inter_700Bold",
+              color: colors.mutedForeground,
+              letterSpacing: 1.1,
             }}
           >
-            <Text
-              style={{
-                fontSize: 10,
-                fontFamily: "Inter_700Bold",
-                color: colors.mutedForeground,
-                letterSpacing: 0.8,
-                marginBottom: 2,
-              }}
-              numberOfLines={1}
-            >
-              {active ? BUCKET_LABELS[active.key].toUpperCase() : "AĞIRLIK"}
-            </Text>
-            <Text
-              style={{
-                fontSize: 20,
-                fontFamily: "Inter_700Bold",
-                color: colors.foreground,
-                letterSpacing: -0.6,
-                lineHeight: 24,
-              }}
-              numberOfLines={1}
-            >
-              %{active ? Math.round(active.pct) : 0}
-            </Text>
-          </View>
+            VARLIK DAĞILIMI
+          </Text>
+          <Text
+            style={{
+              fontSize: 12,
+              fontFamily: "Inter_500Medium",
+              color: colors.foreground,
+              marginTop: 3,
+              letterSpacing: -0.1,
+            }}
+            numberOfLines={1}
+          >
+            {summary}
+          </Text>
         </View>
+        <Icon
+          name={open ? "chevron-up" : "chevron-down"}
+          size={18}
+          color={colors.mutedForeground}
+        />
+      </Pressable>
 
-        <View style={{ flex: 1, gap: 9 }}>
-          {segs.map((s) => {
-            const isSelected = selected === s.key;
-            return (
-              <Pressable
-                key={s.key}
-                onPress={() => handleSelect(s.key)}
-                style={({ pressed }) => ({
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 9,
-                  paddingVertical: 4,
-                  paddingHorizontal: 6,
-                  marginHorizontal: -6,
-                  borderRadius: 8,
-                  backgroundColor: isSelected
-                    ? palette[s.key] + "22"
-                    : pressed
-                    ? colors.secondary
-                    : "transparent",
-                })}
-              >
-                <View
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 3,
-                    backgroundColor: palette[s.key],
-                    opacity: !selected || isSelected ? 1 : 0.4,
-                  }}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontFamily: "Inter_600SemiBold",
-                      color: colors.foreground,
-                      letterSpacing: -0.1,
-                    }}
-                  >
-                    {BUCKET_LABELS[s.key]}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 10.5,
-                      fontFamily: "Inter_500Medium",
-                      color: colors.mutedForeground,
-                      marginTop: 1,
-                    }}
-                  >
-                    ₺{fmtTL(s.value)}
-                  </Text>
-                </View>
+      {open ? (
+        <View style={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 0 }}>
+          {selected ? (
+            <View style={{ alignItems: "flex-end", marginBottom: 8 }}>
+              <Pressable onPress={() => setSelected(null)} hitSlop={8}>
                 <Text
                   style={{
-                    fontSize: 13,
+                    fontSize: 10.5,
                     fontFamily: "Inter_700Bold",
-                    color: isSelected ? palette[s.key] : colors.foreground,
-                    letterSpacing: -0.2,
+                    color: colors.primary,
+                    letterSpacing: 0.3,
                   }}
                 >
-                  %{s.pct.toFixed(0)}
+                  SIFIRLA
                 </Text>
               </Pressable>
-            );
-          })}
+            </View>
+          ) : null}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
+            <View style={{ width: size, height: size }}>
+              <Svg width={size} height={size}>
+                {segs.map((s) => {
+                  const isActive = !selected || selected === s.key;
+                  return (
+                    <Path
+                      key={s.key}
+                      d={arcPath(cx, cy, rOuter, rInner, s.startA, s.endA)}
+                      fill={palette[s.key]}
+                      opacity={isActive ? 1 : 0.28}
+                      onPress={() => handleSelect(s.key)}
+                    />
+                  );
+                })}
+                <Circle cx={cx} cy={cy} r={rInner - 1} fill={colors.card} />
+              </Svg>
+              <View
+                pointerEvents="none"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  width: size,
+                  height: size,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontFamily: "Inter_700Bold",
+                    color: colors.mutedForeground,
+                    letterSpacing: 0.8,
+                    marginBottom: 2,
+                  }}
+                  numberOfLines={1}
+                >
+                  {active ? BUCKET_LABELS[active.key].toUpperCase() : "AĞIRLIK"}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontFamily: "Inter_700Bold",
+                    color: colors.foreground,
+                    letterSpacing: -0.6,
+                    lineHeight: 24,
+                  }}
+                  numberOfLines={1}
+                >
+                  %{active ? Math.round(active.pct) : 0}
+                </Text>
+              </View>
+            </View>
+
+            <View style={{ flex: 1, gap: 9 }}>
+              {segs.map((s) => {
+                const isSelected = selected === s.key;
+                return (
+                  <Pressable
+                    key={s.key}
+                    onPress={() => handleSelect(s.key)}
+                    style={({ pressed }) => ({
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 9,
+                      paddingVertical: 4,
+                      paddingHorizontal: 6,
+                      marginHorizontal: -6,
+                      borderRadius: 8,
+                      backgroundColor: isSelected
+                        ? palette[s.key] + "22"
+                        : pressed
+                        ? colors.secondary
+                        : "transparent",
+                    })}
+                  >
+                    <View
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: 3,
+                        backgroundColor: palette[s.key],
+                        opacity: !selected || isSelected ? 1 : 0.4,
+                      }}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontFamily: "Inter_600SemiBold",
+                          color: colors.foreground,
+                          letterSpacing: -0.1,
+                        }}
+                      >
+                        {BUCKET_LABELS[s.key]}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 10.5,
+                          fontFamily: "Inter_500Medium",
+                          color: colors.mutedForeground,
+                          marginTop: 1,
+                        }}
+                      >
+                        ₺{fmtTL(s.value)}
+                      </Text>
+                    </View>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontFamily: "Inter_700Bold",
+                        color: isSelected ? palette[s.key] : colors.foreground,
+                        letterSpacing: -0.2,
+                      }}
+                    >
+                      %{s.pct.toFixed(0)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
         </View>
-      </View>
+      ) : null}
     </View>
   );
 }
