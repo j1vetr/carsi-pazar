@@ -143,7 +143,7 @@ export function PortfolioTimeChart({
   };
 
   const summaryText = chart
-    ? `${isPos ? "+" : "−"}%${Math.abs(changePct).toFixed(2)} · ${series.length} gün`
+    ? `${isPos ? "+" : "−"}%${Math.abs(changePct).toFixed(2)} · son ${series.length} gün`
     : snapshots.length < 2
       ? "Henüz yeterli veri yok"
       : "Bu aralık için yeterli veri yok";
