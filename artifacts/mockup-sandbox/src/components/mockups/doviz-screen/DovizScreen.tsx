@@ -203,29 +203,15 @@ export function DovizScreen() {
           <CurrencyRow key={c.code} item={c} isFav={favs.has(c.code)} onToggleFav={() => toggleFav(c.code)} />
         ))}
 
-        {filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <p className="mt-3 text-[13px] font-semibold text-gray-500">Sonuç Bulunamadı</p>
-            {search && <p className="text-[12px] mt-1 text-gray-400">"{search}" için eşleşen döviz yok.</p>}
-          </div>
-        )}
-
         {/* Banka Fiyatları */}
-        {tab === "all" && !search && (
-          <>
-            <div className="flex items-center justify-between px-4 pt-4 pb-2">
-              <span className="text-[15px] font-bold text-gray-900">Banka Fiyatları</span>
-              <span className="text-[9.5px] font-bold text-gray-400 tracking-widest">BANKA ORT.</span>
-            </div>
-            <TableHeader />
-            {BANKS.map((b) => (
-              <CurrencyRow key={b.code} item={b} isFav={favs.has(b.code)} onToggleFav={() => toggleFav(b.code)} />
-            ))}
-          </>
-        )}
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <span className="text-[15px] font-bold text-gray-900">Banka Fiyatları</span>
+          <span className="text-[9.5px] font-bold text-gray-400 tracking-widest">BANKA ORT.</span>
+        </div>
+        <TableHeader />
+        {BANKS.map((b) => (
+          <CurrencyRow key={b.code} item={b} isFav={favs.has(b.code)} onToggleFav={() => toggleFav(b.code)} />
+        ))}
 
         <div className="h-24" />
       </div>
