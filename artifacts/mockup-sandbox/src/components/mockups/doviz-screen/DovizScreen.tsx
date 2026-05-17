@@ -1,43 +1,41 @@
 import { useState } from "react";
 
-type NavIcon = "doviz" | "altin" | "portfolio" | "star" | "menu";
+type NavIcon = "doviz" | "altin" | "portfolio" | "heart" | "menu";
 
 function BottomNavItem({ label, active, icon }: { label: string; active: boolean; icon: NavIcon }) {
   const color = active ? "#1B6AE4" : "#9CA3AF";
-  const sw = "2";
+  const sw = "1.8";
   const sc = "round";
   const sj = "round";
   return (
     <button className="flex flex-col items-center gap-0.5 min-w-[52px]">
       {icon === "doviz" && (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
-          <rect x="2" y="7" width="20" height="13" rx="2" />
-          <circle cx="12" cy="13.5" r="2.5" />
-          <path d="M6 11v5M18 11v5" />
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v1M12 16v1M14.5 9.5H10.5a2 2 0 0 0 0 4h3a2 2 0 0 1 0 4H9.5" />
         </svg>
       )}
       {icon === "altin" && (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
-          <path d="M7 8l1.5-4h7L17 8H7z" />
-          <rect x="3" y="8" width="18" height="10" rx="2" />
-          <path d="M9 8v10M15 8v10" />
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
+          <rect x="2"  y="14" width="20" height="5" rx="1.5" />
+          <rect x="5"  y="9"  width="14" height="5" rx="1.5" />
+          <rect x="8"  y="4"  width="8"  height="5" rx="1.5" />
         </svg>
       )}
       {icon === "portfolio" && (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
           <rect x="2" y="7" width="20" height="14" rx="2" />
           <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-          <line x1="12" y1="12" x2="12" y2="16" />
-          <line x1="10" y1="14" x2="14" y2="14" />
+          <path d="M12 12v4M10 14h4" />
         </svg>
       )}
-      {icon === "star" && (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? color : "none"} stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      {icon === "heart" && (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? color : "none"} stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
       )}
       {icon === "menu" && (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc}>
           <line x1="3" y1="6"  x2="21" y2="6" />
           <line x1="3" y1="12" x2="21" y2="12" />
           <line x1="3" y1="18" x2="21" y2="18" />
@@ -221,7 +219,7 @@ export function DovizScreen() {
         <BottomNavItem label="Döviz"    active={true}  icon="doviz" />
         <BottomNavItem label="Altın"    active={false} icon="altin" />
         <BottomNavItem label="Portföy"  active={false} icon="portfolio" />
-        <BottomNavItem label="Favoriler" active={false} icon="star" />
+        <BottomNavItem label="Favoriler" active={false} icon="heart" />
         <BottomNavItem label="Menü"     active={false} icon="menu" />
       </div>
     </div>
