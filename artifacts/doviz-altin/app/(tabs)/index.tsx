@@ -19,6 +19,7 @@ import { PriceRowMenu } from "@/components/common/PriceRowMenu";
 import { SwipeableRow } from "@/components/common/SwipeableRow";
 import { symbolLeftActions } from "@/lib/utils/swipeActions";
 import { MinimalTopBar } from "@/components/MinimalTopBar";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { ModernPriceRow, ModernTableHeader } from "@/components/ModernPriceRow";
 import { PriceRowSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -193,6 +194,7 @@ export default function MarketScreen() {
 
   const renderHeader = () => (
     <>
+      <AdBanner />
       <View style={styles.titleRow}>
         <Text style={styles.titleText}>Döviz Kurları</Text>
         <View style={styles.liveBadge}>
@@ -285,6 +287,7 @@ export default function MarketScreen() {
             </SwipeableRow>
           );
         })}
+        <AdBanner style={{ marginTop: 8 }} />
       </View>
     ) : null;
 

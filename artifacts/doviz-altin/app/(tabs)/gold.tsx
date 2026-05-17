@@ -17,6 +17,7 @@ import { useColors } from "@/hooks/useColors";
 import { useApp, GoldRate } from "@/contexts/AppContext";
 import { PriceRowMenu } from "@/components/common/PriceRowMenu";
 import { MinimalTopBar } from "@/components/MinimalTopBar";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { ModernPriceRow, ModernTableHeader } from "@/components/ModernPriceRow";
 import { SwipeableRow } from "@/components/common/SwipeableRow";
 import { symbolLeftActions } from "@/lib/utils/swipeActions";
@@ -227,6 +228,7 @@ export default function GoldScreen() {
                 );
               })}
             </ScrollView>
+            <AdBanner />
           </View>
         }
         renderSectionHeader={({ section }) => {
@@ -316,6 +318,7 @@ export default function GoldScreen() {
         }}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={manualRefreshing} onRefresh={onManualRefresh} tintColor={colors.primary} />}
+        ListFooterComponent={<AdBanner style={{ marginTop: 8 }} />}
       />
       <PriceRowMenu
         item={menuItem}

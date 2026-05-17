@@ -25,6 +25,7 @@ import {
 import type { SnapshotRange } from "@/lib/storage/portfolioSnapshots";
 import { PortfolioHero } from "@/components/portfolio/Hero";
 import { AllocationDonut } from "@/components/portfolio/AllocationDonut";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { PortfolioTimeChart } from "@/components/portfolio/TimeSeriesChart";
 import { HoldingCard } from "@/components/portfolio/HoldingCard";
 import { TxModal } from "@/components/portfolio/TxModal";
@@ -283,6 +284,8 @@ export default function PortfolioScreen() {
             defaultOpen={false}
             persistId="portfolio:donut"
           />
+
+          <AdBanner style={{ marginVertical: 8 }} />
 
           <View style={{ paddingHorizontal: 20 }}>
             <View

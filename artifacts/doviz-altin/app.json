@@ -40,6 +40,13 @@
           "origin": "https://replit.com/"
         }
       ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-6688478170415368~2127933480",
+          "iosAppId": "ca-app-pub-6688478170415368~2127933480"
+        }
+      ],
       "expo-font",
       "expo-web-browser",
       [

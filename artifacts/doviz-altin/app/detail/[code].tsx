@@ -19,6 +19,7 @@ import { AddAlertModal } from "@/components/alerts/AddAlertModal";
 import { DetailSkeleton } from "@/components/common/skeletons/DetailSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { AnimatedNumber } from "@/components/common/AnimatedNumber";
+import { AdBanner } from "@/components/ads/AdBanner";
 
 const MONO_FONT = Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" });
 
@@ -347,6 +348,8 @@ export default function DetailScreen() {
             </View>
           </>
         )}
+
+        <AdBanner />
 
         {/* Price details */}
         <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 }}>

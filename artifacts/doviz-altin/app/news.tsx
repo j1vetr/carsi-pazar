@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useApp, NewsItem } from "@/contexts/AppContext";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { EmptyState } from "@/components/common/EmptyState";
 import {
   NewsFeaturedSkeleton,
@@ -311,6 +312,7 @@ export default function NewsScreen() {
         ) : (
           <>
             {featured && <FeaturedNewsCard item={featured} colors={colors} />}
+            <AdBanner style={{ marginVertical: 12 }} />
             {rest.length > 0 && (
               <View style={{ marginTop: 6 }}>
                 <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 26, marginBottom: 8 }}>
