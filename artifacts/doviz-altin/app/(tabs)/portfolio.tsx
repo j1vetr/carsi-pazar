@@ -284,13 +284,13 @@ export default function PortfolioScreen() {
             persistId="portfolio:donut"
           />
 
-          <View style={{ paddingHorizontal: 20, gap: 10 }}>
+          <View style={{ paddingHorizontal: 20 }}>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "baseline",
                 justifyContent: "space-between",
-                marginBottom: 2,
+                marginBottom: 10,
               }}
             >
               <Text
@@ -314,46 +314,59 @@ export default function PortfolioScreen() {
                 Uzun Bas → İşlem
               </Text>
             </View>
-            {holdings.map((h, i) => (
-              <SwipeableRow
-                key={`${h.type}:${h.code}`}
-                rightActions={[
-                  {
-                    label: "Sil",
-                    icon: "trash-outline",
-                    color: colors.fall,
-                    destructive: true,
-                    onPress: () =>
-                      Alert.alert(
-                        "Varlığı Sil",
-                        `${h.code} için tüm işlemler silinsin mi?`,
-                        [
-                          { text: "Vazgeç", style: "cancel" },
-                          {
-                            text: "Sil",
-                            style: "destructive",
-                            onPress: () => void removeAllByAsset(h.code, h.type),
-                          },
-                        ],
-                      ),
-                  },
-                ]}
-              >
-                <HoldingCard
-                  holding={h}
-                  index={i}
-                  expanded={expanded === `${h.type}:${h.code}`}
-                  onToggle={() =>
-                    setExpanded((cur) =>
-                      cur === `${h.type}:${h.code}` ? null : `${h.type}:${h.code}`,
-                    )
-                  }
-                  onLongPress={() => openSheet(h.code, h.type)}
-                  onRemoveTx={handleRemoveTx}
-                  sparklineData={getPriceHistory(h.code)}
-                />
-              </SwipeableRow>
-            ))}
+
+            {/* Tüm varlıklar tek kart içinde, aralarında ince ayırıcı */}
+            <View
+              style={{
+                backgroundColor: colors.card,
+                borderRadius: 14,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: colors.border,
+                overflow: "hidden",
+              }}
+            >
+              {holdings.map((h, i) => (
+                <SwipeableRow
+                  key={`${h.type}:${h.code}`}
+                  rightActions={[
+                    {
+                      label: "Sil",
+                      icon: "trash-outline",
+                      color: colors.fall,
+                      destructive: true,
+                      onPress: () =>
+                        Alert.alert(
+                          "Varlığı Sil",
+                          `${h.code} için tüm işlemler silinsin mi?`,
+                          [
+                            { text: "Vazgeç", style: "cancel" },
+                            {
+                              text: "Sil",
+                              style: "destructive",
+                              onPress: () => void removeAllByAsset(h.code, h.type),
+                            },
+                          ],
+                        ),
+                    },
+                  ]}
+                >
+                  <HoldingCard
+                    holding={h}
+                    index={i}
+                    isLast={i === holdings.length - 1}
+                    expanded={expanded === `${h.type}:${h.code}`}
+                    onToggle={() =>
+                      setExpanded((cur) =>
+                        cur === `${h.type}:${h.code}` ? null : `${h.type}:${h.code}`,
+                      )
+                    }
+                    onLongPress={() => openSheet(h.code, h.type)}
+                    onRemoveTx={handleRemoveTx}
+                    sparklineData={getPriceHistory(h.code)}
+                  />
+                </SwipeableRow>
+              ))}
+            </View>
           </View>
         </Animated.ScrollView>
       )}

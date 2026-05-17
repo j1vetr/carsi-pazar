@@ -1,19 +1,41 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
-import { Icon } from "@/components/Icon";
 import { useColors } from "@/hooks/useColors";
 import { AnimatedNumber } from "@/components/common/AnimatedNumber";
 import type { PortfolioStats } from "@/lib/utils/portfolioCalc";
 
 const fmtTL = (v: number) =>
   v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtTL0 = (v: number) =>
+  v.toLocaleString("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
 export function PortfolioHero({ stats }: { stats: PortfolioStats }) {
   const colors = useColors();
   const totalPos = stats.totalReturn >= 0;
   const dayPos = stats.dayChange >= 0;
   const realizedPos = stats.realized >= 0;
+
+  const statCols = [
+    {
+      label: "BUGÜN",
+      value: `${dayPos ? "+" : "−"}₺${fmtTL0(Math.abs(stats.dayChange))}`,
+      sub: `${dayPos ? "+" : ""}%${stats.dayChangePercent.toFixed(2)}`,
+      color: dayPos ? colors.rise : colors.fall,
+    },
+    {
+      label: "MALİYET",
+      value: `₺${fmtTL0(stats.totalCost)}`,
+      sub: null,
+      color: colors.foreground,
+    },
+    {
+      label: "TOPLAM GETİRİ",
+      value: `${totalPos ? "+" : "−"}₺${fmtTL0(Math.abs(stats.totalReturn))}`,
+      sub: `${totalPos ? "+" : ""}%${stats.totalReturnPercent.toFixed(2)}`,
+      color: totalPos ? colors.rise : colors.fall,
+    },
+  ] as const;
 
   return (
     <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
@@ -53,36 +75,74 @@ export function PortfolioHero({ stats }: { stats: PortfolioStats }) {
         />
       </Animated.View>
 
+      {/* 3-sütun stat kartı — pill yok */}
       <Animated.View
         entering={FadeInDown.delay(80).duration(320)}
         style={{
           flexDirection: "row",
-          alignItems: "center",
-          gap: 8,
-          marginTop: 12,
-          flexWrap: "wrap",
+          marginTop: 14,
+          backgroundColor: colors.card,
+          borderRadius: 14,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: colors.border,
+          overflow: "hidden",
         }}
       >
-        <Pill
-          icon={dayPos ? "arrow-up" : "arrow-down"}
-          label={`${dayPos ? "+" : "−"}₺${fmtTL(Math.abs(stats.dayChange))} · %${Math.abs(stats.dayChangePercent).toFixed(2)}`}
-          caption="Bugün"
-          color={dayPos ? colors.rise : colors.fall}
-        />
-        <Pill
-          label={`₺${fmtTL(stats.totalCost)}`}
-          caption="Maliyet"
-          color={colors.foreground}
-          neutral
-        />
-        <Pill
-          icon={totalPos ? "trending-up" : "trending-down"}
-          label={`${totalPos ? "+" : "−"}₺${fmtTL(Math.abs(stats.totalReturn))} · ${totalPos ? "+" : ""}%${Math.abs(stats.totalReturnPercent).toFixed(2)}`}
-          caption="Toplam Getiri"
-          color={totalPos ? colors.rise : colors.fall}
-        />
+        {statCols.map((s, i) => (
+          <View
+            key={s.label}
+            style={{
+              flex: 1,
+              paddingVertical: 11,
+              paddingHorizontal: 9,
+              borderRightWidth: i < 2 ? StyleSheet.hairlineWidth : 0,
+              borderRightColor: colors.border,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 8.5,
+                fontFamily: "Inter_700Bold",
+                color: colors.mutedForeground,
+                letterSpacing: 0.7,
+                marginBottom: 4,
+              }}
+              numberOfLines={1}
+            >
+              {s.label}
+            </Text>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
+              style={{
+                fontSize: 12,
+                fontFamily: "Inter_700Bold",
+                color: s.color,
+                letterSpacing: -0.2,
+              }}
+            >
+              {s.value}
+            </Text>
+            {s.sub ? (
+              <Text
+                numberOfLines={1}
+                style={{
+                  fontSize: 10.5,
+                  fontFamily: "Inter_600SemiBold",
+                  color: s.color,
+                  marginTop: 2,
+                  opacity: 0.85,
+                }}
+              >
+                {s.sub}
+              </Text>
+            ) : null}
+          </View>
+        ))}
       </Animated.View>
 
+      {/* Gerçekleşmiş kâr/zarar — sade satır */}
       {Math.abs(stats.realized) > 0.01 ? (
         <Animated.View
           entering={FadeInDown.delay(160).duration(320)}
@@ -91,29 +151,16 @@ export function PortfolioHero({ stats }: { stats: PortfolioStats }) {
             flexDirection: "row",
             alignItems: "center",
             gap: 6,
-            alignSelf: "flex-start",
-            paddingHorizontal: 11,
-            paddingVertical: 6,
-            borderRadius: 999,
-            backgroundColor: colors.secondary,
-            borderWidth: StyleSheet.hairlineWidth,
-            borderColor: colors.border,
           }}
         >
-          <Icon
-            name="checkmark-circle"
-            size={13}
-            color={realizedPos ? colors.rise : colors.fall}
-          />
           <Text
             style={{
               fontSize: 11.5,
               fontFamily: "Inter_600SemiBold",
               color: colors.mutedForeground,
-              letterSpacing: -0.1,
             }}
           >
-            Gerçekleşmiş kâr/zarar:{" "}
+            Gerçekleşmiş k/z:{"  "}
             <Text
               style={{
                 color: realizedPos ? colors.rise : colors.fall,
@@ -125,59 +172,6 @@ export function PortfolioHero({ stats }: { stats: PortfolioStats }) {
           </Text>
         </Animated.View>
       ) : null}
-    </View>
-  );
-}
-
-function Pill({
-  icon,
-  label,
-  caption,
-  color,
-  neutral,
-}: {
-  icon?: React.ComponentProps<typeof Icon>["name"];
-  label: string;
-  caption: string;
-  color: string;
-  neutral?: boolean;
-}) {
-  const colors = useColors();
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 999,
-        backgroundColor: neutral ? colors.secondary : color + "1A",
-        borderWidth: neutral ? StyleSheet.hairlineWidth : 0,
-        borderColor: colors.border,
-      }}
-    >
-      {icon ? <Icon name={icon} size={12} color={color} /> : null}
-      <Text
-        style={{
-          fontSize: 11.5,
-          fontFamily: "Inter_700Bold",
-          color: color,
-          letterSpacing: -0.1,
-        }}
-      >
-        {label}
-      </Text>
-      <Text
-        style={{
-          fontSize: 10,
-          fontFamily: "Inter_500Medium",
-          color: colors.mutedForeground,
-          letterSpacing: 0.2,
-        }}
-      >
-        · {caption}
-      </Text>
     </View>
   );
 }
