@@ -48,6 +48,7 @@ const colors = {
     fall: "#D43A3A",
     fallSoft: "#FBEAEA",
     neutral: "#6B7B95",
+    buyColBg: "#F4F5F7",
   },
 
   dark: {
@@ -99,6 +100,7 @@ const colors = {
     fall: "#EF4444",
     fallSoft: "#2E1414",
     neutral: "#8597B3",
+    buyColBg: "#0D1C32",
   },
 
   radius: 14,
