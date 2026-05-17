@@ -237,7 +237,7 @@ export function AltinScreen() {
             <line x1="3" y1="18" x2="21" y2="18"/>
           </svg>
         </button>
-        <img src="/__mockup/logo-dark.png" alt="Çarşı Pazar" style={{ height: 34, objectFit: "contain" }} />
+        <img src="/__mockup/logo-light.png" alt="Çarşı Pazar" style={{ height: 34, objectFit: "contain" }} />
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] text-gray-500 font-semibold tabular-nums">14:32</span>
           <div className="w-2 h-2 rounded-full bg-green-400" />

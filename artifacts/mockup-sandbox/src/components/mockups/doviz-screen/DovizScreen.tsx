@@ -177,7 +177,7 @@ export function DovizScreen() {
         </button>
 
         {/* Logo */}
-        <img src="/__mockup/logo-dark.png" alt="Çarşı Pazar" style={{ height: 34, objectFit: "contain" }} />
+        <img src="/__mockup/logo-light.png" alt="Çarşı Pazar" style={{ height: 34, objectFit: "contain" }} />
 
         {/* Saat + canlı nokta */}
         <div className="flex items-center gap-1.5">
