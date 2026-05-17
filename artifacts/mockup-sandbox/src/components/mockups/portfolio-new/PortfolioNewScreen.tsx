@@ -23,44 +23,45 @@ const fmtTL0 = (v: number) =>
 
 // ── Mock veriler ───────────────────────────────────────────────────────────
 const stats = {
-  totalValue: 152_430.5,
-  totalCost: 148_000,
-  totalReturn: 4_430.5,
-  totalReturnPct: 2.99,
-  dayChange: 1_234.5,
-  dayChangePct: 0.81,
+  totalValue: 2_847_619.45,
+  totalCost: 2_650_000,
+  totalReturn: 197_619.45,
+  totalReturnPct: 7.46,
+  dayChange: 154_320.80,
+  dayChangePct: 5.73,
 };
 
 const holdings = [
   {
     code: "USD", type: "currency", flag: "us",
-    name: "Amerikan Doları", amount: 500, avgPrice: 38.2,
-    currentValue: 32_745, costBasis: 19_100,
-    unrealized: 13_645, unrealizedPct: 71.44,
-    dayChangePct: 0.52, pos: true, dayPos: true,
+    name: "Amerikan Doları", amount: 12_500, avgPrice: 38.2,
+    currentValue: 843_750, costBasis: 477_500,
+    unrealized: 366_250, unrealizedPct: 76.7,
+    dayChangePct: 5.73, pos: true, dayPos: true,
     txs: [
-      { side: "buy", amount: 300, price: 36.5, date: "12 Oca 2025", total: 10_950 },
-      { side: "buy", amount: 200, price: 40.75, date: "3 Mar 2025", total: 8_150 },
+      { side: "buy", amount: 8_000, price: 36.5, date: "12 Oca 2025", total: 292_000 },
+      { side: "buy", amount: 4_500, price: 41.67, date: "3 Mar 2025", total: 185_500 },
     ],
   },
   {
     code: "EUR", type: "currency", flag: "eu",
-    name: "Euro", amount: 200, avgPrice: 41.1,
-    currentValue: 17_950, costBasis: 8_220,
-    unrealized: 9_730, unrealizedPct: 118.37,
+    name: "Euro", amount: 5_000, avgPrice: 41.1,
+    currentValue: 498_750, costBasis: 205_500,
+    unrealized: 293_250, unrealizedPct: 142.7,
     dayChangePct: -0.18, pos: true, dayPos: false,
     txs: [
-      { side: "buy", amount: 200, price: 39.8, date: "3 Mar 2025", total: 7_960 },
+      { side: "buy", amount: 5_000, price: 39.8, date: "3 Mar 2025", total: 199_000 },
     ],
   },
   {
     code: "ALTIN", type: "gold", flag: null,
-    name: "Gram Altın", amount: 10, avgPrice: 5_800,
-    currentValue: 66_880, costBasis: 58_000,
-    unrealized: 8_880, unrealizedPct: 15.31,
+    name: "Gram Altın", amount: 225, avgPrice: 5_800,
+    currentValue: 1_505_119.45, costBasis: 1_305_000,
+    unrealized: 200_119.45, unrealizedPct: 15.3,
     dayChangePct: 0.62, pos: true, dayPos: true,
     txs: [
-      { side: "buy", amount: 10, price: 5_800, date: "15 Şub 2025", total: 58_000 },
+      { side: "buy", amount: 150, price: 5_800, date: "15 Şub 2025", total: 870_000 },
+      { side: "buy", amount: 75, price: 5_800, date: "20 Mar 2025", total: 435_000 },
     ],
   },
 ];
@@ -156,17 +157,20 @@ function HoldingRow({ h, isLast }: { h: typeof holdings[0]; isLast: boolean }) {
         </div>
 
         {/* Değer + getiri */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: C.fg, letterSpacing: "-0.2px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", flexShrink: 0, maxWidth: 120 }}>
+          <span style={{
+            fontSize: 13.5, fontWeight: 700, color: C.fg, letterSpacing: "-0.2px",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 112,
+          }}>
             ₺{fmtTL0(h.currentValue)}
           </span>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
             {/* mini sparkline */}
-            <svg width="42" height="16" style={{ opacity: 0.9 }}>
-              <path d="M0 12 C7 10 14 5 21 7 C28 9 35 3 42 1"
-                stroke={C.rise} strokeWidth="1.3" fill="none" strokeLinecap="round" />
+            <svg width="36" height="14" style={{ opacity: 0.9, flexShrink: 0 }}>
+              <path d="M0 11 C6 9 12 4 18 6 C24 8 30 2 36 1"
+                stroke={h.pos ? C.rise : C.fall} strokeWidth="1.3" fill="none" strokeLinecap="round" />
             </svg>
-            <span style={{ fontSize: 11, fontWeight: 700, color: h.pos ? C.rise : C.fall }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: h.pos ? C.rise : C.fall, whiteSpace: "nowrap" }}>
               +%{h.unrealizedPct.toFixed(2)}
             </span>
           </div>
@@ -280,18 +284,26 @@ export default function PortfolioNewScreen() {
             overflow: "hidden",
           }}>
             {[
-              { label: "BUGÜN", value: `+₺${fmtTL0(stats.dayChange)}`, sub: `%${stats.dayChangePct.toFixed(2)}`, color: C.rise },
+              { label: "BUGÜN", value: `+₺${fmtTL0(stats.dayChange)}`, sub: `+%${stats.dayChangePct.toFixed(2)}`, color: C.rise },
               { label: "MALİYET", value: `₺${fmtTL0(stats.totalCost)}`, sub: null, color: C.fg },
-              { label: "TOPLAM GETİRİ", value: `+₺${fmtTL0(stats.totalReturn)}`, sub: `%${stats.totalReturnPct.toFixed(2)}`, color: C.rise },
+              { label: "TOPLAM GETİRİ", value: `+₺${fmtTL0(stats.totalReturn)}`, sub: `+%${stats.totalReturnPct.toFixed(2)}`, color: C.rise },
             ].map((s, i) => (
               <div key={i} style={{
-                flex: 1, padding: "11px 10px",
+                flex: 1, minWidth: 0, padding: "11px 8px",
                 borderRight: i < 2 ? `1px solid ${C.border}` : "none",
                 display: "flex", flexDirection: "column",
               }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: C.muted, letterSpacing: "0.8px", marginBottom: 5 }}>{s.label}</div>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: s.color, letterSpacing: "-0.2px" }}>{s.value}</div>
-                {s.sub && <div style={{ fontSize: 11, fontWeight: 600, color: s.color, marginTop: 2 }}>{s.sub}</div>}
+                <div style={{ fontSize: 8.5, fontWeight: 700, color: C.muted, letterSpacing: "0.7px", marginBottom: 4, whiteSpace: "nowrap" }}>{s.label}</div>
+                <div style={{
+                  fontSize: 11.5, fontWeight: 700, color: s.color, letterSpacing: "-0.2px",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>{s.value}</div>
+                {s.sub && (
+                  <div style={{
+                    fontSize: 10.5, fontWeight: 600, color: s.color, marginTop: 2,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>{s.sub}</div>
+                )}
               </div>
             ))}
           </div>
