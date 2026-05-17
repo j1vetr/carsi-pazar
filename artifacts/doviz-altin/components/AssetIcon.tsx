@@ -1,22 +1,30 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+function flagEmoji(isoCode: string): string {
+  return isoCode
+    .toUpperCase()
+    .split("")
+    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
+    .join("");
+}
+
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
-  EUR: "\u20AC",
-  GBP: "\u00A3",
+  EUR: "€",
+  GBP: "£",
   CHF: "Fr",
-  JPY: "\u00A5",
+  JPY: "¥",
   SAR: "SR",
-  AED: "AE",
+  AED: "د.إ",
   CAD: "C$",
   AUD: "A$",
-  CNY: "\u00A5",
-  RUB: "\u20BD",
+  CNY: "¥",
+  RUB: "₽",
   DKK: "kr",
   SEK: "kr",
   NOK: "kr",
-  TRY: "\u20BA",
+  TRY: "₺",
   BANKAUSD: "B$",
 };
 
@@ -26,9 +34,10 @@ interface AssetIconProps {
   size?: number;
   variant?: "soft" | "solid" | "line";
   tone?: "primary" | "gold" | "neutral";
+  flagCode?: string;
 }
 
-export function AssetIcon({ code, type, size = 40, variant = "soft", tone }: AssetIconProps) {
+export function AssetIcon({ code, type, size = 40, variant = "soft", tone, flagCode }: AssetIconProps) {
   const isGold = type === "gold";
   const palette = tone ?? (isGold ? "gold" : "primary");
 
@@ -49,7 +58,37 @@ export function AssetIcon({ code, type, size = 40, variant = "soft", tone }: Ass
   const fgColor = variant === "solid" ? "#FFFFFF" : c.text;
 
   if (type === "currency") {
-    const symbol = CURRENCY_SYMBOLS[code] ?? code.slice(0, 1);
+    if (flagCode) {
+      const emoji = flagEmoji(flagCode);
+      return (
+        <View
+          style={[
+            styles.box,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              backgroundColor: "#F0F0F0",
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: "rgba(0,0,0,0.08)",
+              overflow: "hidden",
+            },
+          ]}
+        >
+          <Text
+            style={{
+              fontSize: size * 0.72,
+              lineHeight: size * 1.05,
+              includeFontPadding: false,
+              textAlignVertical: "center",
+            }}
+          >
+            {emoji}
+          </Text>
+        </View>
+      );
+    }
+    const symbol = CURRENCY_SYMBOLS[code] ?? code.slice(0, 2);
     const fontSize = symbol.length > 1 ? size * 0.36 : size * 0.5;
     return (
       <View style={[styles.box, { width: size, height: size, borderRadius: size / 2 }, containerStyle]}>
@@ -70,7 +109,6 @@ export function AssetIcon({ code, type, size = 40, variant = "soft", tone }: Ass
   }
 
   if (type === "gold") {
-    // Gold rozetleri tamamen kaldırıldı; çağıran zaten render etmemeli.
     return null;
   }
 

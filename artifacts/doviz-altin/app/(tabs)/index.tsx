@@ -6,6 +6,7 @@ import {
   RefreshControl,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { router } from "expo-router";
@@ -29,6 +30,7 @@ export default function MarketScreen() {
   const { currencies, banks, favorites, toggleFavorite, refreshData, lastUpdated, lastRefreshFailed } = useApp();
   const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
   const [manualRefreshing, setManualRefreshing] = useState(false);
+  const [search, setSearch] = useState("");
 
   const onManualRefresh = useCallback(async () => {
     haptics.tap();
@@ -54,16 +56,116 @@ export default function MarketScreen() {
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
 
-  const displayCurrencies = useMemo(
-    () =>
+  const displayCurrencies = useMemo(() => {
+    let list =
       activeTab === "favorites"
         ? currencies.filter((c) => favorites.includes(c.code))
-        : currencies,
-    [activeTab, currencies, favorites]
-  );
+        : currencies;
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (c) =>
+          c.code.toLowerCase().includes(q) ||
+          c.nameTR.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [activeTab, currencies, favorites, search]);
+
+  const isLive = !!lastUpdated;
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
+
+    titleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 18,
+      paddingTop: 14,
+      paddingBottom: 10,
+    },
+    titleText: {
+      fontSize: 24,
+      fontFamily: "Inter_700Bold",
+      color: colors.foreground,
+      letterSpacing: -0.5,
+    },
+    liveBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 999,
+      backgroundColor: colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    liveDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: isLive ? "#22C55E" : colors.mutedForeground,
+    },
+    liveBadgeText: {
+      fontSize: 11,
+      fontFamily: "Inter_700Bold",
+      color: isLive ? "#22C55E" : colors.mutedForeground,
+      letterSpacing: 0.6,
+    },
+
+    searchRow: {
+      paddingHorizontal: 16,
+      paddingBottom: 10,
+    },
+    searchBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      backgroundColor: colors.surface,
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: Platform.OS === "ios" ? 9 : 6,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 14,
+      fontFamily: "Inter_500Medium",
+      color: colors.foreground,
+      padding: 0,
+      margin: 0,
+    },
+
+    segmentRow: {
+      flexDirection: "row",
+      marginHorizontal: 16,
+      marginBottom: 10,
+      backgroundColor: colors.surface,
+      borderRadius: 10,
+      padding: 3,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    segmentBtn: {
+      flex: 1,
+      paddingVertical: 8,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    segmentActive: {
+      backgroundColor: "#1B6AE4",
+    },
+    segmentText: {
+      fontSize: 13,
+      fontFamily: "Inter_700Bold",
+      color: colors.mutedForeground,
+    },
+    segmentActiveText: {
+      color: "#FFFFFF",
+    },
 
     sectionRow: {
       flexDirection: "row",
@@ -74,7 +176,7 @@ export default function MarketScreen() {
       paddingBottom: 4,
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: 15,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
       letterSpacing: -0.3,
@@ -86,72 +188,61 @@ export default function MarketScreen() {
       letterSpacing: 1.4,
     },
 
-    segmentRow: {
-      flexDirection: "row",
-      paddingHorizontal: 18,
-      paddingTop: 12,
-      paddingBottom: 6,
-      gap: 8,
-    },
-    chip: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 5,
-      paddingHorizontal: 14,
-      paddingVertical: 7,
-      borderRadius: 999,
-      backgroundColor: colors.surface,
-    },
-    chipActive: { backgroundColor: colors.foreground },
-    chipText: {
-      fontSize: 12.5,
-      fontFamily: "Inter_700Bold",
-      color: colors.mutedForeground,
-      letterSpacing: -0.1,
-    },
-    chipTextActive: { color: colors.background },
-
     list: { paddingBottom: bottomPadding + 16 },
-
-    emptyWrap: { paddingVertical: 60, alignItems: "center", paddingHorizontal: 32 },
-    emptyTitle: {
-      fontSize: 14, fontFamily: "Inter_700Bold",
-      color: colors.foreground, marginTop: 12, textAlign: "center",
-    },
-    emptyText: {
-      fontSize: 12, fontFamily: "Inter_500Medium",
-      color: colors.mutedForeground, marginTop: 6, textAlign: "center", lineHeight: 18,
-    },
   });
 
   const renderHeader = () => (
     <>
-      <View style={styles.sectionRow}>
-        <Text style={styles.sectionTitle}>Döviz Kurları</Text>
-        <Text style={styles.sectionMeta}>{lastUpdated ? "CANLI" : "BAĞLANIYOR"}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.titleText}>Döviz Kurları</Text>
+        <View style={styles.liveBadge}>
+          <View style={styles.liveDot} />
+          <Text style={styles.liveBadgeText}>{isLive ? "CANLI" : "BAĞLANIYOR"}</Text>
+        </View>
       </View>
+
+      <View style={styles.searchRow}>
+        <View style={styles.searchBox}>
+          <Icon name="search" size={15} color={colors.mutedForeground} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Ara"
+            placeholderTextColor={colors.mutedForeground}
+            value={search}
+            onChangeText={setSearch}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+          {search.length > 0 && Platform.OS !== "ios" ? (
+            <Pressable onPress={() => setSearch("")} hitSlop={8}>
+              <Icon name="close" size={15} color={colors.mutedForeground} />
+            </Pressable>
+          ) : null}
+        </View>
+      </View>
+
       <View style={styles.segmentRow}>
         <Pressable
-          style={[styles.chip, activeTab === "all" && styles.chipActive]}
+          style={[styles.segmentBtn, activeTab === "all" && styles.segmentActive]}
           onPress={() => setActiveTab("all")}
         >
-          <Text style={[styles.chipText, activeTab === "all" && styles.chipTextActive]}>Tümü</Text>
+          <Text style={[styles.segmentText, activeTab === "all" && styles.segmentActiveText]}>
+            Tümü
+          </Text>
         </Pressable>
         <Pressable
-          style={[styles.chip, activeTab === "favorites" && styles.chipActive]}
+          style={[styles.segmentBtn, activeTab === "favorites" && styles.segmentActive]}
           onPress={() => setActiveTab("favorites")}
         >
-          <Icon
-            name={activeTab === "favorites" ? "star" : "star-outline"}
-            size={11}
-            color={activeTab === "favorites" ? colors.background : colors.mutedForeground}
-          />
-          <Text style={[styles.chipText, activeTab === "favorites" && styles.chipTextActive]}>
+          <Text style={[styles.segmentText, activeTab === "favorites" && styles.segmentActiveText]}>
             Favoriler
           </Text>
         </Pressable>
       </View>
-      <ModernTableHeader />
+
+      <ModernTableHeader currencyLayout />
     </>
   );
 
@@ -162,7 +253,7 @@ export default function MarketScreen() {
           <Text style={styles.sectionTitle}>Banka Fiyatları</Text>
           <Text style={styles.sectionMeta}>BANKA ORT.</Text>
         </View>
-        <ModernTableHeader />
+        <ModernTableHeader currencyLayout />
         {banks.map((b) => {
           const isGold = b.code === "BANKA_ALTIN";
           const t = isGold ? "gold" : "currency";
@@ -180,13 +271,16 @@ export default function MarketScreen() {
               <ModernPriceRow
                 item={b}
                 type={t}
+                currencyLayout={!isGold}
                 isFavorite={favorites.includes(b.code)}
                 onFavoriteToggle={() => toggleFavorite(b.code)}
                 onLongPress={() => openMenu(b, t)}
-                onPress={() => router.push({
-                  pathname: "/detail/[code]",
-                  params: { code: b.code, type: t },
-                })}
+                onPress={() =>
+                  router.push({
+                    pathname: "/detail/[code]",
+                    params: { code: b.code, type: t },
+                  })
+                }
               />
             </SwipeableRow>
           );
@@ -213,6 +307,7 @@ export default function MarketScreen() {
             <ModernPriceRow
               item={item}
               type="currency"
+              currencyLayout
               isFavorite={favorites.includes(item.code)}
               onFavoriteToggle={() => toggleFavorite(item.code)}
               onLongPress={() => openMenu(item, "currency")}
@@ -232,15 +327,22 @@ export default function MarketScreen() {
               description="Bir döviz satırının yıldızına dokunarak favorilerine ekleyebilirsin."
               compact
             />
-          ) : lastRefreshFailed ? (
+          ) : lastRefreshFailed && !search ? (
             <ErrorState
               title="Kurlar Yüklenemedi"
               description="Bağlantını kontrol edip tekrar dene."
               onRetry={() => void refreshData()}
               compact
             />
-          ) : (
+          ) : currencies.length === 0 ? (
             <PriceRowSkeleton count={8} withIcon />
+          ) : (
+            <EmptyState
+              icon="search"
+              title="Sonuç Bulunamadı"
+              description={`"${search}" için eşleşen döviz yok.`}
+              compact
+            />
           )
         }
         contentContainerStyle={styles.list}

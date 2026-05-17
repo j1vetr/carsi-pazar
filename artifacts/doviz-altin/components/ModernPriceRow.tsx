@@ -11,6 +11,7 @@ import { AssetIcon } from "@/components/AssetIcon";
 import { useColors } from "@/hooks/useColors";
 import { CurrencyRate, GoldRate } from "@/contexts/AppContext";
 import { getSymbolDescription } from "@/lib/utils/symbolDescriptions";
+import { findMetaByCode } from "@/lib/api/haremApi";
 
 interface Props {
   item: CurrencyRate | GoldRate;
@@ -18,22 +19,23 @@ interface Props {
   isFavorite?: boolean;
   onPress: () => void;
   onFavoriteToggle?: () => void;
-  /** Long-press → bağlam menüsünü aç (üst ekran tarafından sağlanır). */
   onLongPress?: () => void;
-  /** Override displayed code (e.g. shorten "GRAM_ALTIN" to "GRAM") */
   codeOverride?: string;
-  /** Small badge after code, e.g. "YENİ" / "ESKİ" */
   badge?: string;
-  /** Show item name first instead of code (used for gold sarrafiye where name is meaningful) */
   nameFirst?: boolean;
+  /** Döviz ekranı için iki sütunlu ALIŞ/SATIŞ düzeni */
+  currencyLayout?: boolean;
 }
 
 const MONO = Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" });
 
-function fmt(n: number): string {
-  if (n >= 1000) return n.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  if (n >= 10) return n.toLocaleString("tr-TR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-  return n.toLocaleString("tr-TR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+function fmt(n: number, decimals?: number): string {
+  const d = decimals ?? (n >= 1000 ? 2 : 4);
+  return n.toLocaleString("tr-TR", { minimumFractionDigits: d, maximumFractionDigits: d });
+}
+
+function fmtPct(pct: number): string {
+  return Math.abs(pct).toFixed(2) + "%";
 }
 
 export function ModernPriceRow({
@@ -46,17 +48,20 @@ export function ModernPriceRow({
   codeOverride,
   badge,
   nameFirst,
+  currencyLayout = false,
 }: Props) {
   const colors = useColors();
   const flashOpacity = useSharedValue(0);
   const prevPrice = useRef(item.buy);
+
+  const meta = findMetaByCode(item.code);
+  const flagCode = meta?.flag;
 
   useEffect(() => {
     const delta = item.buy - prevPrice.current;
     if (delta !== 0) {
       const meaningful = Math.abs(delta / (prevPrice.current || 1)) > 0.0001;
       if (meaningful) {
-        // 800ms toplam: hızlı ramp-up + uzun decay → değişim göze çarpsın.
         const dir = delta > 0 ? 1 : -1;
         flashOpacity.value = withTiming(dir * 0.12, { duration: 140 }, () => {
           flashOpacity.value = withTiming(0, { duration: 660 });
@@ -88,25 +93,26 @@ export function ModernPriceRow({
   const changeBg = hasChange ? (isPositive ? colors.riseSoft : colors.fallSoft) : colors.surface;
 
   const displayCode = codeOverride ?? item.code;
-  const buyStr = fmt(item.buy);
-  const sellStr = fmt(item.sell);
+  const decimals = meta?.decimals;
+  const buyStr = fmt(item.buy, decimals);
+  const sellStr = fmt(item.sell, decimals);
 
   const styles = StyleSheet.create({
     pressable: {
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingVertical: currencyLayout ? 10 : 12,
       backgroundColor: colors.background,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
       overflow: "hidden",
     },
     flash: { ...StyleSheet.absoluteFillObject },
-    iconWrap: { marginRight: 12 },
+    iconWrap: { marginRight: 10 },
 
-    nameCol: { flex: 1, justifyContent: "center", minWidth: 0, paddingRight: 8 },
-    headRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+    nameCol: { flex: 1, justifyContent: "center", minWidth: 0, paddingRight: 6 },
+    headRow: { flexDirection: "row", alignItems: "center", gap: 5 },
     codeText: {
       fontSize: 14.5,
       fontFamily: "Inter_700Bold",
@@ -114,7 +120,7 @@ export function ModernPriceRow({
       letterSpacing: -0.2,
       flexShrink: 1,
     },
-    badge: {
+    badgeText: {
       fontSize: 9,
       fontFamily: "Inter_700Bold",
       color: colors.mutedForeground,
@@ -126,13 +132,14 @@ export function ModernPriceRow({
       overflow: "hidden",
       flexShrink: 0,
     },
-    name: {
+    nameText: {
       fontSize: 11,
       fontFamily: "Inter_500Medium",
       color: colors.mutedForeground,
       marginTop: 2,
     },
 
+    // --- Klasik layout (gold, vb.) ---
     priceCol: {
       width: 158,
       alignItems: "flex-end",
@@ -147,7 +154,7 @@ export function ModernPriceRow({
       fontSize: 12.5,
       color: colors.mutedForeground,
       fontFamily: MONO,
-      fontVariant: ["tabular-nums"],
+      fontVariant: ["tabular-nums"] as const,
       letterSpacing: -0.3,
     },
     sep: {
@@ -160,7 +167,7 @@ export function ModernPriceRow({
       fontSize: 14.5,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
-      fontVariant: ["tabular-nums"],
+      fontVariant: ["tabular-nums"] as const,
       letterSpacing: -0.3,
       lineHeight: 17,
     },
@@ -178,11 +185,44 @@ export function ModernPriceRow({
       fontSize: 10.5,
       fontFamily: "Inter_700Bold",
       color: changeColor,
-      fontVariant: ["tabular-nums"],
+      fontVariant: ["tabular-nums"] as const,
       letterSpacing: -0.1,
     },
 
-    starBtn: { marginLeft: 8, padding: 4 },
+    // --- Döviz (currencyLayout) ---
+    currencyPriceArea: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+    },
+    currencyPriceCol: {
+      width: 72,
+      alignItems: "flex-end",
+      justifyContent: "center",
+    },
+    currencyPrice: {
+      fontSize: 13,
+      fontFamily: MONO,
+      fontVariant: ["tabular-nums"] as const,
+      color: colors.foreground,
+      letterSpacing: -0.3,
+    },
+    currencyPriceBuy: {
+      color: colors.mutedForeground,
+      fontSize: 12.5,
+    },
+    currencyChange: {
+      fontSize: 10,
+      fontFamily: "Inter_700Bold",
+      color: changeColor,
+      fontVariant: ["tabular-nums"] as const,
+      marginTop: 2,
+    },
+    changeArrow: {
+      fontSize: 9,
+    },
+
+    starBtn: { marginLeft: 6, padding: 4 },
   });
 
   return (
@@ -197,7 +237,13 @@ export function ModernPriceRow({
 
       {type === "gold" ? null : (
         <View style={styles.iconWrap}>
-          <AssetIcon code={item.code} type={type} size={34} variant="soft" />
+          <AssetIcon
+            code={item.code}
+            type={type}
+            size={36}
+            variant="soft"
+            flagCode={currencyLayout ? (flagCode ?? undefined) : undefined}
+          />
         </View>
       )}
 
@@ -210,31 +256,58 @@ export function ModernPriceRow({
           >
             {nameFirst ? item.nameTR : displayCode}
           </Text>
-          {badge ? <Text style={styles.badge}>{badge}</Text> : null}
+          {badge ? <Text style={styles.badgeText}>{badge}</Text> : null}
         </View>
-        <Text style={styles.name} numberOfLines={1}>
+        <Text style={styles.nameText} numberOfLines={1}>
           {nameFirst ? (getSymbolDescription(item.code) ?? item.nameTR) : item.nameTR}
         </Text>
       </View>
 
-      <View style={styles.priceCol}>
-        <View style={styles.priceRow}>
-          <Text style={styles.buyText} numberOfLines={1}>{buyStr}</Text>
-          <Text style={styles.sep}>·</Text>
-          <Text style={styles.sellText} numberOfLines={1}>{sellStr}</Text>
+      {currencyLayout ? (
+        <View style={styles.currencyPriceArea}>
+          {/* ALIŞ */}
+          <View style={styles.currencyPriceCol}>
+            <Text style={[styles.currencyPrice, styles.currencyPriceBuy]} numberOfLines={1}>
+              {buyStr}
+            </Text>
+            <Text style={styles.currencyChange} numberOfLines={1}>
+              {hasChange
+                ? `${isPositive ? "↗" : "↘"} ${fmtPct(item.changePercent)}`
+                : "—"}
+            </Text>
+          </View>
+          {/* SATIŞ */}
+          <View style={styles.currencyPriceCol}>
+            <Text style={styles.currencyPrice} numberOfLines={1}>
+              {sellStr}
+            </Text>
+            <Text style={styles.currencyChange} numberOfLines={1}>
+              {hasChange
+                ? `${isPositive ? "↗" : "↘"} ${fmtPct(item.changePercent)}`
+                : "—"}
+            </Text>
+          </View>
         </View>
-        <View style={styles.changePill}>
-          <Text style={styles.changeText}>
-            {hasChange ? `${isPositive ? "▲" : "▼"} ${Math.abs(item.changePercent).toFixed(2)}%` : "—"}
-          </Text>
+      ) : (
+        <View style={styles.priceCol}>
+          <View style={styles.priceRow}>
+            <Text style={styles.buyText} numberOfLines={1}>{buyStr}</Text>
+            <Text style={styles.sep}>·</Text>
+            <Text style={styles.sellText} numberOfLines={1}>{sellStr}</Text>
+          </View>
+          <View style={styles.changePill}>
+            <Text style={styles.changeText}>
+              {hasChange ? `${isPositive ? "▲" : "▼"} ${Math.abs(item.changePercent).toFixed(2)}%` : "—"}
+            </Text>
+          </View>
         </View>
-      </View>
+      )}
 
       {onFavoriteToggle ? (
         <Pressable onPress={onFavoriteToggle} style={styles.starBtn} hitSlop={8}>
           <Icon
             name={isFavorite ? "star" : "star-outline"}
-            size={15}
+            size={16}
             color={isFavorite ? colors.gold : colors.mutedForeground}
           />
         </Pressable>
@@ -246,14 +319,19 @@ export function ModernPriceRow({
 export function ModernTableHeader({
   cols = ["Birim", "Alış", "Satış"],
   withIcon = true,
-}: { cols?: [string, string, string] | string[]; withIcon?: boolean }) {
+  currencyLayout = false,
+}: {
+  cols?: [string, string, string] | string[];
+  withIcon?: boolean;
+  currencyLayout?: boolean;
+}) {
   const colors = useColors();
   const styles = StyleSheet.create({
     wrap: {
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingVertical: 7,
       backgroundColor: colors.surface,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderBottomWidth: StyleSheet.hairlineWidth,
@@ -263,14 +341,33 @@ export function ModernTableHeader({
       fontSize: 9.5,
       fontFamily: "Inter_700Bold",
       color: colors.mutedForeground,
-      letterSpacing: 1.4,
+      letterSpacing: 1.2,
     },
   });
-  // Alış/Satış artık tek kolonda yan yana gösteriliyor → birleşik başlık.
+
+  if (currencyLayout) {
+    return (
+      <View style={styles.wrap}>
+        <Text style={[styles.label, { flex: 1, marginLeft: withIcon ? 46 : 0 }]}>
+          {(cols[0] ?? "BİRİM").toUpperCase()}
+        </Text>
+        <Text style={[styles.label, { width: 72, textAlign: "right" }]}>
+          {(cols[1] ?? "ALIŞ").toUpperCase()}
+        </Text>
+        <Text style={[styles.label, { width: 72, textAlign: "right" }]}>
+          {(cols[2] ?? "SATIŞ").toUpperCase()}
+        </Text>
+        <View style={{ width: 30 }} />
+      </View>
+    );
+  }
+
   const priceLabel = `${cols[1]} · ${cols[2]}`.toUpperCase();
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.label, { flex: 1, marginLeft: withIcon ? 46 : 0 }]}>{cols[0].toUpperCase()}</Text>
+      <Text style={[styles.label, { flex: 1, marginLeft: withIcon ? 46 : 0 }]}>
+        {(cols[0] ?? "BİRİM").toUpperCase()}
+      </Text>
       <Text style={[styles.label, { width: 158, textAlign: "right" }]}>{priceLabel}</Text>
       <View style={{ width: 31 }} />
     </View>
