@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 
 const router: IRouter = Router();
 
-const HAREM_BASE = "https://haremapi.tr/api/v1";
+const HAREM_BASE = "https://altinapi.com/api/v1";
 const API_KEY = process.env.HAREMAPI_KEY ?? process.env.EXPO_PUBLIC_HAREMAPI_KEY ?? "";
 
 let cache: { ts: number; body: unknown } | null = null;

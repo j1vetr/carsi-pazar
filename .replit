@@ -46,4 +46,4 @@ externalPort = 3000
 [userenv]
 
 [userenv.shared]
-EXPO_PUBLIC_HAREMAPI_KEY = "hapi_9d98a231907842efa19d2dbdc3d53784"
+EXPO_PUBLIC_HAREMAPI_KEY = "hapi_1ad6c09bfb764e25a00c5da953d50419"

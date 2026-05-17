@@ -2,7 +2,7 @@ import { Platform } from "react-native";
 import { io, Socket } from "socket.io-client";
 import type { RawHaremPrice, RawHaremResponse } from "./haremApi";
 
-const SOCKET_URL = "https://haremapi.tr";
+const SOCKET_URL = "https://altinapi.com";
 const API_KEY = process.env.EXPO_PUBLIC_HAREMAPI_KEY ?? "";
 
 export interface HaremSocketHandlers {

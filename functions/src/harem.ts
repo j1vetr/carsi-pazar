@@ -2,7 +2,7 @@ import { defineSecret } from "firebase-functions/params";
 
 export const HAREMAPI_KEY = defineSecret("HAREMAPI_KEY");
 
-const HAREM_BASE = "https://haremapi.tr/api/v1";
+const HAREM_BASE = "https://altinapi.com/api/v1";
 
 export type HaremPrice = {
   symbol?: string;
