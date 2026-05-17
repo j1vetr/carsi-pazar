@@ -131,24 +131,25 @@ function GoldRow({ item, isFav, onToggleFav, isLast }: {
       className="flex items-center bg-white px-4 py-3"
       style={{ borderBottom: isLast ? "none" : "1px solid #E5E7EB", cursor: "pointer" }}
     >
-      {/* Sol: BİRİM + isim + subtitle — hafif gri arka plan */}
-      <div className="flex-1 min-w-0 -mx-4 px-4 py-3 -my-3 mr-0 pr-3 self-stretch flex flex-col justify-center"
-        style={{ background: "#F9FAFB", borderRight: "1px solid #E5E7EB" }}>
+      {/* Sol: BİRİM + isim + subtitle */}
+      <div className="flex-1 min-w-0 pr-3">
         <div className="text-[10px] font-semibold text-gray-400 tracking-widest mb-0.5">BİRİM</div>
         <div className="text-[15px] font-bold text-gray-900 leading-tight truncate">{item.name}</div>
         <div className="text-[11.5px] text-gray-400 mt-0.5 leading-tight truncate">{item.subtitle}</div>
       </div>
 
-      {/* ALIŞ */}
-      <div className="flex flex-col items-end pr-4" style={{ minWidth: 70 }}>
+      {/* ALIŞ — sağ kenarda ince çizgi + hafif gri */}
+      <div className="flex flex-col items-end px-3 self-stretch justify-center"
+        style={{ width: 78, flexShrink: 0, background: "#F4F5F7", borderLeft: "1px solid #E5E7EB", borderRight: "1px solid #E5E7EB" }}>
         <div className="text-[9.5px] font-semibold text-gray-400 tracking-widest mb-0.5">ALIŞ</div>
-        <div className="text-[15px] font-bold text-gray-800 tabular-nums leading-tight">{fmt(item.buy)}</div>
+        <div className="text-[13px] font-bold text-gray-700 tabular-nums leading-tight" style={{ maxWidth: 70, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fmt(item.buy)}</div>
       </div>
 
       {/* SATIŞ */}
-      <div className="flex flex-col items-end pr-2" style={{ minWidth: 70 }}>
+      <div className="flex flex-col items-end pl-3 pr-1 self-stretch justify-center"
+        style={{ width: 78, flexShrink: 0 }}>
         <div className="text-[9.5px] font-semibold text-gray-400 tracking-widest mb-0.5">SATIŞ</div>
-        <div className="text-[15px] font-bold text-gray-900 tabular-nums leading-tight">{fmt(item.sell)}</div>
+        <div className="text-[13px] font-bold text-gray-900 tabular-nums leading-tight" style={{ maxWidth: 70, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fmt(item.sell)}</div>
       </div>
 
       {/* Yıldız */}
