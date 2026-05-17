@@ -1,0 +1,100 @@
+root@162-55-4-35:~/carsi-pazar/artifacts/doviz-altin# cat app.json
+{
+  "expo": {
+    "name": "Çarşı Piyasa - Canlı Döviz & Altın",
+    "slug": "doviz-altin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "doviz-altin",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "icon": "./assets/images/icon.png"
+    },
+    "android": {
+      "package": "com.toov1.dovizaltin",
+      "googleServicesFile": "./google-services.json",
+      "backgroundColor": "#FFFFFF",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "WAKE_LOCK",
+        "POST_NOTIFICATIONS",
+        "WAKE_LOCK"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "origin": "https://replit.com/"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#083C8F",
+          "defaultChannel": "price-alerts",
+          "sounds": []
+        }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "PriceWidget",
+              "label": "Çarşı Piyasa Fiyatları",
+              "description": "Anlık döviz ve altın fiyatlarını ana ekranınızda görün.",
+              "minWidth": "250dp",
+              "minHeight": "60dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 1,
+              "previewImage": "./assets/images/icon.png",
+              "resizeMode": "horizontal",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ]
+    ],
+    "notification": {
+      "icon": "./assets/images/icon.png",
+      "color": "#083C8F",
+      "androidMode": "default",
+      "androidCollapsedTitle": "Çarşı Piyasa"
+    },
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8c8b667c-4aa5-4f15-8722-1d4942cab1fc"
+      }
+    },
+    "owner": "toov1",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8c8b667c-4aa5-4f15-8722-1d4942cab1fc"
+    }
+  }
+}
