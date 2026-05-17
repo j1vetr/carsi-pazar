@@ -149,8 +149,6 @@ function TableHeader() {
 }
 
 export function DovizScreen() {
-  const [tab, setTab] = useState<"all" | "fav">("all");
-  const [search, setSearch] = useState("");
   const [favs, setFavs] = useState<Set<string>>(new Set(["USD", "EUR"]));
 
   const toggleFav = (code: string) => {
@@ -161,14 +159,7 @@ export function DovizScreen() {
     });
   };
 
-  const filtered = CURRENCIES.filter((c) => {
-    if (tab === "fav" && !favs.has(c.code)) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q);
-    }
-    return true;
-  });
+  const filtered = CURRENCIES;
 
   return (
     <div className="w-[390px] h-[844px] bg-white flex flex-col overflow-hidden select-none"
@@ -186,7 +177,7 @@ export function DovizScreen() {
         </button>
 
         {/* Logo */}
-        <img src="/logo-dark.png" alt="Çarşı Pazar" style={{ height: 28, objectFit: "contain" }} />
+        <img src="/__mockup/logo-dark.png" alt="Çarşı Pazar" style={{ height: 34, objectFit: "contain" }} />
 
         {/* Saat + canlı nokta */}
         <div className="flex items-center gap-1.5">
@@ -205,32 +196,6 @@ export function DovizScreen() {
           </div>
         </div>
 
-        {/* Arama */}
-        <div className="px-4 pb-2.5">
-          <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2.5 border border-gray-200">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input
-              className="flex-1 bg-transparent text-[14px] text-gray-700 outline-none placeholder-gray-400"
-              placeholder="Ara"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search && <button onClick={() => setSearch("")} className="text-gray-400 text-sm leading-none">✕</button>}
-          </div>
-        </div>
-
-        {/* Segment */}
-        <div className="flex mx-4 mb-2.5 p-[3px] bg-gray-100 rounded-xl border border-gray-200">
-          {(["all", "fav"] as const).map((t) => (
-            <button key={t} onClick={() => setTab(t)}
-              className="flex-1 py-2 rounded-[9px] text-[13px] font-bold transition-all"
-              style={{ background: tab === t ? "#1B6AE4" : "transparent", color: tab === t ? "#fff" : "#6B7280" }}>
-              {t === "all" ? "Tümü" : "Favoriler"}
-            </button>
-          ))}
-        </div>
 
         <TableHeader />
 
