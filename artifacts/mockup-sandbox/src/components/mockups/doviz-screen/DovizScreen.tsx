@@ -1,5 +1,53 @@
 import { useState } from "react";
 
+type NavIcon = "doviz" | "altin" | "portfolio" | "star" | "menu";
+
+function BottomNavItem({ label, active, icon }: { label: string; active: boolean; icon: NavIcon }) {
+  const color = active ? "#1B6AE4" : "#9CA3AF";
+  const sw = "2";
+  const sc = "round";
+  const sj = "round";
+  return (
+    <button className="flex flex-col items-center gap-0.5 min-w-[52px]">
+      {icon === "doviz" && (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
+          <rect x="2" y="7" width="20" height="13" rx="2" />
+          <circle cx="12" cy="13.5" r="2.5" />
+          <path d="M6 11v5M18 11v5" />
+        </svg>
+      )}
+      {icon === "altin" && (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
+          <path d="M7 8l1.5-4h7L17 8H7z" />
+          <rect x="3" y="8" width="18" height="10" rx="2" />
+          <path d="M9 8v10M15 8v10" />
+        </svg>
+      )}
+      {icon === "portfolio" && (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
+          <rect x="2" y="7" width="20" height="14" rx="2" />
+          <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+          <line x1="12" y1="12" x2="12" y2="16" />
+          <line x1="10" y1="14" x2="14" y2="14" />
+        </svg>
+      )}
+      {icon === "star" && (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? color : "none"} stroke={color} strokeWidth={sw} strokeLinecap={sc} strokeLinejoin={sj}>
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      )}
+      {icon === "menu" && (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap={sc}>
+          <line x1="3" y1="6"  x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      )}
+      <span className="text-[10px] font-semibold" style={{ color }}>{label}</span>
+    </button>
+  );
+}
+
 function FlagImg({ iso, size = 36 }: { iso: string; size?: number }) {
   const code = iso.toLowerCase();
   return (
@@ -219,29 +267,11 @@ export function DovizScreen() {
 
       {/* Bottom nav */}
       <div className="border-t border-gray-200 bg-white flex items-center justify-around px-1 shrink-0" style={{ paddingTop: 8, paddingBottom: 10 }}>
-        {[
-          { label: "Döviz",    active: true,  d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" },
-          { label: "Altın",   active: false, d: "M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" },
-          { label: "Portföy", active: false, d: "M20 7h-4V5c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2z" },
-          { label: "Favoriler", active: false, d: "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" },
-        ].map((item) => (
-          <button key={item.label} className="flex flex-col items-center gap-0.5 min-w-[52px]">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill={item.active ? "#1B6AE4" : "#9CA3AF"}>
-              <path d={item.d} />
-            </svg>
-            <span className="text-[10px] font-semibold" style={{ color: item.active ? "#1B6AE4" : "#9CA3AF" }}>
-              {item.label}
-            </span>
-          </button>
-        ))}
-        <button className="flex flex-col items-center gap-0.5 min-w-[52px]">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round">
-            <line x1="3" y1="6"  x2="21" y2="6"/>
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
-          <span className="text-[10px] font-semibold text-gray-400">Menü</span>
-        </button>
+        <BottomNavItem label="Döviz"    active={true}  icon="doviz" />
+        <BottomNavItem label="Altın"    active={false} icon="altin" />
+        <BottomNavItem label="Portföy"  active={false} icon="portfolio" />
+        <BottomNavItem label="Favoriler" active={false} icon="star" />
+        <BottomNavItem label="Menü"     active={false} icon="menu" />
       </div>
     </div>
   );
