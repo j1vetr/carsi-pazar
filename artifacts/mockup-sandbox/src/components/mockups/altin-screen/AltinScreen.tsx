@@ -54,45 +54,46 @@ interface GoldItem {
   subtitle: string;
   buy: number;
   sell: number;
+  pct: number;
 }
 
 const GRAM_ONS: GoldItem[] = [
-  { code: "ALTIN",    name: "Gram Altın (Has)",  subtitle: "1 gram saf altın",       buy: 6_659.85, sell: 6_688.07 },
-  { code: "XAUUSD",  name: "Ons Altın",          subtitle: "1 troy ons (USD)",       buy: 4_537.90, sell: 4_538.57 },
-  { code: "XAUEUR",  name: "Ons Altın (EUR)",     subtitle: "1 troy ons (EUR)",       buy: 3_902.19, sell: 3_911.52 },
-  { code: "XAUSPOT", name: "Ons Altın (Spot)",    subtitle: "Anlık ons fiyatı",       buy: 4_537.90, sell: 4_538.57 },
+  { code: "ALTIN",    name: "Gram Altın (Has)",  subtitle: "1 gram saf altın",    buy: 6_659.85, sell: 6_688.07, pct:  0.62 },
+  { code: "XAUUSD",  name: "Ons Altın",          subtitle: "1 troy ons (USD)",    buy: 4_537.90, sell: 4_538.57, pct:  0.51 },
+  { code: "XAUEUR",  name: "Ons Altın (EUR)",     subtitle: "1 troy ons (EUR)",    buy: 3_902.19, sell: 3_911.52, pct: -0.18 },
+  { code: "XAUSPOT", name: "Ons Altın (Spot)",    subtitle: "Anlık ons fiyatı",    buy: 4_537.90, sell: 4_538.57, pct:  0.51 },
 ];
 
 const SARRAFIYE_YENI: GoldItem[] = [
-  { code: "CEYREK",  name: "Çeyrek Altın (Yeni)", subtitle: "Çeyrek altın · yeni emisyon", buy: 10_856, sell: 10_934 },
-  { code: "YARIM",   name: "Yarım Altın",          subtitle: "Yarım altın · yeni emisyon",  buy: 21_712, sell: 21_861 },
-  { code: "TAM",     name: "Tam Altın",             subtitle: "Tam altın · yeni emisyon",    buy: 43_424, sell: 43_722 },
-  { code: "ATA",     name: "Ata Altın (Yeni)",      subtitle: "Tek ata · yeni emisyon",      buy: 43_424, sell: 43_900 },
-  { code: "CUMHUR",  name: "Cumhuriyet (Yeni)",     subtitle: "Cumhuriyet altını · yeni",    buy: 43_424, sell: 44_020 },
+  { code: "CEYREK",  name: "Çeyrek Altın (Yeni)", subtitle: "Çeyrek altın · yeni emisyon", buy: 10_856, sell: 10_934, pct:  0.55 },
+  { code: "YARIM",   name: "Yarım Altın",          subtitle: "Yarım altın · yeni emisyon",  buy: 21_712, sell: 21_861, pct:  0.53 },
+  { code: "TAM",     name: "Tam Altın",             subtitle: "Tam altın · yeni emisyon",    buy: 43_424, sell: 43_722, pct:  0.57 },
+  { code: "ATA",     name: "Ata Altın (Yeni)",      subtitle: "Tek ata · yeni emisyon",      buy: 43_424, sell: 43_900, pct:  0.60 },
+  { code: "CUMHUR",  name: "Cumhuriyet (Yeni)",     subtitle: "Cumhuriyet altını · yeni",    buy: 43_424, sell: 44_020, pct:  0.58 },
 ];
 
 const SARRAFIYE_ESKI: GoldItem[] = [
-  { code: "CEYREK_E", name: "Çeyrek Altın (Eski)", subtitle: "Çeyrek altın · eski emisyon", buy:  9_985, sell: 10_048 },
-  { code: "YARIM_E",  name: "Yarım Altın (Eski)",  subtitle: "Yarım altın · eski emisyon",  buy: 19_970, sell: 20_096 },
-  { code: "TAM_E",    name: "Tam Altın (Eski)",     subtitle: "Tam altın · eski emisyon",    buy: 39_940, sell: 40_192 },
+  { code: "CEYREK_E", name: "Çeyrek Altın (Eski)", subtitle: "Çeyrek altın · eski emisyon", buy:  9_985, sell: 10_048, pct:  0.43 },
+  { code: "YARIM_E",  name: "Yarım Altın (Eski)",  subtitle: "Yarım altın · eski emisyon",  buy: 19_970, sell: 20_096, pct:  0.41 },
+  { code: "TAM_E",    name: "Tam Altın (Eski)",     subtitle: "Tam altın · eski emisyon",    buy: 39_940, sell: 40_192, pct:  0.44 },
 ];
 
 const KULCE: GoldItem[] = [
-  { code: "K1",  name: "1 gr Külçe",   subtitle: "1 gram külçe altın",   buy:  6_660, sell:  6_690 },
-  { code: "K5",  name: "5 gr Külçe",   subtitle: "5 gram külçe altın",   buy: 33_300, sell: 33_450 },
-  { code: "K10", name: "10 gr Külçe",  subtitle: "10 gram külçe altın",  buy: 66_600, sell: 66_900 },
-  { code: "K20", name: "20 gr Külçe",  subtitle: "20 gram külçe altın",  buy: 133_200, sell: 133_800 },
+  { code: "K1",  name: "1 gr Külçe",   subtitle: "1 gram külçe altın",   buy:  6_660, sell:  6_690, pct:  0.62 },
+  { code: "K5",  name: "5 gr Külçe",   subtitle: "5 gram külçe altın",   buy: 33_300, sell: 33_450, pct:  0.61 },
+  { code: "K10", name: "10 gr Külçe",  subtitle: "10 gram külçe altın",  buy: 66_600, sell: 66_900, pct:  0.61 },
+  { code: "K20", name: "20 gr Külçe",  subtitle: "20 gram külçe altın",  buy: 133_200, sell: 133_800, pct:  0.62 },
 ];
 
 const BILEZIK: GoldItem[] = [
-  { code: "B22", name: "22 Ayar Bilezik", subtitle: "Milyem 916 · işçilik hariç", buy: 6_102, sell: 6_165 },
-  { code: "B18", name: "18 Ayar Bilezik", subtitle: "Milyem 750 · işçilik hariç", buy: 4_994, sell: 5_046 },
-  { code: "B14", name: "14 Ayar Bilezik", subtitle: "Milyem 585 · işçilik hariç", buy: 3_885, sell: 3_930 },
+  { code: "B22", name: "22 Ayar Bilezik", subtitle: "Milyem 916 · işçilik hariç", buy: 6_102, sell: 6_165, pct:  0.49 },
+  { code: "B18", name: "18 Ayar Bilezik", subtitle: "Milyem 750 · işçilik hariç", buy: 4_994, sell: 5_046, pct:  0.52 },
+  { code: "B14", name: "14 Ayar Bilezik", subtitle: "Milyem 585 · işçilik hariç", buy: 3_885, sell: 3_930, pct: -0.47 },
 ];
 
 const GUMUS: GoldItem[] = [
-  { code: "XAGUSD", name: "Ons Gümüş",   subtitle: "1 troy ons (USD)", buy: 33.42, sell: 33.58 },
-  { code: "GRAMG",  name: "Gram Gümüş",  subtitle: "1 gram gümüş",     buy:  3.48, sell:  3.51 },
+  { code: "XAGUSD", name: "Ons Gümüş",   subtitle: "1 troy ons (USD)", buy: 33.42, sell: 33.58, pct: -0.14 },
+  { code: "GRAMG",  name: "Gram Gümüş",  subtitle: "1 gram gümüş",     buy:  3.48, sell:  3.51, pct: -0.12 },
 ];
 
 interface Section {
@@ -126,6 +127,8 @@ function GoldRow({ item, isFav, onToggleFav, isLast }: {
   onToggleFav: () => void;
   isLast: boolean;
 }) {
+  const pos   = item.pct >= 0;
+  const arrow = pos ? "▲" : "▼";
   return (
     <div
       className="flex items-center bg-white px-4 py-3"
@@ -138,18 +141,24 @@ function GoldRow({ item, isFav, onToggleFav, isLast }: {
         <div className="text-[11.5px] text-gray-400 mt-0.5 leading-tight truncate">{item.subtitle}</div>
       </div>
 
-      {/* ALIŞ — sağ kenarda ince çizgi + hafif gri */}
+      {/* ALIŞ — hafif gri + çizgiler */}
       <div className="flex flex-col items-end px-3 self-stretch justify-center"
-        style={{ width: 78, flexShrink: 0, background: "#F4F5F7", borderLeft: "1px solid #E5E7EB", borderRight: "1px solid #E5E7EB" }}>
+        style={{ width: 82, flexShrink: 0, background: "#F4F5F7", borderLeft: "1px solid #E5E7EB", borderRight: "1px solid #E5E7EB" }}>
         <div className="text-[9.5px] font-semibold text-gray-400 tracking-widest mb-0.5">ALIŞ</div>
-        <div className="text-[13px] font-bold text-gray-700 tabular-nums leading-tight" style={{ maxWidth: 70, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fmt(item.buy)}</div>
+        <div className="text-[13px] font-bold text-gray-700 tabular-nums leading-tight" style={{ maxWidth: 74, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fmt(item.buy)}</div>
+        <div className="text-[10px] font-bold tabular-nums mt-0.5" style={{ color: pos ? "#16A34A" : "#DC2626" }}>
+          {arrow} {Math.abs(item.pct).toFixed(2)}%
+        </div>
       </div>
 
       {/* SATIŞ */}
       <div className="flex flex-col items-end pl-3 pr-1 self-stretch justify-center"
-        style={{ width: 78, flexShrink: 0 }}>
+        style={{ width: 82, flexShrink: 0 }}>
         <div className="text-[9.5px] font-semibold text-gray-400 tracking-widest mb-0.5">SATIŞ</div>
-        <div className="text-[13px] font-bold text-gray-900 tabular-nums leading-tight" style={{ maxWidth: 70, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fmt(item.sell)}</div>
+        <div className="text-[13px] font-bold text-gray-900 tabular-nums leading-tight" style={{ maxWidth: 74, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fmt(item.sell)}</div>
+        <div className="text-[10px] font-bold tabular-nums mt-0.5" style={{ color: pos ? "#16A34A" : "#DC2626" }}>
+          {arrow} {Math.abs(item.pct).toFixed(2)}%
+        </div>
       </div>
 
       {/* Yıldız */}
