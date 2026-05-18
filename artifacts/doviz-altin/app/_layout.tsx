@@ -33,6 +33,7 @@ import { isOnboardingSeen } from "@/lib/storage/onboardingPref";
 import { loadStartupTab, routeForStartupTab } from "@/lib/storage/startupPref";
 import { registerWidgetBackgroundTask } from "@/lib/widget/widgetBackgroundTask";
 import { refreshPriceWidget } from "@/widgets/refresh";
+import { initAds } from "@/lib/ads/initAds";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -90,6 +91,10 @@ export default function RootLayout() {
 
   useEffect(() => {
     void scheduleReviewPrompt();
+  }, []);
+
+  useEffect(() => {
+    void initAds();
   }, []);
 
   // First-launch onboarding takes precedence over startup-tab routing.
