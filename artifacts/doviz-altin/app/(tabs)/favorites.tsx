@@ -310,9 +310,6 @@ export default function FavoritesScreen() {
         justifyContent: "space-between",
       }}>
         <View>
-          <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 6 }}>
-            Daima Takipte
-          </Text>
           <Text style={{ fontSize: 34, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -1.2 }}>
             Favorilerim
           </Text>
@@ -495,10 +492,7 @@ export default function FavoritesScreen() {
           favorites.length === 0 ? (
             <View style={{ paddingTop: topPadding + 12 }}>
               <View style={{ paddingHorizontal: 20, paddingBottom: 24 }}>
-                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 6 }}>
-                  Daima Takipte
-                </Text>
-                <Text style={{ fontSize: 34, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -1.2 }}>
+                  <Text style={{ fontSize: 34, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -1.2 }}>
                   Favorilerim
                 </Text>
               </View>

@@ -153,10 +153,7 @@ export function ClarityLight() {
       <div style={{ padding: "8px 20px 16px", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: C.sub, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 6 }}>
-              Daima Takipte
-            </div>
-            <div style={{ fontSize: 34, fontWeight: 900, color: C.text, letterSpacing: -1.2, lineHeight: "1.05" }}>
+              <div style={{ fontSize: 34, fontWeight: 900, color: C.text, letterSpacing: -1.2, lineHeight: "1.05" }}>
               Favorilerim
             </div>
           </div>
