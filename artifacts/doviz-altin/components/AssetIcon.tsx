@@ -1,5 +1,12 @@
 import React from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, PixelRatio, StyleSheet, Text, View } from "react-native";
+
+const FLAG_WIDTHS = [20, 40, 80, 160, 320] as const;
+function flagCdnUri(flagCode: string, pointSize: number): string {
+  const needed = pointSize * PixelRatio.get();
+  const w = FLAG_WIDTHS.find((s) => s >= needed) ?? 320;
+  return `https://flagcdn.com/w${w}/${flagCode.toLowerCase()}.png`;
+}
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -53,7 +60,7 @@ export function AssetIcon({ code, type, size = 40, variant = "soft", tone, flagC
   if (type === "currency") {
     // Bayrak resmi: flagcdn.com'dan ülke kodu ile CDN bayrağı
     if (flagCode) {
-      const uri = `https://flagcdn.com/w40/${flagCode.toLowerCase()}.png`;
+      const uri = flagCdnUri(flagCode, size);
       return (
         <View
           style={[
