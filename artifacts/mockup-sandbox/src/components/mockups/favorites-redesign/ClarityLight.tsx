@@ -147,7 +147,6 @@ export function ClarityLight() {
       {/* Status bar */}
       <div style={{ height: 44, display: "flex", alignItems: "flex-end", padding: "0 20px 8px", justifyContent: "space-between", flexShrink: 0 }}>
         <span style={{ fontSize: 11, fontWeight: 700, color: C.sub }}>09:41</span>
-        <span style={{ fontSize: 10, color: C.sub }}>●●● WiFi</span>
       </div>
 
       {/* Header */}
