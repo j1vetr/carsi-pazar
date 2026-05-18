@@ -2,11 +2,9 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
   Platform,
-  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { router } from "expo-router";
@@ -29,9 +27,7 @@ export default function MarketScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { currencies, banks, favorites, toggleFavorite, refreshData, lastUpdated, lastRefreshFailed } = useApp();
-  const [activeTab, setActiveTab] = useState<"all" | "favorites">("all");
   const [manualRefreshing, setManualRefreshing] = useState(false);
-  const [search, setSearch] = useState("");
 
   const onManualRefresh = useCallback(async () => {
     haptics.tap();
@@ -57,21 +53,7 @@ export default function MarketScreen() {
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 84 : 60 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
 
-  const displayCurrencies = useMemo(() => {
-    let list =
-      activeTab === "favorites"
-        ? currencies.filter((c) => favorites.includes(c.code))
-        : currencies;
-    const q = search.trim().toLowerCase();
-    if (q) {
-      list = list.filter(
-        (c) =>
-          c.code.toLowerCase().includes(q) ||
-          c.nameTR.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [activeTab, currencies, favorites, search]);
+  const displayCurrencies = useMemo(() => currencies, [currencies]);
 
   const isLive = !!lastUpdated;
 
@@ -116,58 +98,6 @@ export default function MarketScreen() {
       letterSpacing: 0.6,
     },
 
-    searchRow: {
-      paddingHorizontal: 16,
-      paddingBottom: 10,
-    },
-    searchBox: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      backgroundColor: colors.surface,
-      borderRadius: 10,
-      paddingHorizontal: 12,
-      paddingVertical: Platform.OS === "ios" ? 9 : 6,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
-    },
-    searchInput: {
-      flex: 1,
-      fontSize: 14,
-      fontFamily: "Inter_500Medium",
-      color: colors.foreground,
-      padding: 0,
-      margin: 0,
-    },
-
-    segmentRow: {
-      flexDirection: "row",
-      marginHorizontal: 16,
-      marginBottom: 10,
-      backgroundColor: colors.surface,
-      borderRadius: 10,
-      padding: 3,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
-    },
-    segmentBtn: {
-      flex: 1,
-      paddingVertical: 8,
-      borderRadius: 8,
-      alignItems: "center",
-    },
-    segmentActive: {
-      backgroundColor: "#1B6AE4",
-    },
-    segmentText: {
-      fontSize: 13,
-      fontFamily: "Inter_700Bold",
-      color: colors.mutedForeground,
-    },
-    segmentActiveText: {
-      color: "#FFFFFF",
-    },
-
     sectionRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -201,47 +131,6 @@ export default function MarketScreen() {
           <View style={styles.liveDot} />
           <Text style={styles.liveBadgeText}>{isLive ? "CANLI" : "BAĞLANIYOR"}</Text>
         </View>
-      </View>
-
-      <View style={styles.searchRow}>
-        <View style={styles.searchBox}>
-          <Icon name="search" size={15} color={colors.mutedForeground} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Ara"
-            placeholderTextColor={colors.mutedForeground}
-            value={search}
-            onChangeText={setSearch}
-            returnKeyType="search"
-            clearButtonMode="while-editing"
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-          {search.length > 0 && Platform.OS !== "ios" ? (
-            <Pressable onPress={() => setSearch("")} hitSlop={8}>
-              <Icon name="close" size={15} color={colors.mutedForeground} />
-            </Pressable>
-          ) : null}
-        </View>
-      </View>
-
-      <View style={styles.segmentRow}>
-        <Pressable
-          style={[styles.segmentBtn, activeTab === "all" && styles.segmentActive]}
-          onPress={() => setActiveTab("all")}
-        >
-          <Text style={[styles.segmentText, activeTab === "all" && styles.segmentActiveText]}>
-            Tümü
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.segmentBtn, activeTab === "favorites" && styles.segmentActive]}
-          onPress={() => setActiveTab("favorites")}
-        >
-          <Text style={[styles.segmentText, activeTab === "favorites" && styles.segmentActiveText]}>
-            Favoriler
-          </Text>
-        </Pressable>
       </View>
 
       <ModernTableHeader currencyLayout />
@@ -323,29 +212,15 @@ export default function MarketScreen() {
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
-          activeTab === "favorites" ? (
-            <EmptyState
-              icon="star-outline"
-              title="Henüz Favori Döviz Yok"
-              description="Bir döviz satırının yıldızına dokunarak favorilerine ekleyebilirsin."
-              compact
-            />
-          ) : lastRefreshFailed && !search ? (
+          lastRefreshFailed ? (
             <ErrorState
               title="Kurlar Yüklenemedi"
               description="Bağlantını kontrol edip tekrar dene."
               onRetry={() => void refreshData()}
               compact
             />
-          ) : currencies.length === 0 ? (
-            <PriceRowSkeleton count={8} withIcon />
           ) : (
-            <EmptyState
-              icon="search"
-              title="Sonuç Bulunamadı"
-              description={`"${search}" için eşleşen döviz yok.`}
-              compact
-            />
+            <PriceRowSkeleton count={8} withIcon />
           )
         }
         contentContainerStyle={styles.list}
