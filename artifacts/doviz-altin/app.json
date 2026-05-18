@@ -27,7 +27,8 @@
       },
       "permissions": [
         "POST_NOTIFICATIONS",
-        "WAKE_LOCK"
+        "WAKE_LOCK",
+        "com.google.android.gms.permission.AD_ID"
       ]
     },
     "web": {
