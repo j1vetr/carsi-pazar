@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
 import {
-  Alert,
   FlatList,
   Platform,
   Pressable,
@@ -9,36 +8,49 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeInUp,
-} from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { haptics } from "@/lib/utils/haptics";
 import { Icon } from "@/components/Icon";
-import { PriceCard } from "@/components/PriceCard";
+import { AssetIcon } from "@/components/AssetIcon";
 import { SwipeableRow } from "@/components/common/SwipeableRow";
 import { PriceRowMenu } from "@/components/common/PriceRowMenu";
 import { useColors } from "@/hooks/useColors";
-import { useApp, CurrencyRate, GoldRate } from "@/contexts/AppContext";
+import { useApp, type CurrencyRate, type GoldRate } from "@/contexts/AppContext";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PriceCardSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
+import { formatPercent } from "@/lib/utils/format";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type FavRow =
-  | { kind: "header"; key: string; title: string; subtitle: string }
-  | { kind: "card"; key: string; type: "currency" | "gold"; item: CurrencyRate | GoldRate };
+  | { kind: "header"; key: string }
+  | { kind: "asset"; key: string; type: "currency" | "gold"; item: CurrencyRate | GoldRate };
 
-// ── Empty state ────────────────────────────────────────────────────────────
-function EmptyFavorites(_: { colors: any }) {
+// ── Category helpers ────────────────────────────────────────────────────────
+const CAT_COLOR = {
+  doviz:  { main: "#1246B5", soft: "#EEF3FF", label: "DÖVİZ"  },
+  altin:  { main: "#C09020", soft: "#FEF7E6", label: "ALTIN"  },
+  parite: { main: "#7B3FD4", soft: "#F3ECFF", label: "PARİTE" },
+} as const;
+type CatKey = keyof typeof CAT_COLOR;
+
+function itemCatKey(item: CurrencyRate | GoldRate, type: "currency" | "gold"): CatKey {
+  if (type === "gold") return "altin";
+  const c = item as CurrencyRate;
+  if (c.flag || c.code.length <= 4) {
+    if (c.code.includes("/") || c.code.length > 4) return "parite";
+  }
+  return "doviz";
+}
+
+// ── Empty state ─────────────────────────────────────────────────────────────
+function EmptyFavorites() {
   return (
     <EmptyState
       icon="star-outline"
       title="Henüz Favorin Yok"
-      description="Bir varlığın detay sayfasında sağ üstteki yıldız simgesine dokunarak favorilerine ekleyebilirsin."
+      description="Bir varlığın satırına uzun basarak ya da detay sayfasındaki yıldıza dokunarak favorilerine ekleyebilirsin."
       action={{
         label: "Piyasayı Keşfet",
         icon: "trending-up",
@@ -51,7 +63,169 @@ function EmptyFavorites(_: { colors: any }) {
   );
 }
 
-// ── Main screen ───────────────────────────────────────────────────────────
+// ── Mini direction bar ──────────────────────────────────────────────────────
+function DirBar({ pct, colors }: { pct: number; colors: ReturnType<typeof useColors> }) {
+  const pos = pct >= 0;
+  const w = Math.min(Math.abs(pct) / 2, 1) * 18;
+  return (
+    <View style={{ width: 26, alignItems: pos ? "flex-start" : "flex-end", justifyContent: "center", position: "relative" }}>
+      <View style={{ position: "absolute", left: "50%" as unknown as number, top: 0, bottom: 0, width: StyleSheet.hairlineWidth, backgroundColor: colors.border }} />
+      <View style={{
+        height: 6, borderRadius: 3, width: w,
+        backgroundColor: pos ? colors.rise : colors.fall, opacity: 0.75,
+        marginLeft: pos ? 13 : undefined,
+        marginRight: !pos ? 13 : undefined,
+      }} />
+    </View>
+  );
+}
+
+// ── Category tag ────────────────────────────────────────────────────────────
+function CatTag({ catKey, colors }: { catKey: CatKey; colors: ReturnType<typeof useColors> }) {
+  const { main, soft, label } = CAT_COLOR[catKey];
+  return (
+    <View style={{
+      backgroundColor: soft,
+      borderRadius: 4,
+      paddingHorizontal: 5,
+      paddingVertical: 2,
+    }}>
+      <Text style={{
+        fontSize: 7.5,
+        fontFamily: "Inter_700Bold",
+        color: main,
+        letterSpacing: 0.8,
+      }}>{label}</Text>
+    </View>
+  );
+}
+
+// ── Summary stat card ───────────────────────────────────────────────────────
+function StatCard({
+  label, line1, line2, textColor, bgColor, colors,
+}: {
+  label: string; line1: string; line2?: string;
+  textColor: string; bgColor: string;
+  colors: ReturnType<typeof useColors>;
+}) {
+  return (
+    <View style={{
+      flex: 1,
+      backgroundColor: bgColor,
+      borderRadius: 12,
+      padding: 10,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: textColor + "25",
+    }}>
+      <Text style={{ fontSize: 7.5, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 1.2, marginBottom: 4 }}>
+        {label}
+      </Text>
+      <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: textColor, letterSpacing: -0.4, lineHeight: 16 }}>
+        {line1}
+      </Text>
+      {line2 ? (
+        <Text style={{ fontSize: 10.5, fontFamily: "Inter_700Bold", color: textColor, opacity: 0.75, letterSpacing: -0.2 }}>
+          {line2}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+// ── Asset row ──────────────────────────────────────────────────────────────
+function AssetRow({
+  item, type, colors,
+  onPress, onLongPress,
+}: {
+  item: CurrencyRate | GoldRate;
+  type: "currency" | "gold";
+  colors: ReturnType<typeof useColors>;
+  onPress: () => void;
+  onLongPress: () => void;
+}) {
+  const isPos = item.changePercent >= 0;
+  const hasChange = Math.abs(item.changePercent) >= 0.005;
+  const changeColor = hasChange ? (isPos ? colors.rise : colors.fall) : colors.mutedForeground;
+  const catKey = itemCatKey(item, type);
+  const flagCode = type === "currency" ? (item as CurrencyRate).flag : undefined;
+
+  const buyStr = item.buy >= 1000
+    ? item.buy.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : item.buy.toLocaleString("tr-TR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+
+  return (
+    <Pressable
+      onPress={() => { haptics.tap(); onPress(); }}
+      onLongPress={() => { haptics.longPress(); onLongPress(); }}
+      delayLongPress={350}
+      android_ripple={{ color: colors.surface }}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 18,
+        paddingVertical: 13,
+        backgroundColor: colors.card,
+        gap: 12,
+      }}
+    >
+      {/* Flag / icon */}
+      <AssetIcon
+        code={item.code}
+        type={type}
+        size={40}
+        variant="soft"
+        flagCode={flagCode}
+      />
+
+      {/* Name column */}
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+          <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}
+            numberOfLines={1}
+          >
+            {item.code}
+          </Text>
+          <CatTag catKey={catKey} colors={colors} />
+        </View>
+        <Text style={{ fontSize: 10.5, fontFamily: "Inter_400Regular", color: colors.mutedForeground }}
+          numberOfLines={1}
+        >
+          {item.nameTR}
+        </Text>
+      </View>
+
+      {/* Direction bar */}
+      <DirBar pct={item.changePercent} colors={colors} />
+
+      {/* Price column */}
+      <View style={{ alignItems: "flex-end", flexShrink: 0 }}>
+        <Text style={{
+          fontSize: 15, fontFamily: "Inter_700Bold",
+          color: colors.foreground, letterSpacing: -0.4,
+          fontVariant: ["tabular-nums"],
+        }}>
+          {buyStr}
+        </Text>
+        {hasChange ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 2, marginTop: 3 }}>
+            <Icon
+              name={isPos ? "caret-up" : "caret-down"}
+              size={9}
+              color={changeColor}
+            />
+            <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: changeColor, letterSpacing: -0.1 }}>
+              {formatPercent(item.changePercent)}
+            </Text>
+          </View>
+        ) : (
+          <Text style={{ fontSize: 10, fontFamily: "Inter_500Medium", color: colors.mutedForeground, marginTop: 3 }}>—</Text>
+        )}
+      </View>
+    </Pressable>
+  );
+}
+
+// ── Main screen ─────────────────────────────────────────────────────────────
 export default function FavoritesScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -61,27 +235,23 @@ export default function FavoritesScreen() {
     lastUpdated, lastRefreshFailed, refreshData,
   } = useApp();
   const [manualRefreshing, setManualRefreshing] = useState(false);
+  const [menu, setMenu] = useState<{ item: CurrencyRate | GoldRate; type: "currency" | "gold" } | null>(null);
+
   const onManualRefresh = useCallback(async () => {
     haptics.tap();
     setManualRefreshing(true);
     try {
       const r = await refreshData();
-      if (r.ok) haptics.success();
-      else haptics.error();
-    } catch {
-      haptics.error();
-    } finally {
-      setManualRefreshing(false);
-    }
+      if (r.ok) haptics.success(); else haptics.error();
+    } catch { haptics.error(); }
+    finally { setManualRefreshing(false); }
   }, [refreshData]);
-
-  const [menu, setMenu] = useState<{ item: CurrencyRate | GoldRate; type: "currency" | "gold" } | null>(null);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const isAndroid = Platform.OS === "android";
   const bottomPadding = Platform.OS === "web" ? 100 : 76 + (isAndroid ? Math.max(insets.bottom, 16) : insets.bottom);
 
-  // ── Resolve & group favorites ────────────────────────────────────────
+  // ── Resolve & group ──────────────────────────────────────────────────────
   const grouped = useMemo(() => {
     const fav = new Set(favorites);
     const bankUsd = banks.find((b) => b.code === "BANKAUSD" && fav.has(b.code));
@@ -94,32 +264,19 @@ export default function FavoritesScreen() {
       ...goldRates.filter((g) => fav.has(g.code)),
       ...banks.filter((b) => b.code !== "BANKAUSD" && fav.has(b.code)),
     ];
-
-    // Dedupe parities (in case of overlap)
     const seen = new Set<string>();
-    const uniqueParites = pariteList.filter((p) => {
-      if (seen.has(p.code)) return false;
-      seen.add(p.code);
-      return true;
-    });
-
+    const uniqueParites = pariteList.filter((p) => { if (seen.has(p.code)) return false; seen.add(p.code); return true; });
     return { dovizList, altinList, pariteList: uniqueParites };
   }, [favorites, currencies, parities, currencyParities, goldRates, banks]);
 
   const totalCount = grouped.dovizList.length + grouped.altinList.length + grouped.pariteList.length;
   const missingCount = favorites.length - totalCount;
 
-  // ── Hero stats ─────────────────────────────────────────────────────
+  // ── Stats ────────────────────────────────────────────────────────────────
   const stats = useMemo(() => {
-    const all: (CurrencyRate | GoldRate)[] = [
-      ...grouped.dovizList, ...grouped.altinList, ...grouped.pariteList,
-    ];
-    if (all.length === 0) {
-      return { avgChange: 0, topGainer: null as (CurrencyRate | GoldRate) | null, topLoser: null as (CurrencyRate | GoldRate) | null };
-    }
-    let sum = 0;
-    let topGainer = all[0]!;
-    let topLoser = all[0]!;
+    const all: (CurrencyRate | GoldRate)[] = [...grouped.dovizList, ...grouped.altinList, ...grouped.pariteList];
+    if (all.length === 0) return { avgChange: 0, topGainer: null as (CurrencyRate | GoldRate) | null, topLoser: null as (CurrencyRate | GoldRate) | null };
+    let sum = 0, topGainer = all[0]!, topLoser = all[0]!;
     for (const r of all) {
       sum += r.changePercent;
       if (r.changePercent > topGainer.changePercent) topGainer = r;
@@ -130,310 +287,228 @@ export default function FavoritesScreen() {
 
   const isAvgPos = stats.avgChange >= 0;
 
-  // ── Build flat row list for FlatList ───────────────────────────────
+  // ── Flat row list ─────────────────────────────────────────────────────────
   const rows = useMemo<FavRow[]>(() => {
-    const list: FavRow[] = [];
-    if (grouped.dovizList.length > 0) {
-      list.push({ kind: "header", key: "h-doviz", title: "Döviz Kurları", subtitle: `${grouped.dovizList.length} varlık` });
-      grouped.dovizList.forEach((c) => list.push({ kind: "card", key: `c-${c.code}`, type: "currency", item: c }));
-    }
-    if (grouped.altinList.length > 0) {
-      list.push({ kind: "header", key: "h-altin", title: "Altın Ve Madenler", subtitle: `${grouped.altinList.length} varlık` });
-      grouped.altinList.forEach((g) => list.push({ kind: "card", key: `g-${g.code}`, type: "gold", item: g }));
-    }
-    if (grouped.pariteList.length > 0) {
-      list.push({ kind: "header", key: "h-parite", title: "Pariteler", subtitle: `${grouped.pariteList.length} varlık` });
-      grouped.pariteList.forEach((p) => list.push({ kind: "card", key: `p-${p.code}`, type: "currency", item: p }));
-    }
+    if (totalCount === 0) return [];
+    const list: FavRow[] = [{ kind: "header", key: "header" }];
+    grouped.dovizList.forEach((c) => list.push({ kind: "asset", key: `c-${c.code}`, type: "currency", item: c }));
+    grouped.altinList.forEach((g) => list.push({ kind: "asset", key: `g-${g.code}`, type: "gold", item: g }));
+    grouped.pariteList.forEach((p) => list.push({ kind: "asset", key: `p-${p.code}`, type: "currency", item: p }));
     return list;
-  }, [grouped]);
+  }, [grouped, totalCount]);
 
-  // ── Confirm remove ─────────────────────────────────────────────────
-  const handleRemove = (code: string, name: string) => {
-    Alert.alert(
-      "Favorilerden Çıkar",
-      `${name} favorilerinden çıkarılsın mı?`,
-      [
-        { text: "İptal", style: "cancel" },
-        {
-          text: "Çıkar",
-          style: "destructive",
-          onPress: () => {
-            haptics.warning();
-            toggleFavorite(code);
-          },
-        },
-      ]
-    );
-  };
-
-  // ── Hero ───────────────────────────────────────────────────────────
-  const heroSection = (
-    <View style={{ paddingHorizontal: 20, paddingBottom: 24 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.gold }} />
-        <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 1.4 }}>
-          TAKİP LİSTEM
-        </Text>
-      </View>
-
-      {/* Big count */}
-      <View style={{ flexDirection: "row", alignItems: "baseline", marginTop: 10 }}>
-        <Text style={{ fontSize: 56, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -2, includeFontPadding: false }}>
-          {totalCount}
-        </Text>
-        <Text style={{ fontSize: 18, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, marginLeft: 10, letterSpacing: -0.4 }}>
-          {totalCount === 1 ? "varlık" : "varlık"}
-        </Text>
-      </View>
-
-      {/* Avg change pill */}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>
-        <View style={{
-          flexDirection: "row", alignItems: "center", gap: 5,
-          backgroundColor: (isAvgPos ? colors.rise : colors.fall) + "1A",
-          paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999,
-        }}>
-          <Icon name={isAvgPos ? "trending-up" : "trending-down"} size={13} color={isAvgPos ? colors.rise : colors.fall} />
-          <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: isAvgPos ? colors.rise : colors.fall, letterSpacing: -0.2 }}>
-            {isAvgPos ? "+" : ""}{stats.avgChange.toFixed(2)}%
-          </Text>
-        </View>
-        <Text style={{ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground }}>
-          ortalama günlük değişim
-        </Text>
-      </View>
-
-      {/* Top gainer / loser strip */}
-      {stats.topGainer && stats.topLoser && stats.topGainer.code !== stats.topLoser.code ? (
-        <View style={{ flexDirection: "row", marginTop: 22, gap: 10 }}>
-          {/* Top gainer */}
-          <View style={{
-            flex: 1, backgroundColor: colors.card, borderRadius: 14,
-            paddingHorizontal: 14, paddingVertical: 12,
-            borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
-          }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-              <Icon name="arrow-up" size={10} color={colors.rise} />
-              <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: colors.rise, letterSpacing: 0.7 }}>
-                EN ÇOK YÜKSELEN
-              </Text>
-            </View>
-            <Text numberOfLines={1} style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 6, letterSpacing: -0.3 }}>
-              {stats.topGainer.code}
-            </Text>
-            <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: colors.rise, marginTop: 2, letterSpacing: -0.2 }}>
-              +{stats.topGainer.changePercent.toFixed(2)}%
-            </Text>
-          </View>
-          {/* Top loser */}
-          <View style={{
-            flex: 1, backgroundColor: colors.card, borderRadius: 14,
-            paddingHorizontal: 14, paddingVertical: 12,
-            borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
-          }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-              <Icon name="arrow-down" size={10} color={colors.fall} />
-              <Text style={{ fontSize: 10, fontFamily: "Inter_700Bold", color: colors.fall, letterSpacing: 0.7 }}>
-                EN ÇOK DÜŞEN
-              </Text>
-            </View>
-            <Text numberOfLines={1} style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 6, letterSpacing: -0.3 }}>
-              {stats.topLoser.code}
-            </Text>
-            <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: colors.fall, marginTop: 2, letterSpacing: -0.2 }}>
-              {stats.topLoser.changePercent.toFixed(2)}%
-            </Text>
-          </View>
-        </View>
-      ) : null}
-
-      {/* Distribution */}
-      {totalCount > 1 ? (
-        <View style={{ marginTop: 22 }}>
-          <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 0.7, marginBottom: 10 }}>
-            DAĞILIM
-          </Text>
-          <View style={{ flexDirection: "row", height: 10, borderRadius: 5, overflow: "hidden", backgroundColor: colors.secondary }}>
-            {grouped.dovizList.length > 0 ? (
-              <View style={{ flex: grouped.dovizList.length, backgroundColor: "#3B82F6" }} />
-            ) : null}
-            {grouped.altinList.length > 0 ? (
-              <View style={{ flex: grouped.altinList.length, backgroundColor: colors.gold }} />
-            ) : null}
-            {grouped.pariteList.length > 0 ? (
-              <View style={{ flex: grouped.pariteList.length, backgroundColor: "#A855F7" }} />
-            ) : null}
-          </View>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, marginTop: 12 }}>
-            {grouped.dovizList.length > 0 ? (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-                <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: "#3B82F6" }} />
-                <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>
-                  Döviz
-                </Text>
-                <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: colors.mutedForeground }}>
-                  {grouped.dovizList.length}
-                </Text>
-              </View>
-            ) : null}
-            {grouped.altinList.length > 0 ? (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-                <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: colors.gold }} />
-                <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>
-                  Altın
-                </Text>
-                <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: colors.mutedForeground }}>
-                  {grouped.altinList.length}
-                </Text>
-              </View>
-            ) : null}
-            {grouped.pariteList.length > 0 ? (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-                <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: "#A855F7" }} />
-                <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>
-                  Parite
-                </Text>
-                <Text style={{ fontSize: 12, fontFamily: "Inter_700Bold", color: colors.mutedForeground }}>
-                  {grouped.pariteList.length}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        </View>
-      ) : null}
-
-      {/* Pending data hint */}
-      {missingCount > 0 ? (
-        <View style={{
-          flexDirection: "row", alignItems: "center", gap: 8,
-          marginTop: 18, padding: 12, borderRadius: 12,
-          backgroundColor: colors.secondary,
-          borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
-        }}>
-          <Icon name="alert-circle" size={14} color={colors.mutedForeground} />
-          <Text style={{ flex: 1, fontSize: 11.5, fontFamily: "Inter_500Medium", color: colors.mutedForeground, letterSpacing: -0.1 }}>
-            {missingCount} favori için fiyat verisi henüz yüklenmedi.
-          </Text>
-        </View>
-      ) : null}
-    </View>
-  );
-
-  // ── Render ─────────────────────────────────────────────────────────
-  return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Header */}
-      <View style={{ paddingTop: topPadding + 12, paddingHorizontal: 20, paddingBottom: 18, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, letterSpacing: 0.6, textTransform: "uppercase" }}>
+  // ── Header block ──────────────────────────────────────────────────────────
+  const renderHeaderBlock = () => (
+    <View>
+      {/* Title row */}
+      <View style={{
+        paddingTop: topPadding + 12,
+        paddingHorizontal: 20,
+        paddingBottom: 16,
+        flexDirection: "row",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+      }}>
+        <View>
+          <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 6 }}>
             Daima Takipte
           </Text>
-          <Text style={{ fontSize: 32, fontFamily: "Inter_700Bold", color: colors.foreground, marginTop: 2, letterSpacing: -0.8 }}>
+          <Text style={{ fontSize: 34, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -1.2 }}>
             Favorilerim
           </Text>
         </View>
         {totalCount > 0 ? (
           <View style={{
-            flexDirection: "row", alignItems: "center", gap: 6,
-            backgroundColor: colors.gold + "1A",
-            paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
-            borderWidth: StyleSheet.hairlineWidth, borderColor: colors.gold + "40",
+            width: 52, height: 52,
+            backgroundColor: colors.accentSoft,
+            borderRadius: 14,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: colors.gold + "50",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 2,
+            marginTop: 4,
           }}>
-            <Icon name="star" size={13} color={colors.gold} />
-            <Text style={{ fontSize: 13, fontFamily: "Inter_700Bold", color: colors.goldDark ?? colors.gold, letterSpacing: -0.1 }}>
-              {totalCount}
+            <Icon name="star" size={18} color={colors.gold} />
+            <Text style={{ fontSize: 8, fontFamily: "Inter_700Bold", color: colors.gold, letterSpacing: 0.5 }}>
+              {totalCount} VARLIK
             </Text>
           </View>
         ) : null}
       </View>
 
+      {/* Stats strip */}
+      {totalCount > 0 ? (
+        <View style={{ flexDirection: "row", gap: 7, paddingHorizontal: 20, paddingBottom: 16 }}>
+          <StatCard
+            label="ORT. DEĞİŞİM"
+            line1={`${isAvgPos ? "+" : ""}${stats.avgChange.toFixed(2)}%`}
+            textColor={isAvgPos ? colors.rise : colors.fall}
+            bgColor={isAvgPos ? colors.riseSoft : colors.fallSoft}
+            colors={colors}
+          />
+          {stats.topGainer ? (
+            <StatCard
+              label="EN YÜKSELEN"
+              line1={stats.topGainer.code}
+              line2={`+${stats.topGainer.changePercent.toFixed(2)}%`}
+              textColor={colors.primary}
+              bgColor={colors.secondary}
+              colors={colors}
+            />
+          ) : null}
+          {stats.topLoser && stats.topLoser.code !== stats.topGainer?.code ? (
+            <StatCard
+              label="EN DÜŞEN"
+              line1={stats.topLoser.code}
+              line2={`${stats.topLoser.changePercent.toFixed(2)}%`}
+              textColor={colors.fall}
+              bgColor={colors.fallSoft}
+              colors={colors}
+            />
+          ) : null}
+        </View>
+      ) : null}
+
+      {/* Distribution bar */}
+      {totalCount > 1 ? (
+        <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
+          <View style={{ flexDirection: "row", height: 6, borderRadius: 3, overflow: "hidden", gap: 2 }}>
+            {grouped.dovizList.length > 0 ? (
+              <View style={{ flex: grouped.dovizList.length, backgroundColor: CAT_COLOR.doviz.main, opacity: 0.8, borderRadius: 3 }} />
+            ) : null}
+            {grouped.altinList.length > 0 ? (
+              <View style={{ flex: grouped.altinList.length, backgroundColor: CAT_COLOR.altin.main, opacity: 0.8, borderRadius: 3 }} />
+            ) : null}
+            {grouped.pariteList.length > 0 ? (
+              <View style={{ flex: grouped.pariteList.length, backgroundColor: CAT_COLOR.parite.main, opacity: 0.8, borderRadius: 3 }} />
+            ) : null}
+          </View>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, marginTop: 9 }}>
+            {grouped.dovizList.length > 0 ? (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: CAT_COLOR.doviz.main }} />
+                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>Döviz</Text>
+                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground }}>{grouped.dovizList.length}</Text>
+              </View>
+            ) : null}
+            {grouped.altinList.length > 0 ? (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: CAT_COLOR.altin.main }} />
+                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>Altın</Text>
+                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground }}>{grouped.altinList.length}</Text>
+              </View>
+            ) : null}
+            {grouped.pariteList.length > 0 ? (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: CAT_COLOR.parite.main }} />
+                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>Parite</Text>
+                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground }}>{grouped.pariteList.length}</Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      ) : null}
+
+      {/* Missing data hint */}
+      {missingCount > 0 ? (
+        <View style={{
+          flexDirection: "row", alignItems: "center", gap: 8,
+          marginHorizontal: 20, marginBottom: 12,
+          padding: 12, borderRadius: 12,
+          backgroundColor: colors.secondary,
+          borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
+        }}>
+          <Icon name="alert-circle" size={14} color={colors.mutedForeground} />
+          <Text style={{ flex: 1, fontSize: 11.5, fontFamily: "Inter_500Medium", color: colors.mutedForeground }}>
+            {missingCount} favori için fiyat verisi henüz yüklenmedi.
+          </Text>
+        </View>
+      ) : null}
+
+      {/* Divider section break */}
+      <View style={{
+        height: 8,
+        backgroundColor: colors.surface,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.border,
+      }} />
+    </View>
+  );
+
+  // ── Render ─────────────────────────────────────────────────────────────
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <FlatList
         data={rows}
         keyExtractor={(r) => r.key}
         renderItem={({ item, index }) => {
-          if (item.kind === "header") {
-            return (
-              <View
-                style={{ paddingHorizontal: 20, paddingTop: index === 0 ? 0 : 22, paddingBottom: 10, flexDirection: "row", alignItems: "baseline", gap: 8 }}
-              >
-                <Text style={{ fontSize: 17, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -0.3 }}>
-                  {item.title}
-                </Text>
-                <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: colors.mutedForeground }}>
-                  {item.subtitle}
-                </Text>
-              </View>
-            );
-          }
+          if (item.kind === "header") return renderHeaderBlock();
+
+          const assetIndex = index - 1; // subtract header row
+          const isLast = index === rows.length - 1;
+
           return (
-            <View style={{ paddingHorizontal: 16 }}>
+            <View>
               <SwipeableRow
-                rightActions={[
-                  {
-                    label: "Çıkar",
-                    icon: "trash-outline",
-                    color: colors.fall,
-                    destructive: true,
-                    onPress: () => handleRemove(item.item.code, item.item.nameTR ?? item.item.code),
+                rightActions={[{
+                  label: "Çıkar",
+                  icon: "trash-outline",
+                  color: colors.fall,
+                  destructive: true,
+                  onPress: () => {
+                    haptics.warning();
+                    toggleFavorite(item.item.code);
                   },
-                ]}
+                }]}
                 leftActions={[
                   {
                     label: "Alarm",
                     icon: "notifications-outline",
                     color: colors.primary,
-                    onPress: () => router.push({
-                      pathname: "/alerts",
-                      params: { code: item.item.code, type: item.type },
-                    }),
+                    onPress: () => router.push({ pathname: "/alerts", params: { code: item.item.code, type: item.type } }),
                   },
                   {
-                    label: "Portföye Ekle",
+                    label: "Portföye",
                     icon: "briefcase-outline",
                     color: colors.rise,
-                    onPress: () => router.push({
-                      pathname: "/(tabs)/portfolio",
-                      params: { addCode: item.item.code, addType: item.type },
-                    }),
+                    onPress: () => router.push({ pathname: "/(tabs)/portfolio", params: { addCode: item.item.code, addType: item.type } }),
                   },
                 ]}
               >
-                <PriceCard
+                <AssetRow
                   item={item.item}
                   type={item.type}
-                  isFavorite
-                  onFavoriteToggle={() => handleRemove(item.item.code, item.item.nameTR ?? item.item.code)}
+                  colors={colors}
+                  onPress={() => router.push({ pathname: "/detail/[code]", params: { code: item.item.code, type: item.type } })}
                   onLongPress={() => setMenu({ item: item.item, type: item.type })}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/detail/[code]",
-                      params: { code: item.item.code, type: item.type },
-                    })
-                  }
                 />
               </SwipeableRow>
+              {!isLast ? (
+                <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 70 }} />
+              ) : null}
             </View>
           );
         }}
-        ListHeaderComponent={
-          totalCount > 0 ? (
-            <>
-              {heroSection}
-              <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginHorizontal: 20, marginBottom: 8 }} />
-            </>
-          ) : null
-        }
         ListEmptyComponent={
           favorites.length === 0 ? (
-            <EmptyFavorites colors={colors} />
+            <View style={{ paddingTop: topPadding + 12 }}>
+              <View style={{ paddingHorizontal: 20, paddingBottom: 24 }}>
+                <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 6 }}>
+                  Daima Takipte
+                </Text>
+                <Text style={{ fontSize: 34, fontFamily: "Inter_700Bold", color: colors.foreground, letterSpacing: -1.2 }}>
+                  Favorilerim
+                </Text>
+              </View>
+              <EmptyFavorites />
+            </View>
           ) : currencies.length === 0 && goldRates.length === 0 && lastUpdated === null ? (
-            // İlk açılış: hiç veri yok, hata da yok → iskelet.
-            // İlk açılış başarısız olduysa (lastRefreshFailed) → ErrorState ile retry.
             lastRefreshFailed ? (
               <ErrorState
                 title="Favoriler Yüklenemedi"
-                description="Favori varlıkların için fiyat bilgisi alınamadı. İnternet bağlantını kontrol edip tekrar dene."
+                description="Favori varlıkların için fiyat bilgisi alınamadı."
                 icon="cloud-offline-outline"
                 onRetry={() => { void refreshData(); }}
               />
@@ -442,26 +517,25 @@ export default function FavoritesScreen() {
             )
           ) : null
         }
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
         ListFooterComponent={
           totalCount > 0 ? (
-            <View style={{ alignItems: "center", marginTop: 22 }}>
+            <View style={{ alignItems: "center", paddingVertical: 20 }}>
               <View style={{
                 flexDirection: "row", alignItems: "center", gap: 6,
-                backgroundColor: colors.secondary,
-                paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999,
+                backgroundColor: colors.surface,
+                paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999,
                 borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
               }}>
                 <Icon name="star-outline" size={11} color={colors.mutedForeground} />
-                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, letterSpacing: -0.1 }}>
-                  Çıkarmak için yıldıza dokun
+                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground }}>
+                  Çıkarmak için sola kaydır
                 </Text>
               </View>
             </View>
           ) : null
         }
         contentContainerStyle={[
-          { paddingBottom: bottomPadding, paddingTop: 4 },
+          { paddingBottom: bottomPadding },
           favorites.length === 0 && { flex: 1 },
         ]}
         showsVerticalScrollIndicator={false}

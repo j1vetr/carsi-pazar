@@ -10,6 +10,7 @@ import { haptics } from "@/lib/utils/haptics";
 import { useColors } from "@/hooks/useColors";
 import { CurrencyRate, GoldRate } from "@/contexts/AppContext";
 import { AssetIcon } from "@/components/AssetIcon";
+import type { CurrencyRate as _CR } from "@/contexts/AppContext";
 
 interface PriceCardProps {
   item: CurrencyRate | GoldRate;
@@ -149,7 +150,13 @@ export function PriceCard({
       <Animated.View style={[styles.flash, flashStyle]} pointerEvents="none" />
       {!hideIcon && (
         <View style={styles.iconWrap}>
-          <AssetIcon code={item.code} type={type} size={38} variant="soft" />
+          <AssetIcon
+            code={item.code}
+            type={type}
+            size={38}
+            variant="soft"
+            flagCode={(item as _CR).flag}
+          />
         </View>
       )}
       <View style={styles.nameCol}>
