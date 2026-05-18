@@ -17,6 +17,7 @@ import { SwipeableRow } from "@/components/common/SwipeableRow";
 import { PriceRowMenu } from "@/components/common/PriceRowMenu";
 import { useColors } from "@/hooks/useColors";
 import { useApp, type CurrencyRate, type GoldRate } from "@/contexts/AppContext";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PriceCardSkeleton } from "@/components/common/skeletons/PriceRowSkeleton";
@@ -513,17 +514,20 @@ export default function FavoritesScreen() {
         }
         ListFooterComponent={
           totalCount > 0 ? (
-            <View style={{ alignItems: "center", paddingVertical: 20 }}>
-              <View style={{
-                flexDirection: "row", alignItems: "center", gap: 6,
-                backgroundColor: colors.surface,
-                paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999,
-                borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
-              }}>
-                <Icon name="star-outline" size={11} color={colors.mutedForeground} />
-                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground }}>
-                  Çıkarmak için sola kaydır
-                </Text>
+            <View>
+              <AdBanner style={{ marginTop: 8 }} />
+              <View style={{ alignItems: "center", paddingVertical: 20 }}>
+                <View style={{
+                  flexDirection: "row", alignItems: "center", gap: 6,
+                  backgroundColor: colors.surface,
+                  paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999,
+                  borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
+                }}>
+                  <Icon name="star-outline" size={11} color={colors.mutedForeground} />
+                  <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground }}>
+                    Çıkarmak için sola kaydır
+                  </Text>
+                </View>
               </View>
             </View>
           ) : null

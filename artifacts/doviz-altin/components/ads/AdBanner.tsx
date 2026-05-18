@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
 import { BannerAd, BannerAdSize, TestIds } from "react-native-google-mobile-ads";
 
@@ -9,6 +9,7 @@ const unitId = __DEV__ ? TestIds.BANNER : UNIT_ID;
 export function AdBanner({ style }: { style?: StyleProp<ViewStyle> }) {
   const [failed, setFailed] = useState(false);
 
+  if (Platform.OS !== "android") return null;
   if (failed) return null;
 
   return (
