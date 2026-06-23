@@ -37,14 +37,36 @@ interface AssetIconProps {
   flagCode?: string;
 }
 
-export function AssetIcon({ code, type, size = 40, variant = "soft", tone, flagCode }: AssetIconProps) {
+export function AssetIcon({
+  code,
+  type,
+  size = 40,
+  variant = "soft",
+  tone,
+  flagCode,
+}: AssetIconProps) {
   const isGold = type === "gold";
   const palette = tone ?? (isGold ? "gold" : "primary");
 
   const colorMap = {
-    primary: { soft: "#EEF3FA", solid: "#0B3D91", line: "#1E5BC6", text: "#0B3D91" },
-    gold:    { soft: "#FBF3D5", solid: "#C9A227", line: "#C9A227", text: "#8A6E14" },
-    neutral: { soft: "#F4F7FB", solid: "#6B7B95", line: "#6B7B95", text: "#0B1F3A" },
+    primary: {
+      soft: "#EEF3FA",
+      solid: "#0B3D91",
+      line: "#1E5BC6",
+      text: "#0B3D91",
+    },
+    gold: {
+      soft: "#FBF3D5",
+      solid: "#C9A227",
+      line: "#C9A227",
+      text: "#8A6E14",
+    },
+    neutral: {
+      soft: "#F4F7FB",
+      solid: "#6B7B95",
+      line: "#6B7B95",
+      text: "#0B1F3A",
+    },
   } as const;
   const c = colorMap[palette];
 
@@ -52,8 +74,12 @@ export function AssetIcon({ code, type, size = 40, variant = "soft", tone, flagC
     variant === "solid"
       ? { backgroundColor: c.solid, borderWidth: 0 }
       : variant === "line"
-      ? { backgroundColor: "transparent", borderWidth: 1.5, borderColor: c.line }
-      : { backgroundColor: c.soft, borderWidth: 0 };
+        ? {
+            backgroundColor: "transparent",
+            borderWidth: 1.5,
+            borderColor: c.line,
+          }
+        : { backgroundColor: c.soft, borderWidth: 0 };
 
   const fgColor = variant === "solid" ? "#FFFFFF" : c.text;
 
@@ -89,7 +115,13 @@ export function AssetIcon({ code, type, size = 40, variant = "soft", tone, flagC
     const symbol = CURRENCY_SYMBOLS[code] ?? code.slice(0, 2);
     const fontSize = symbol.length > 1 ? size * 0.36 : size * 0.5;
     return (
-      <View style={[styles.box, { width: size, height: size, borderRadius: size / 2 }, containerStyle]}>
+      <View
+        style={[
+          styles.box,
+          { width: size, height: size, borderRadius: size / 2 },
+          containerStyle,
+        ]}
+      >
         <Text
           style={{
             fontSize,
@@ -111,7 +143,13 @@ export function AssetIcon({ code, type, size = 40, variant = "soft", tone, flagC
   }
 
   return (
-    <View style={[styles.box, { width: size, height: size, borderRadius: size / 2 }, containerStyle]}>
+    <View
+      style={[
+        styles.box,
+        { width: size, height: size, borderRadius: size / 2 },
+        containerStyle,
+      ]}
+    >
       <Text
         style={{
           fontSize: size * 0.5,
