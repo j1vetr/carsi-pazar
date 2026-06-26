@@ -96,10 +96,11 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    void initAds().then(() => {
-      initAppOpenAd();
-      preloadInterstitial();
-    });
+    // Her üçü eş zamanlı başlatılır; appOpenAd ve interstitial kendi içinde
+    // initAds() promise'ini bekler — sıralı bekleme olmadan hızlanır.
+    void initAds();
+    initAppOpenAd();
+    preloadInterstitial();
   }, []);
 
   // First-launch onboarding takes precedence over startup-tab routing.

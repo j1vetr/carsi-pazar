@@ -1,9 +1,15 @@
 import MobileAds from "react-native-google-mobile-ads";
 
-export async function initAds(): Promise<void> {
-  try {
-    await MobileAds().initialize();
-  } catch {
-    // SDK init başarısız olursa sessizce geç — reklamlar gösterilmez ama uygulama çökmez
+// index.js'de başlatılan init varsa aynı promise'i döndür, tekrar başlatma.
+// MobileAds().initialize() zaten singleton davranır ama bunu garanti altına alıyoruz.
+let initPromise: Promise<void> | null = null;
+
+export function initAds(): Promise<void> {
+  if (!initPromise) {
+    initPromise = MobileAds()
+      .initialize()
+      .then(() => {})
+      .catch(() => {});
   }
+  return initPromise;
 }
