@@ -34,6 +34,8 @@ import { loadStartupTab, routeForStartupTab } from "@/lib/storage/startupPref";
 import { registerWidgetBackgroundTask } from "@/lib/widget/widgetBackgroundTask";
 import { refreshPriceWidget } from "@/widgets/refresh";
 import { initAds } from "@/lib/ads/initAds";
+import { initAppOpenAd } from "@/lib/ads/appOpenAd";
+import { preloadInterstitial } from "@/lib/ads/interstitialAd";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -94,7 +96,10 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    void initAds();
+    void initAds().then(() => {
+      initAppOpenAd();
+      preloadInterstitial();
+    });
   }, []);
 
   // First-launch onboarding takes precedence over startup-tab routing.

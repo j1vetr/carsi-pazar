@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Platform,
   Pressable,
@@ -6,8 +6,10 @@ import {
   Text,
   View,
 } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { Icon } from "@/components/Icon";
 import { router, useLocalSearchParams } from "expo-router";
+import { showInterstitialIfReady } from "@/lib/ads/interstitialAd";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/contexts/AppContext";
@@ -60,6 +62,15 @@ export default function DetailScreen() {
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const bottomPadding = Platform.OS === "web" ? 34 : insets.bottom;
+
+  // Kullanıcı detay sayfasından ayrılırken interstitial göster
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        showInterstitialIfReady();
+      };
+    }, [])
+  );
 
   const item = code ? (findRateByCode(code) as any) : undefined;
 
